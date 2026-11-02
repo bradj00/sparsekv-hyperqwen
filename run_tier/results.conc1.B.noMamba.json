@@ -1,0 +1,21 @@
+{
+ "doc_tokens": 119776,
+ "needle": {
+  "prompt_tokens": 119811,
+  "out": 10,
+  "ttft": 270.8,
+  "decode_tps": 2.9,
+  "ok": true,
+  "text": "7418-2295",
+  "want": "7418-2295"
+ },
+ "code": {
+  "prompt_tokens": 119841,
+  "out": 27,
+  "ttft": 286.1,
+  "decode_tps": 5.3,
+  "ok": true,
+  "text": "f\"{'aSdP':>4} {'adKV':>4} {'adQ':>4}  \"",
+  "want": "f\"{'aSdP':>4} {'adKV':>4} {'adQ':>4}  \""
+ }
+}

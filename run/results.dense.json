@@ -1,0 +1,71 @@
+{
+ "exact/short_poem": {
+  "prompt_tokens": 25,
+  "text": "The salt wind howls against the stone,\nA lonely sentinel, alone.\nHe climbs the spiral, step by step,\nTo keep the ancient promise kept.\nThe wick is trimmed, the glass is clear,\nHe banishes the creeping fear.\nBelow, the waves crash white and loud,\nUpon the rocks, both hard and proud.\nHe watches ships sail safe and true,\nThrough the dark and endless blue.\nThe light turns slow, a golden eye,\nWatching the world go by."
+ },
+ "exact/short_code": {
+  "prompt_tokens": 37,
+  "text": "```python\n\"\"\"\nParser for ISO-8601 duration strings.\n\nISO-8601 duration format: P[nY][nM][nD][T[nH][nM][nS]]\nWhere:\n- P is the duration designator (prefix)\n- nY = years\n- nM = months\n- nD = days\n- T is the time designator (prefix)\n- nH = hours\n- nM = minutes\n- nS = seconds\n\nNote: 'M' is ambiguous between months and minutes. The position relative to 'T'\ndetermines the meaning: before T it's months, after T it's minutes.\n\"\"\"\n\nimport re\nfrom dataclasses import dataclass\nfrom typing import Optional\n\n\n@dataclass\nclass Duration:\n    \"\"\"Represents an ISO-8601 duration.\"\"\"\n    years: int = 0\n    months: int = 0\n    days: int = 0\n    hours: int = 0\n    minutes: int = 0\n    seconds: int = 0\n\n    def total_seconds(self) -> float:\n        \"\"\"\n        Convert the duration to total seconds.\n"
+ },
+ "exact/needle16k": {
+  "prompt_tokens": 15569,
+  "text": "7418-2295"
+ },
+ "exact/code24k": {
+  "prompt_tokens": 23871,
+  "text": "The line that comes immediately after `max_partial_rows=max_partial_rows,` is:\n\n```python\n                    # Shape-only planning tensor; runtime cache shape is\n```\n\n### Explanation of the Surrounding Function\n\nThe surrounding function is `_make_plan`, which is a nested helper function defined inside the `__init__` method of the `B12xPagedAttentionImpl` class.\n\n**Purpose:**\n`_make_plan` is a factory function responsible for creating a \"plan\" object for the b12x paged attention kernel. In the context of vLLM's attention backends, a \"plan\" typically represents a pre-compiled or pre-configured execution strategy for a specific set of parameters (like batch size, sequence length, and data types). This allows the system to avoid re-compiling or re-configuring the kernel on every forward pass, which is crucial for performance, especially when using CUDA Graphs.\n\n**Detailed Breakdown:**\n\n1.  **Parameters:**\n    *   `page_size`: The size of the KV cache pages (e.g., 64 or 128 tokens).\n    *   `mode`: The type of attention operation (\"decode\", \"verify\", or \"extend\")."
+ },
+ "needle/32000": {
+  "prompt_tokens": 31194,
+  "text": "7418-2295",
+  "ok": true,
+  "secs": 17.427552700042725
+ },
+ "needle/64000": {
+  "prompt_tokens": 63911,
+  "text": "7418-2295",
+  "ok": true,
+  "secs": 39.68631172180176
+ },
+ "needle/128000": {
+  "prompt_tokens": 127202,
+  "text": "7418-2295",
+  "ok": true,
+  "secs": 107.51931023597717
+ },
+ "code/32000": {
+  "prompt_tokens": 29466,
+  "text": "        return B12xPagedAttentionImpl",
+  "want": "return B12xPagedAttentionImpl",
+  "ok": true,
+  "secs": 18.16699981689453
+ },
+ "code/64000": {
+  "prompt_tokens": 63767,
+  "text": "            if general_spec != causal_backend.customize_spec(spec):",
+  "want": "if general_spec != causal_backend.customize_spec(spec):",
+  "ok": true,
+  "secs": 30.41564702987671
+ },
+ "code/128000": {
+  "prompt_tokens": 126767,
+  "text": "```\nnum_decodes = attn_metadata.num_decode_reqs\n```",
+  "want": "num_decodes = attn_metadata.num_decode_reqs",
+  "ok": true,
+  "secs": 84.52387046813965
+ },
+ "speed/128000/explain": {
+  "prompt_tokens": 126738,
+  "completion": 512,
+  "ttft": 2.1970016956329346,
+  "decode_tps": 89.87070194679869,
+  "text": "Here is a detailed, file-by-file explanation of the provided code. These files constitute the **Attention Backend Abstraction Layer** for the vLLM inference engine (specifically the V1 architecture). This layer decouples the model's attention logic from the specific hardware kernels (FlashAttention, FlashInfer, Triton, etc.), allowing vLLM to dynamically select the optimal kernel based on the hard"
+ },
+ "speed/128000/copy": {
+  "prompt_tokens": 126733,
+  "completion": 512,
+  "ttft": 2.2315382957458496,
+  "decode_tps": 148.60287737591239,
+  "text": "```python\n# ===== FILE: v1/attention/backends/mla/aiter_triton_mla.py =====\n# SPDX-License-Identifier: Apache-2.0\n# SPDX-FileCopyrightText: Copyright contributors to the vLLM project\nfrom vllm.v1.attention.backends.mla.rocm_aiter_mla import AiterMLABackend, AiterMLAImpl\n\n\nclass AiterTritonMLABackend(AiterMLABackend):\n    @staticmethod\n    def get_name() -> str:\n        return \"AITER_TRITON_MLA\"\n\n "
+ }
+}

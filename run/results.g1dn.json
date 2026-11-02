@@ -1,0 +1,67 @@
+{
+ "speedshort/4000/explain": {
+  "prompt_tokens": 3569,
+  "completion": 512,
+  "decode_tps": 154.43168052016924,
+  "text": "The code provided is contained within a single file: **`v1/attention/backends/fa_utils.py`**.\n\nThis file serves as a **utility and abstraction layer** for the FlashAttention (FA) backend in the vLLM inference engine. Its primary responsibilities are:\n1.  **Platform Abstraction:** Importing the corre"
+ },
+ "speedshort/4000/copy": {
+  "prompt_tokens": 3564,
+  "completion": 512,
+  "decode_tps": 219.852869661979,
+  "text": "```python\n# ===== FILE: v1/attention/backends/fa_utils.py =====\n# SPDX-License-Identifier: Apache-2.0\n# SPDX-FileCopyrightText: Copyright contributors to the vLLM project\n\nfrom typing import Any\n\nimport vllm.envs as envs\nfrom vllm.logger import init_logger\nfrom vllm.platforms import current_platform"
+ },
+ "speedshort/8000/explain": {
+  "prompt_tokens": 7702,
+  "completion": 512,
+  "decode_tps": 122.15708054923938,
+  "text": "Here is a detailed explanation of the code provided, broken down by file.\n\n### File 1: `v1/attention/backends/composite.py`\n\nThis file implements a **Composite Attention Backend** pattern. In vLLM, different models or hardware configurations might require different attention implementations (e.g., o"
+ },
+ "speedshort/8000/copy": {
+  "prompt_tokens": 7697,
+  "completion": 512,
+  "decode_tps": 209.6848346814747,
+  "text": "```python\n# ===== FILE: v1/attention/backends/fa_utils.py =====\n# SPDX-License-Identifier: Apache-2.0\n# SPDX-FileCopyrightText: Copyright contributors to the vLLM project\n\nfrom typing import Any\n\nimport vllm.envs as envs\nfrom vllm.logger import init_logger\nfrom vllm.platforms import current_platform"
+ },
+ "speed/128000/explain": {
+  "prompt_tokens": 126738,
+  "completion": 512,
+  "ttft": 100.66157722473145,
+  "decode_tps": 88.92108412653467,
+  "text": "Here is a detailed, file-by-file explanation of the provided code. These files constitute the **Attention Backend Abstraction Layer** for the vLLM inference engine. This layer decouples the high-level model logic from the specific GPU/CPU kernels used to compute attention, allowing vLLM to support various hardware architectures (NVIDIA, AMD, Intel, CPU) and attention algorithms (FlashAttention, Fl"
+ },
+ "speed/128000/copy": {
+  "prompt_tokens": 126733,
+  "completion": 512,
+  "ttft": 1.968278169631958,
+  "decode_tps": 139.83343890648442,
+  "text": "```python\n# ===== FILE: v1/attention/backends/mla/aiter_triton_mla.py =====\n# SPDX-License-Identifier: Apache-2.0\n# SPDX-FileCopyrightText: Copyright contributors to the vLLM project\nfrom vllm.v1.attention.backends.mla.rocm_aiter_mla import AiterMLABackend, AiterMLAImpl\n\n\nclass AiterTritonMLABackend(AiterMLABackend):\n    @staticmethod\n    def get_name() -> str:\n        return \"AITER_TRITON_MLA\"\n\n "
+ },
+ "grow/copy": {
+  "prompt_tokens": 19776,
+  "completion": 1200,
+  "end_len": 20976,
+  "similarity": 1.0,
+  "exact_prefix_chars": 4246,
+  "out_chars": 4246,
+  "text": "# ===== FILE: model_executor/layers/fused_moe/moe_fused_mul_sum.py =====\n# SPDX-License-Identifier: Apache-2.0\n# SPDX-FileCopyrightText: Copyright contributors to the vLLM project\nimport torch\nfrom torch._subclasses.fake_tensor import FakeTensor\n\nfrom vllm.triton_utils import tl, triton\n\n\n@triton.jit\ndef moe_fused_mul_sum_kernel(\n    inputs_ptr,\n    topk_weights_ptr,\n    outputs_ptr,\n    top_ids_ptr,\n    expert_map_ptr,\n    num_valid_tokens_ptr,\n    stride_m,\n    has_topk_ids: tl.constexpr,\n    has_expert_map: tl.constexpr,\n    has_num_valid: tl.constexpr,\n    top_k: tl.constexpr,\n    hidden_size: tl.constexpr,\n    BLOCK_K: tl.constexpr,\n):\n    # One CTA owns one token's output row. Resolve which slots to sum once per\n    # row (the decision is invariant over hidden tiles); the `if take` branch is\n    # block-uniform, so padding slots are skipped rather than masked-and-loaded.\n    pid_m = tl.program_id(0)\n    # Bound to the real recv rows [0, num_recv). Under cudagraph decode the grid\n    # is the static padded token count, and padding rows past num_recv carry\n    # stale ids and stale NaN in `inputs`; returning before any load leaves their\n    # output rows untouched instead of summing that garbage. The constexpr guard\n    # short-circuits, so num_valid_tokens_ptr is only read when it is provided.\n    if has_num_valid and pid_m >= tl.load(num_valid_tokens_ptr).to(tl.int32):\n        return\n    w_row = topk_weights_ptr + pid_m * top_k\n\n    takes = ()\n    weights = ()\n    if has_topk_ids:\n        any_valid = 0\n        for n in tl.static_range(top_k):\n            id_val = tl.load(top_ids_ptr + pid_m * top_k + n)\n            valid = id_val >= 0\n            any_valid += valid.to(tl.int32)\n            take = valid\n            if has_expert_map:\n                local_id = tl.load(expert_map_ptr + tl.where(valid, id_val, 0))\n                take = valid & (local_id >= 0)\n            takes += (take,)  # type: ignore[assignment]\n            weights += (tl.load(w_row + n).to(tl.float32),)  # type: ignore[assignment]\n        # All-padding rows early-return untouched (decode contract past num_recv).\n        if any_valid == 0:\n            return\n    else:\n        for n in tl.static_range(top_k):\n            takes += (True,)  # type: ignore[assignment]\n            weights += (tl.load(w_row + n).to(tl.float32),)  # type: ignore[assignment]\n\n    n_tiles: tl.constexpr = (hidden_size + BLOCK_K - 1) // BLOCK_K\n    a_row = inputs_ptr + pid_m.to(tl.int64) * stride_m\n    out_row = outputs_ptr + pid_m * hidden_size\n\n    for t in tl.range(0, n_tiles):\n        offs_k = t * BLOCK_K + tl.arange(0, BLOCK_K)\n        kmask = offs_k < hidden_size\n        acc = tl.zeros((BLOCK_K,), dtype=tl.float32)\n        for n in tl.static_range(top_k):\n            if takes[n]:\n                a = tl.load(a_row + n * hidden_size + offs_k, mask=kmask, other=0.0)\n                acc += a.to(tl.float32) * weights[n]\n        tl.store(out_row + offs_k, acc.to(outputs_ptr.dtype.element_ty), mask=kmask)\n\n\ndef _heuristic_config(\n    hidden_size: int,\n    element_size: int,\n):\n    is_fp32 = element_size > 2\n    max_block_k = 256 if is_fp32 else 512\n    BLOCK_K = max(128, min(triton.next_power_of_2(hidden_size), max_block_k))\n    num_warps = 4 if is_fp32 else 2\n    num_stages = 3\n    return BLOCK_K, num_warps, num_stages\n\n\ndef moe_fused_mul_sum(\n    inputs: torch.Tensor,\n    topk_weights: torch.Tensor,\n    outputs: torch.Tensor | None = None,\n    topk_ids: torch.Tensor | None = None,\n    expert_map: torch.Tensor | None = None,\n    num_valid_tokens: torch.Tensor | None = None,\n) -> torch.Tensor:\n    \"\"\"Fused kernel for MoE (Mixture of Experts) to perform weighted summation\n    of expert outputs.\n\n    Args:\n        inputs: The output from experts.\n            Shape: (num_tokens, top_k, hidden_size).\n        topk_weights: The weights assigned to each expert for each token.\n            Shape: (num_tokens, top_k).\n        outputs: Optional pre-allocated output tensor.\n            Shape: (num_tokens, hidden_size).\n        topk_ids: Optional indices of the top-k experts. Shape:\n            (num_tokens, top_k). A value of -1 marks a slot the expert GEMM\n            skipped; those slots are excluded from the sum. When provided, rows\n"
+ },
+ "grow/turn1": {
+  "prompt_tokens": 35783,
+  "ok": true,
+  "text": "        if not _is_b12x_fp8_kv_cache(self.kv_cache_dtype):",
+  "want": "if not _is_b12x_fp8_kv_cache(self.kv_cache_dtype):"
+ },
+ "grow/turn2": {
+  "prompt_tokens": 56507,
+  "ok": true,
+  "text": "copy_to_persistent(self.persistent_offset_tensor, offset_tensor)",
+  "want": "copy_to_persistent(self.persistent_offset_tensor, offset_tensor)"
+ },
+ "grow/turn3": {
+  "prompt_tokens": 56576,
+  "ok": true,
+  "text": "    \"\"\"Base class for attention implementations.",
+  "want": "\"\"\"Base class for attention implementations."
+ }
+}

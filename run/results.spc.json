@@ -1,0 +1,14 @@
+{
+ "concurrent/needle64k": {
+  "ok": true,
+  "text": "7418-2295",
+  "prompt_tokens": 63911,
+  "secs": 49.98893427848816
+ },
+ "concurrent/code100k": {
+  "ok": false,
+  "text": "```\n          OR  abs_q - kv_idx < window)  (generated tokens: sliding window)\n```",
+  "prompt_tokens": 98632,
+  "secs": 134.1729929447174
+ }
+}

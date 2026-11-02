@@ -1,0 +1,21 @@
+{
+ "doc_tokens": 238381,
+ "needle": {
+  "prompt_tokens": 238416,
+  "out": 10,
+  "ttft": 321.3,
+  "decode_tps": 104.4,
+  "ok": true,
+  "text": "7418-2295",
+  "want": "7418-2295"
+ },
+ "speed": {
+  "prompt_tokens": 238404,
+  "out": 384,
+  "ttft": 326.1,
+  "decode_tps": 84.6,
+  "ok": null,
+  "text": "The last file provided is `compilation/breakable_cudagraph.py`.\n\nThis module implements a **Breakable CUDA Graph** mechanism for vLLM. It serves as an alternative to the standard `CUDAGraphWrapper` (which relies on `torch.compile`'s FX graph splitting) by using **runtime stream-capture breaks**.\n\nHe",
+  "want": null
+ }
+}

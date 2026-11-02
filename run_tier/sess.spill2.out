@@ -1,0 +1,21 @@
+[gpu0 NVIDIA GeForce RTX 3090 Ti]
+[serve] pid 1050219 log $REPO/run_tier/logs/server.spill2.log
+[spill] healthy after 80s
+(EngineCore pid=1051522) INFO 11-01 04:11:56 [gpu_worker.py:713] Available KV cache memory: 2.73 GiB
+(EngineCore pid=1051522) WARNING 11-01 04:11:56 [kv_cache_utils.py:917] SPARSE_TIER_SPILL=1: skipping the max_model_len vs GPU KV pool check (2.70 GiB available)
+(EngineCore pid=1051522) INFO 11-01 04:11:56 [kv_cache_utils.py:2665] GPU KV cache size: 74,921 tokens, Maximum concurrency for 250,000 tokens per request: 0.30x
+(EngineCore pid=1051522) INFO 11-01 04:11:57 [tier_connector.py:48] tier: kv cache view shape (95, 4, 864, 520) strides (1797120, 520, 2080, 1) contiguous=False
+(EngineCore pid=1051522) INFO 11-01 04:11:57 [tier_connector.py:48] tier: runtime mode=SPILL: 16 sparse layers in group(s) [3], window layers ['mtp.layers.0.self_attn.attn'], host pool 8.37 GB (291 blocks), GPU pool 95 blocks, hot 25000 rows/slot (1704 MB total), C=3136, tail=1088
+(EngineCore pid=1051522) INFO 11-01 04:12:10 [tier_connector.py:48] tier: SPILL scheduler hook on KV group 3 (FullAttentionManager): frees blocks [1, (processed-1088)//864)
+doc tokens 238381
+[needle] 238416 in, 10 out, ttft 321.3s, decode 104.4 tok/s, ok=True text='7418-2295'
+[speed] 238404 in, 384 out, ttft 326.1s, decode 84.6 tok/s, ok=None text='The last file provided is `compilation/breakable_cudagraph.py`.\n\nThis module implements a **Breakable CUDA Graph** mecha'
+CLIENT DONE
+(EngineCore pid=1051522) INFO 11-01 04:21:15 [tier_connector.py:48] tier: stats {'steps': 250, 'mirrored_blocks': 484, 'prefill_staged_blocks': 469504, 'host_blocks_peak': 275} hot[hit,miss,resident]=[103733, 53662, 94573] verify[diff,compared]=[0, 0]
+(EngineCore pid=1051522) INFO 11-01 04:23:10 [tier_connector.py:48] tier: stats {'steps': 300, 'mirrored_blocks': 550, 'prefill_staged_blocks': 596224, 'host_blocks_peak': 275} hot[hit,miss,resident]=[503398, 174747, 426815] verify[diff,compared]=[0, 0]
+(EngineCore pid=1051522) INFO 11-01 04:23:11 [tier_connector.py:48] tier: stats {'steps': 350, 'mirrored_blocks': 551, 'prefill_staged_blocks': 596224, 'host_blocks_peak': 276} hot[hit,miss,resident]=[1948707, 280074, 1384979] verify[diff,compared]=[0, 0]
+(EngineCore pid=1051522) INFO 11-01 04:23:13 [tier_connector.py:48] tier: stats {'steps': 400, 'mirrored_blocks': 551, 'prefill_staged_blocks': 596224, 'host_blocks_peak': 276} hot[hit,miss,resident]=[3435970, 342920, 2343670] verify[diff,compared]=[0, 0]
+(EngineCore pid=1051522) INFO 11-01 04:23:14 [tier_connector.py:48] tier: stats {'steps': 427, 'mirrored_blocks': 551, 'prefill_staged_blocks': 596224, 'host_blocks_peak': 276} hot[hit,miss,resident]=[4195496, 408674, 2822966] verify[diff,compared]=[0, 0]
+[stop] group 1050219: 1050219 1051521 1051522
+0, 72 MiB
+1, 17890 MiB

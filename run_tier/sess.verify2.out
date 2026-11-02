@@ -1,0 +1,22 @@
+[gpu0 NVIDIA GeForce RTX 3090 Ti]
+[serve] pid 1003844 log $REPO/run_tier/logs/server.tierv.log
+[session] healthy after 70s
+Capturing CUDA graphs (PIECEWISE):  71%|███████▏  | 5/7 [00:01<00:00,  2.69it/s]
+Capturing CUDA graphs (PIECEWISE):  86%|████████▌ | 6/7 [00:02<00:00,  2.97it/s]
+Capturing CUDA graphs (PIECEWISE): 100%|██████████| 7/7 [00:02<00:00,  3.27it/s]
+Capturing CUDA graphs (PIECEWISE): 100%|██████████| 7/7 [00:02<00:00,  3.08it/s]
+Capturing CUDA graphs (FULL):   0%|          | 0/2 [00:00<?, ?it/s]
+Capturing CUDA graphs (FULL):  50%|█████     | 1/2 [00:00<00:00,  4.20it/s]
+Capturing CUDA graphs (FULL): 100%|██████████| 2/2 [00:00<00:00,  4.23it/s]
+Capturing CUDA graphs (FULL): 100%|██████████| 2/2 [00:00<00:00,  4.22it/s]
+[exact] short_poem: 25 tok in, 109 out, 1.5s
+[exact] short_code: 37 tok in, 256 out, 1.8s
+[exact] needle16k: 15569 tok in, 10 out, 8.8s
+[exact] code24k: 23871 tok in, 256 out, 15.9s
+CLIENT DONE
+[stop] group 1003844: 1003844 1004636 1004637
+0, 72 MiB
+1, 14694 MiB
+(EngineCore pid=1004637) INFO 11-01 03:49:42 [tier_connector.py:48] tier: stats {'steps': 50, 'mirrored_blocks': 0, 'prefill_staged_blocks': 0, 'host_blocks_peak': 0} hot[hit,miss,resident]=[0, 0, 67904] verify[diff,compared]=[0, 141240320]
+(EngineCore pid=1004637) INFO 11-01 03:49:44 [tier_connector.py:48] tier: stats {'steps': 100, 'mirrored_blocks': 0, 'prefill_staged_blocks': 0, 'host_blocks_peak': 0} hot[hit,miss,resident]=[0, 0, 177856] verify[diff,compared]=[0, 369940480]
+(EngineCore pid=1004637) INFO 11-01 03:50:07 [tier_connector.py:48] tier: stats {'steps': 150, 'mirrored_blocks': 44, 'prefill_staged_blocks': 0, 'host_blocks_peak': 0} hot[hit,miss,resident]=[330441, 135564, 551147] verify[diff,compared]=[0, 2115676160]

@@ -1,0 +1,18 @@
+{
+ "exact/short_poem": {
+  "prompt_tokens": 25,
+  "text": "The salt wind howls against the stone,\nA lonely sentinel, alone.\nHe climbs the spiral, step by step,\nTo keep the ancient promise kept.\nThe wick is trimmed, the glass is clear,\nHe banishes the creeping fear.\nBelow, the waves crash white and loud,\nUpon the rocks, both hard and proud.\nHe watches ships sail safe and true,\nThrough the dark and endless blue.\nThe light turns slow, a golden eye,\nWatching the world go by."
+ },
+ "exact/short_code": {
+  "prompt_tokens": 37,
+  "text": "```python\n\"\"\"\nParser for ISO-8601 duration strings.\n\nISO-8601 duration format: P[nY][nM][nD][T[nH][nM][nS]]\nWhere:\n- P is the duration designator (prefix)\n- nY = years\n- nM = months\n- nD = days\n- T is the time designator (prefix)\n- nH = hours\n- nM = minutes\n- nS = seconds\n\nNote: In ISO-8601, 'M' can mean months (before T) or minutes (after T).\n\"\"\"\n\nimport re\nfrom dataclasses import dataclass\nfrom typing import Optional\n\n\n@dataclass\nclass Duration:\n    \"\"\"Represents an ISO-8601 duration.\"\"\"\n    years: int = 0\n    months: int = 0\n    days: int = 0\n    hours: int = 0\n    minutes: int = 0\n    seconds: float = 0.0\n\n    def __str__(self) -> str:\n        \"\"\"Return the ISO-8601 representation of this duration.\"\"\"\n        parts = []\n"
+ },
+ "exact/needle16k": {
+  "prompt_tokens": 15569,
+  "text": "7418-2295"
+ },
+ "exact/code24k": {
+  "prompt_tokens": 23871,
+  "text": "The line that comes immediately after `max_partial_rows=max_partial_rows,` is:\n\n```python\n                    # Shape-only planning tensor; runtime cache shape is\n```\n\n### Explanation of the Surrounding Function\n\nThe surrounding function is `_make_plan`, which is a nested helper function defined inside the `__init__` method of the `B12xPagedAttentionImpl` class.\n\n**Purpose:**\n`_make_plan` serves as a factory function to create a \"plan\" object for the b12x paged attention kernel. In the context of vLLM's attention backends, a \"plan\" typically represents a pre-compiled or pre-configured execution strategy for a specific attention operation (such as decode, verify, or extend/prefill). These plans are crucial for CUDA Graph support, where the execution graph is captured once and replayed multiple times.\n\n**Detailed Breakdown:**\n\n1.  **Parameters:**\n    *   `page_size`: The size of the KV cache pages (e.g., 64 or 128 tokens).\n    *   `mode`: A string indicating the type of attention operation (\"decode\", \"verify\", or \"extend\").\n    *   `max_total_q"
+ }
+}

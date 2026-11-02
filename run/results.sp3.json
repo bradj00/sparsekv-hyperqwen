@@ -1,0 +1,55 @@
+{
+ "needle/32000": {
+  "prompt_tokens": 31194,
+  "text": "7418-2295",
+  "ok": true,
+  "secs": 19.386966705322266
+ },
+ "needle/64000": {
+  "prompt_tokens": 63911,
+  "text": "7418-2295",
+  "ok": true,
+  "secs": 39.82091736793518
+ },
+ "needle/128000": {
+  "prompt_tokens": 127202,
+  "text": "7418-2295",
+  "ok": true,
+  "secs": 108.95050978660583
+ },
+ "code/32000": {
+  "prompt_tokens": 29466,
+  "text": "        return B12xPagedAttentionImpl",
+  "want": "return B12xPagedAttentionImpl",
+  "ok": true,
+  "secs": 18.439701795578003
+ },
+ "code/64000": {
+  "prompt_tokens": 63767,
+  "text": "            if general_spec != causal_backend.customize_spec(spec):",
+  "want": "if general_spec != causal_backend.customize_spec(spec):",
+  "ok": true,
+  "secs": 30.7120041847229
+ },
+ "code/128000": {
+  "prompt_tokens": 126767,
+  "text": "```\n        num_decodes = attn_metadata.num_decode_reqs\n```",
+  "want": "num_decodes = attn_metadata.num_decode_reqs",
+  "ok": true,
+  "secs": 87.09898090362549
+ },
+ "speed/128000/explain": {
+  "prompt_tokens": 126738,
+  "completion": 512,
+  "ttft": 2.211318016052246,
+  "decode_tps": 118.66821761643516,
+  "text": "Here is a detailed, file-by-file explanation of the provided code. These files constitute the **Attention Backend Abstraction Layer** for the vLLM project (specifically the V1 architecture). This layer decouples the high-level model logic from the low-level GPU kernels (like FlashAttention, FlashInfer, Triton, etc.), allowing vLLM to dynamically select the best kernel for a given hardware and mode"
+ },
+ "speed/128000/copy": {
+  "prompt_tokens": 126733,
+  "completion": 512,
+  "ttft": 2.2062902450561523,
+  "decode_tps": 181.51507481171728,
+  "text": "```python\n# ===== FILE: v1/attention/backends/mla/aiter_triton_mla.py =====\n# SPDX-License-Identifier: Apache-2.0\n# SPDX-FileCopyrightText: Copyright contributors to the vLLM project\nfrom vllm.v1.attention.backends.mla.rocm_aiter_mla import AiterMLABackend, AiterMLAImpl\n\n\nclass AiterTritonMLABackend(AiterMLABackend):\n    @staticmethod\n    def get_name() -> str:\n        return \"AITER_TRITON_MLA\"\n\n "
+ }
+}

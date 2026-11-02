@@ -1,0 +1,53 @@
+== qwen3_5-embed-quant.patch
+== marlin-int8-layer-select.patch
+== marlin-int8-negative-scales.patch
+== qwen3_5-mtp-draft-vocab.patch
+== vllm-pr50021-gdn-spec-bounds.patch
+== sampler-small-topk-fast-softmax.patch
+== spec-decode-attn.patch
+== speed-knobs-envs.patch
+== hybrid-kv-groups-v2-cudagraph.patch
+== dflash2-lookup-drafting.patch
+== hybrid-sw-block-promote.patch
+== spec-decode-int8-kv.patch
+== vision-tower-cpu-offload.patch
+== int4-kv-per-token-head.patch
+== marlin-repack-staged-sm80.patch
+== offload-dflash-eagle-groups.patch
+== dflash2-ngram-chains.patch
+== offload-wsl2-devptr.patch
+== spec-decode-int4-kv-mq3d.patch
+== dflash2-prewarm.patch
+== marlin-tune-table.patch
+== prefill-attn-int8.patch
+== spec-sampler-prewarm.patch
+== mamba-align-checkpoint-order.patch
+== spec-decode-scratch-token-units.patch
+== mamba-chunked-prefill-align.patch
+== spec-decode-scratch-within-budget.patch
+== dflash2-z-adaptive-emitted.patch
+== dspark-draft-quant-config.patch
+== engine-completion-log.patch
+== engine-stall-sentinel.patch (1 hunk(s) at an offset)
+== triton-spec-attn-fp8-kv.patch (1 hunk(s) at an offset)
+== topk-honour-flashinfer-sampler-switch.patch
+== memory-profile-after-warmup.patch
+== cudagraph-memory-from-allocator.patch
+== bench-probe-errors.patch
+== serve-404-served-names.patch
+== serve-model-path-match.patch
+== tokenize-v1-route.patch
+== marlin-int8-asym-zp.patch
+== compile-key-runtime-knobs.patch (1 hunk(s) at an offset)
+== auth-deny-default.patch
+== spec-attn-smem-fit.patch
+== bench-sse-keepalive.patch
+== sampler-warmup-cuda.patch
+== pinned-kv-empty-cache.patch
+== api-root-health.patch
+== qwen3_5-embed-uva.patch (1 hunk(s) at an offset)
+== vllm-pr40371-prompt-progress.patch
+== vllm-pr61050-lru-running-prefix.patch
+== kv-cache-seat-budget.patch
+== sparse-tier-spill-kvcheck.patch
+== sparse-switch-dual-graphs.patch

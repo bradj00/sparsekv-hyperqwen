@@ -1,0 +1,4 @@
+{"kind": "doc", "A": 246337, "B": 245888, "t": 1793545677.4}
+{"user": "A", "q": "ok", "prompt": 246353, "cached": 0, "ttft": 337.12, "ntok": 1, "dec_s": 0.0, "tok_s": null, "t0": 1793545677.4515083, "tf": 1793546014.575737, "te": 1793546014.5774598, "ok": null, "text": "OK", "mode": "dual", "phase": "cold", "t": 1793546014.6}
+{"user": "B", "q": "ok", "prompt": 245904, "cached": 0, "ttft": 653.09, "ntok": 1, "dec_s": 0.0, "tok_s": null, "t0": 1793545697.4557893, "tf": 1793546350.5474863, "te": 1793546350.5491562, "ok": null, "text": "OK", "mode": "dual", "phase": "cold", "t": 1793546350.5}
+{"user": "A", "q": "code", "prompt": 246384, "cached": 0, "ttft": 336.43, "ntok": 16, "dec_s": 0.15, "tok_s": 100.1, "t0": 1793546350.5520716, "tf": 1793546686.9818408, "te": 1793546687.1316543, "ok": true, "text": "    \"openai-chat\": async_request_openai_chat_completions,", "mode": "dual", "t": 1793546687.1}

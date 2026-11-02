@@ -1,0 +1,1026 @@
+{
+ "endpoints": {
+  "A": "http://127.0.0.1:8096/v1"
+ },
+ "model": {
+  "A": "qwen3.8-27b-q4"
+ },
+ "date": "2026-11-01 03:29:40",
+ "rows": [
+  {
+   "len": "32K",
+   "doc": "essay",
+   "doc_tokens": 31600,
+   "task": "needle",
+   "depth": 0.454,
+   "gold": "eat a sandwich and sit in Dolores Park on a sunny day",
+   "question": "Question: What is the best thing to do in San Francisco? Answer briefly.",
+   "ep": {
+    "A": {
+     "pred": "Eat a sandwich and sit in Dolores Park on a sunny day.",
+     "score": 1.0,
+     "latency": 15.990301370620728,
+     "prompt_tokens": 31666,
+     "completion_tokens": 15,
+     "cached": 0
+    }
+   }
+  },
+  {
+   "len": "32K",
+   "doc": "essay",
+   "doc_tokens": 31600,
+   "task": "essay-complete",
+   "depth": 0.052,
+   "gold": "[redacted: third-party essay text]",
+   "question": "[redacted: third-party essay text]",
+   "ep": {
+    "A": {
+     "pred": "[redacted: third-party essay text]",
+     "score": 1.0,
+     "latency": 1.1245026588439941,
+     "prompt_tokens": 31686,
+     "completion_tokens": 34,
+     "cached": 30240
+    }
+   }
+  },
+  {
+   "len": "32K",
+   "doc": "essay",
+   "doc_tokens": 31600,
+   "task": "essay-complete",
+   "depth": 0.152,
+   "gold": "[redacted: third-party essay text]",
+   "question": "[redacted: third-party essay text]",
+   "ep": {
+    "A": {
+     "pred": "[redacted: third-party essay text]",
+     "score": 1.0,
+     "latency": 1.028672218322754,
+     "prompt_tokens": 31675,
+     "completion_tokens": 15,
+     "cached": 30240
+    }
+   }
+  },
+  {
+   "len": "32K",
+   "doc": "essay",
+   "doc_tokens": 31600,
+   "task": "essay-complete",
+   "depth": 0.389,
+   "gold": "[redacted: third-party essay text]",
+   "question": "[redacted: third-party essay text]",
+   "ep": {
+    "A": {
+     "pred": "[redacted: third-party essay text]",
+     "score": 1.0,
+     "latency": 1.00831937789917,
+     "prompt_tokens": 31679,
+     "completion_tokens": 13,
+     "cached": 30240
+    }
+   }
+  },
+  {
+   "len": "32K",
+   "doc": "essay",
+   "doc_tokens": 31600,
+   "task": "essay-complete",
+   "depth": 0.499,
+   "gold": "[redacted: third-party essay text]",
+   "question": "[redacted: third-party essay text]",
+   "ep": {
+    "A": {
+     "pred": "[redacted: third-party essay text]",
+     "score": 1.0,
+     "latency": 1.1797053813934326,
+     "prompt_tokens": 31683,
+     "completion_tokens": 48,
+     "cached": 30240
+    }
+   }
+  },
+  {
+   "len": "32K",
+   "doc": "essay",
+   "doc_tokens": 31600,
+   "task": "essay-complete",
+   "depth": 0.783,
+   "gold": "[redacted: third-party essay text]",
+   "question": "[redacted: third-party essay text]",
+   "ep": {
+    "A": {
+     "pred": "[redacted: third-party essay text]",
+     "score": 1.0,
+     "latency": 1.0317940711975098,
+     "prompt_tokens": 31675,
+     "completion_tokens": 25,
+     "cached": 30240
+    }
+   }
+  },
+  {
+   "len": "32K",
+   "doc": "essay",
+   "doc_tokens": 31600,
+   "task": "essay-complete",
+   "depth": 0.926,
+   "gold": "[redacted: third-party essay text]",
+   "question": "[redacted: third-party essay text]",
+   "ep": {
+    "A": {
+     "pred": "[redacted: third-party essay text]",
+     "score": 1.0,
+     "latency": 1.0114948749542236,
+     "prompt_tokens": 31670,
+     "completion_tokens": 18,
+     "cached": 30240
+    }
+   }
+  },
+  {
+   "len": "32K",
+   "doc": "code",
+   "doc_tokens": 31600,
+   "task": "code-next",
+   "depth": 0.057,
+   "gold": "# Extract properties from weight_quant",
+   "question": "In the code above, which line comes right after this one? Output only that line.\nself.input_quant = input_quant",
+   "ep": {
+    "A": {
+     "pred": "# Extract properties from weight_quant",
+     "score": 1.0,
+     "latency": 16.07542371749878,
+     "prompt_tokens": 31675,
+     "completion_tokens": 7,
+     "cached": 0
+    }
+   }
+  },
+  {
+   "len": "32K",
+   "doc": "code",
+   "doc_tokens": 31600,
+   "task": "code-next",
+   "depth": 0.18,
+   "gold": "replace_parameter(layer, \"w2_weight_zero_point\", w2_qzeros)",
+   "question": "In the code above, which line comes right after this one? Output only that line.\nreplace_parameter(layer, \"w13_weight_zero_point\", w13_qzeros)",
+   "ep": {
+    "A": {
+     "pred": "replace_parameter(layer, \"w2_weight_zero_point\", w2_qzeros)",
+     "score": 1.0,
+     "latency": 1.080554485321045,
+     "prompt_tokens": 31687,
+     "completion_tokens": 17,
+     "cached": 30240
+    }
+   }
+  },
+  {
+   "len": "32K",
+   "doc": "code",
+   "doc_tokens": 31600,
+   "task": "code-next",
+   "depth": 0.252,
+   "gold": "and all(linear.out_features % tp_size == 0 for linear in linear_layers)",
+   "question": "In the code above, which line comes right after this one? Output only that line.\nand len(set(linear.bias is None for linear in linear_layers)) == 1",
+   "ep": {
+    "A": {
+     "pred": "and all(linear.out_features % tp_size == 0 for linear in linear_layers)",
+     "score": 1.0,
+     "latency": 1.0242674350738525,
+     "prompt_tokens": 31686,
+     "completion_tokens": 19,
+     "cached": 30240
+    }
+   }
+  },
+  {
+   "len": "32K",
+   "doc": "code",
+   "doc_tokens": 31600,
+   "task": "code-next",
+   "depth": 0.429,
+   "gold": "# slots whose expert is local to this rank; non-local (token, top_k)",
+   "question": "In the code above, which line comes right after this one? Output only that line.\n# zeros (not empty): under EP the punica expand kernel only writes",
+   "ep": {
+    "A": {
+     "pred": "# slots whose expert is local to this rank; non-local (token, top_k)",
+     "score": 1.0,
+     "latency": 1.021240472793579,
+     "prompt_tokens": 31684,
+     "completion_tokens": 19,
+     "cached": 30240
+    }
+   }
+  },
+  {
+   "len": "32K",
+   "doc": "code",
+   "doc_tokens": 31600,
+   "task": "code-next",
+   "depth": 0.477,
+   "gold": "expert_weights: torch.Tensor,",
+   "question": "In the code above, which line comes right after this one? Output only that line.\ngemm2_permuted: torch.Tensor,",
+   "ep": {
+    "A": {
+     "pred": "        expert_weights: torch.Tensor,",
+     "score": 1.0,
+     "latency": 0.9890346527099609,
+     "prompt_tokens": 31678,
+     "completion_tokens": 8,
+     "cached": 30240
+    }
+   }
+  },
+  {
+   "len": "32K",
+   "doc": "code",
+   "doc_tokens": 31600,
+   "task": "code-next",
+   "depth": 0.68,
+   "gold": "req_output_len = int(output_lens[i])",
+   "question": "In the code above, which line comes right after this one? Output only that line.\nreq_input_len = int(input_lens[i])",
+   "ep": {
+    "A": {
+     "pred": "req_output_len = int(output_lens[i])",
+     "score": 1.0,
+     "latency": 1.0165817737579346,
+     "prompt_tokens": 31678,
+     "completion_tokens": 10,
+     "cached": 30240
+    }
+   }
+  },
+  {
+   "len": "32K",
+   "doc": "code",
+   "doc_tokens": 31600,
+   "task": "code-next",
+   "depth": 0.778,
+   "gold": "\"can detect such behavior and terminate early, saving time and tokens.\",",
+   "question": "In the code above, which line comes right after this one? Output only that line.\n\"(e.g. 'abcdabcdabcd...' or '\\\\emoji \\\\emoji \\\\emoji ...'). This feature \"",
+   "ep": {
+    "A": {
+     "pred": "\"can detect such behavior and terminate early, saving time and tokens.\",",
+     "score": 1.0,
+     "latency": 1.05271315574646,
+     "prompt_tokens": 31690,
+     "completion_tokens": 15,
+     "cached": 30240
+    }
+   }
+  },
+  {
+   "len": "32K",
+   "doc": "code",
+   "doc_tokens": 31600,
+   "task": "code-next",
+   "depth": 0.959,
+   "gold": "self.total_num_heads * self.head_dim,",
+   "question": "In the code above, which line comes right after this one? Output only that line.\nself.o_proj = RowParallelLinear(",
+   "ep": {
+    "A": {
+     "pred": "self.total_num_heads * self.head_dim,",
+     "score": 1.0,
+     "latency": 0.9909350872039795,
+     "prompt_tokens": 31677,
+     "completion_tokens": 10,
+     "cached": 30240
+    }
+   }
+  },
+  {
+   "len": "64K",
+   "doc": "essay",
+   "doc_tokens": 63600,
+   "task": "needle",
+   "depth": 0.226,
+   "gold": "eat a sandwich and sit in Dolores Park on a sunny day",
+   "question": "Question: What is the best thing to do in San Francisco? Answer briefly.",
+   "ep": {
+    "A": {
+     "pred": "Eat a sandwich and sit in Dolores Park on a sunny day.",
+     "score": 1.0,
+     "latency": 23.254318952560425,
+     "prompt_tokens": 63666,
+     "completion_tokens": 15,
+     "cached": 30240
+    }
+   }
+  },
+  {
+   "len": "64K",
+   "doc": "essay",
+   "doc_tokens": 63600,
+   "task": "needle",
+   "depth": 0.73,
+   "gold": "watch the glassblowers work by the tidal pools when the jacarandas bloom",
+   "question": "Question: What is the best thing to do in Regina? Answer briefly.",
+   "ep": {
+    "A": {
+     "pred": "Watch the glassblowers work by the tidal pools when the jacarandas bloom.",
+     "score": 1.0,
+     "latency": 1.4211063385009766,
+     "prompt_tokens": 63665,
+     "completion_tokens": 18,
+     "cached": 62208
+    }
+   }
+  },
+  {
+   "len": "64K",
+   "doc": "essay",
+   "doc_tokens": 63600,
+   "task": "essay-complete",
+   "depth": 0.046,
+   "gold": "[redacted: third-party essay text]",
+   "question": "[redacted: third-party essay text]",
+   "ep": {
+    "A": {
+     "pred": "[redacted: third-party essay text]",
+     "score": 1.0,
+     "latency": 1.4062328338623047,
+     "prompt_tokens": 63681,
+     "completion_tokens": 14,
+     "cached": 62208
+    }
+   }
+  },
+  {
+   "len": "64K",
+   "doc": "essay",
+   "doc_tokens": 63600,
+   "task": "essay-complete",
+   "depth": 0.327,
+   "gold": "[redacted: third-party essay text]",
+   "question": "[redacted: third-party essay text]",
+   "ep": {
+    "A": {
+     "pred": "[redacted: third-party essay text]",
+     "score": 1.0,
+     "latency": 1.4159696102142334,
+     "prompt_tokens": 63673,
+     "completion_tokens": 21,
+     "cached": 62208
+    }
+   }
+  },
+  {
+   "len": "64K",
+   "doc": "essay",
+   "doc_tokens": 63600,
+   "task": "essay-complete",
+   "depth": 0.455,
+   "gold": "[redacted: third-party essay text]",
+   "question": "[redacted: third-party essay text]",
+   "ep": {
+    "A": {
+     "pred": "[redacted: third-party essay text]",
+     "score": 1.0,
+     "latency": 1.4386115074157715,
+     "prompt_tokens": 63685,
+     "completion_tokens": 21,
+     "cached": 62208
+    }
+   }
+  },
+  {
+   "len": "64K",
+   "doc": "essay",
+   "doc_tokens": 63600,
+   "task": "essay-complete",
+   "depth": 0.569,
+   "gold": "[redacted: third-party essay text]",
+   "question": "[redacted: third-party essay text]",
+   "ep": {
+    "A": {
+     "pred": "[redacted: third-party essay text]",
+     "score": 1.0,
+     "latency": 1.5011646747589111,
+     "prompt_tokens": 63686,
+     "completion_tokens": 26,
+     "cached": 62208
+    }
+   }
+  },
+  {
+   "len": "64K",
+   "doc": "essay",
+   "doc_tokens": 63600,
+   "task": "essay-complete",
+   "depth": 0.698,
+   "gold": "[redacted: third-party essay text]",
+   "question": "[redacted: third-party essay text]",
+   "ep": {
+    "A": {
+     "pred": "[redacted: third-party essay text]",
+     "score": 1.0,
+     "latency": 1.4569382667541504,
+     "prompt_tokens": 63675,
+     "completion_tokens": 25,
+     "cached": 62208
+    }
+   }
+  },
+  {
+   "len": "64K",
+   "doc": "essay",
+   "doc_tokens": 63600,
+   "task": "essay-complete",
+   "depth": 0.765,
+   "gold": "[redacted: third-party essay text]",
+   "question": "[redacted: third-party essay text]",
+   "ep": {
+    "A": {
+     "pred": "[redacted: third-party essay text]",
+     "score": 1.0,
+     "latency": 1.3927052021026611,
+     "prompt_tokens": 63671,
+     "completion_tokens": 11,
+     "cached": 62208
+    }
+   }
+  },
+  {
+   "len": "64K",
+   "doc": "code",
+   "doc_tokens": 63600,
+   "task": "code-next",
+   "depth": 0.008,
+   "gold": "\"intermediate_size\": \"ffn_hidden_size\",",
+   "question": "In the code above, which line comes right after this one? Output only that line.\n\"num_attention_heads\": \"n_head\",",
+   "ep": {
+    "A": {
+     "pred": "\"intermediate_size\": \"ffn_hidden_size\",",
+     "score": 1.0,
+     "latency": 23.30006241798401,
+     "prompt_tokens": 63678,
+     "completion_tokens": 12,
+     "cached": 30240
+    }
+   }
+  },
+  {
+   "len": "64K",
+   "doc": "code",
+   "doc_tokens": 63600,
+   "task": "code-next",
+   "depth": 0.195,
+   "gold": "and has_flashinfer_trtllm_fused_moe()",
+   "question": "In the code above, which line comes right after this one? Output only that line.\nand p.is_device_capability_family(100)",
+   "ep": {
+    "A": {
+     "pred": "and has_flashinfer_trtllm_fused_moe()",
+     "score": 1.0,
+     "latency": 1.438422441482544,
+     "prompt_tokens": 63680,
+     "completion_tokens": 14,
+     "cached": 62208
+    }
+   }
+  },
+  {
+   "len": "64K",
+   "doc": "code",
+   "doc_tokens": 63600,
+   "task": "code-next",
+   "depth": 0.252,
+   "gold": "# the caller's buffer via output= so it finalizes in place -- no copy.",
+   "question": "In the code above, which line comes right after this one? Output only that line.\n# Without a delta (base path), run do_finalize=True and hand flashinfer",
+   "ep": {
+    "A": {
+     "pred": "# the caller's buffer via output= so it finalizes in place -- no copy.",
+     "score": 1.0,
+     "latency": 1.453223466873169,
+     "prompt_tokens": 63685,
+     "completion_tokens": 19,
+     "cached": 62208
+    }
+   }
+  },
+  {
+   "len": "64K",
+   "doc": "code",
+   "doc_tokens": 63600,
+   "task": "code-next",
+   "depth": 0.386,
+   "gold": "\"`token_offsets` field of the rendered response. Only \"",
+   "question": "In the code above, which line comes right after this one? Output only that line.\n\"token relative to the tokenized source string in the \"",
+   "ep": {
+    "A": {
+     "pred": "\"`token_offsets` field of the rendered response. Only \"",
+     "score": 1.0,
+     "latency": 1.4299209117889404,
+     "prompt_tokens": 63681,
+     "completion_tokens": 13,
+     "cached": 62208
+    }
+   }
+  },
+  {
+   "len": "64K",
+   "doc": "code",
+   "doc_tokens": 63600,
+   "task": "code-next",
+   "depth": 0.492,
+   "gold": "q, k = self.rotary_emb(positions, q, k)",
+   "question": "In the code above, which line comes right after this one? Output only that line.\nq, k, v = qkv.split([self.q_size, self.kv_size, self.kv_size], dim=-1)",
+   "ep": {
+    "A": {
+     "pred": "q, k = self.rotary_emb(positions, q, k)",
+     "score": 1.0,
+     "latency": 1.42836594581604,
+     "prompt_tokens": 63697,
+     "completion_tokens": 16,
+     "cached": 62208
+    }
+   }
+  },
+  {
+   "len": "64K",
+   "doc": "code",
+   "doc_tokens": 63600,
+   "task": "code-next",
+   "depth": 0.604,
+   "gold": "f\"{pp.memoized_objs_pp[key]}\"",
+   "question": "In the code above, which line comes right after this one? Output only that line.\nf\"{pp.memoized_objs_names[key]} = \"",
+   "ep": {
+    "A": {
+     "pred": "f\"{pp.memoized_objs_pp[key]}\"",
+     "score": 1.0,
+     "latency": 1.4204602241516113,
+     "prompt_tokens": 63680,
+     "completion_tokens": 10,
+     "cached": 62208
+    }
+   }
+  },
+  {
+   "len": "64K",
+   "doc": "code",
+   "doc_tokens": 63600,
+   "task": "code-next",
+   "depth": 0.73,
+   "gold": "self.gpu = torch.zeros(size, dtype=dtype, device=device)",
+   "question": "In the code above, which line comes right after this one? Output only that line.\n# Create a GPU tensor (default)",
+   "ep": {
+    "A": {
+     "pred": "self.gpu = torch.zeros(size, dtype=dtype, device=device)",
+     "score": 1.0,
+     "latency": 1.3777680397033691,
+     "prompt_tokens": 63677,
+     "completion_tokens": 15,
+     "cached": 62208
+    }
+   }
+  },
+  {
+   "len": "64K",
+   "doc": "code",
+   "doc_tokens": 63600,
+   "task": "code-next",
+   "depth": 0.838,
+   "gold": "v_rounded = (acc_v + v_value.to(tl.float32)).to(qkvr_ptr.dtype.element_ty)",
+   "question": "In the code above, which line comes right after this one? Output only that line.\nk_rounded = (acc_k + k_value.to(tl.float32)).to(qkvr_ptr.dtype.element_ty)",
+   "ep": {
+    "A": {
+     "pred": "v_rounded = (acc_v + v_value.to(tl.float32)).to(qkvr_ptr.dtype.element_ty)",
+     "score": 1.0,
+     "latency": 1.5268747806549072,
+     "prompt_tokens": 63695,
+     "completion_tokens": 27,
+     "cached": 62208
+    }
+   }
+  },
+  {
+   "len": "128K",
+   "doc": "essay",
+   "doc_tokens": 127600,
+   "task": "needle",
+   "depth": 0.112,
+   "gold": "eat a sandwich and sit in Dolores Park on a sunny day",
+   "question": "Question: What is the best thing to do in San Francisco? Answer briefly.",
+   "ep": {
+    "A": {
+     "pred": "Eat a sandwich and sit in Dolores Park on a sunny day.",
+     "score": 1.0,
+     "latency": 64.73167181015015,
+     "prompt_tokens": 127666,
+     "completion_tokens": 15,
+     "cached": 62208
+    }
+   }
+  },
+  {
+   "len": "128K",
+   "doc": "essay",
+   "doc_tokens": 127600,
+   "task": "needle",
+   "depth": 0.363,
+   "gold": "watch the glassblowers work by the tidal pools when the jacarandas bloom",
+   "question": "Question: What is the best thing to do in Regina? Answer briefly.",
+   "ep": {
+    "A": {
+     "pred": "The best thing to do in Regina is watch the glassblowers work by the tidal pools when the jacarandas bloom.",
+     "score": 1.0,
+     "latency": 2.288447380065918,
+     "prompt_tokens": 127665,
+     "completion_tokens": 26,
+     "cached": 126144
+    }
+   }
+  },
+  {
+   "len": "128K",
+   "doc": "essay",
+   "doc_tokens": 127600,
+   "task": "needle",
+   "depth": 0.529,
+   "gold": "browse the secondhand bookstalls at the terraced tea garden under a full moon",
+   "question": "Question: What is the best thing to do in Athens? Answer briefly.",
+   "ep": {
+    "A": {
+     "pred": "Browse the secondhand bookstalls at the terraced tea garden under a full moon.",
+     "score": 1.0,
+     "latency": 2.2502479553222656,
+     "prompt_tokens": 127665,
+     "completion_tokens": 19,
+     "cached": 126144
+    }
+   }
+  },
+  {
+   "len": "128K",
+   "doc": "essay",
+   "doc_tokens": 127600,
+   "task": "needle",
+   "depth": 0.948,
+   "gold": "watch the storks nest in the birch grove park during the spring festival",
+   "question": "Question: What is the best thing to do in Medan? Answer briefly.",
+   "ep": {
+    "A": {
+     "pred": "Watch the storks nest in the birch grove park during the spring festival.",
+     "score": 1.0,
+     "latency": 2.2616055011749268,
+     "prompt_tokens": 127665,
+     "completion_tokens": 18,
+     "cached": 126144
+    }
+   }
+  },
+  {
+   "len": "128K",
+   "doc": "essay",
+   "doc_tokens": 127600,
+   "task": "essay-complete",
+   "depth": 0.188,
+   "gold": "[redacted: third-party essay text]",
+   "question": "[redacted: third-party essay text]",
+   "ep": {
+    "A": {
+     "pred": "[redacted: third-party essay text]",
+     "score": 1.0,
+     "latency": 2.2851274013519287,
+     "prompt_tokens": 127671,
+     "completion_tokens": 19,
+     "cached": 126144
+    }
+   }
+  },
+  {
+   "len": "128K",
+   "doc": "essay",
+   "doc_tokens": 127600,
+   "task": "essay-complete",
+   "depth": 0.356,
+   "gold": "[redacted: third-party essay text]",
+   "question": "[redacted: third-party essay text]",
+   "ep": {
+    "A": {
+     "pred": "[redacted: third-party essay text]",
+     "score": 1.0,
+     "latency": 2.324894666671753,
+     "prompt_tokens": 127672,
+     "completion_tokens": 22,
+     "cached": 126144
+    }
+   }
+  },
+  {
+   "len": "128K",
+   "doc": "essay",
+   "doc_tokens": 127600,
+   "task": "essay-complete",
+   "depth": 0.377,
+   "gold": "[redacted: third-party essay text]",
+   "question": "[redacted: third-party essay text]",
+   "ep": {
+    "A": {
+     "pred": "[redacted: third-party essay text]",
+     "score": 1.0,
+     "latency": 2.2475945949554443,
+     "prompt_tokens": 127671,
+     "completion_tokens": 12,
+     "cached": 126144
+    }
+   }
+  },
+  {
+   "len": "128K",
+   "doc": "essay",
+   "doc_tokens": 127600,
+   "task": "essay-complete",
+   "depth": 0.568,
+   "gold": "[redacted: third-party essay text]",
+   "question": "[redacted: third-party essay text]",
+   "ep": {
+    "A": {
+     "pred": "[redacted: third-party essay text]",
+     "score": 1.0,
+     "latency": 2.4794158935546875,
+     "prompt_tokens": 127671,
+     "completion_tokens": 48,
+     "cached": 126144
+    }
+   }
+  },
+  {
+   "len": "128K",
+   "doc": "essay",
+   "doc_tokens": 127600,
+   "task": "essay-complete",
+   "depth": 0.632,
+   "gold": "[redacted: third-party essay text]",
+   "question": "[redacted: third-party essay text]",
+   "ep": {
+    "A": {
+     "pred": "[redacted: third-party essay text]",
+     "score": 1.0,
+     "latency": 2.270658493041992,
+     "prompt_tokens": 127670,
+     "completion_tokens": 11,
+     "cached": 126144
+    }
+   }
+  },
+  {
+   "len": "128K",
+   "doc": "essay",
+   "doc_tokens": 127600,
+   "task": "essay-complete",
+   "depth": 0.866,
+   "gold": "[redacted: third-party essay text]",
+   "question": "[redacted: third-party essay text]",
+   "ep": {
+    "A": {
+     "pred": "[redacted: third-party essay text]",
+     "score": 1.0,
+     "latency": 2.34709095954895,
+     "prompt_tokens": 127678,
+     "completion_tokens": 20,
+     "cached": 126144
+    }
+   }
+  },
+  {
+   "len": "128K",
+   "doc": "code",
+   "doc_tokens": 127460,
+   "task": "code-next",
+   "depth": 0.081,
+   "gold": "first, then aux_fns in order.",
+   "question": "In the code above, which line comes right after this one? Output only that line.\nwhen aux_streams is None or enable is False; in that case default_fn runs",
+   "ep": {
+    "A": {
+     "pred": "first, then aux_fns in order.",
+     "score": 1.0,
+     "latency": 101.62174272537231,
+     "prompt_tokens": 127544,
+     "completion_tokens": 10,
+     "cached": 0
+    }
+   }
+  },
+  {
+   "len": "128K",
+   "doc": "code",
+   "doc_tokens": 127460,
+   "task": "code-next",
+   "depth": 0.113,
+   "gold": "# This replaces flashinfer's internal finalize launch plus a separate",
+   "question": "In the code above, which line comes right after this one? Output only that line.\n# weights) and add the already-weighted W2 delta, in a single kernel.",
+   "ep": {
+    "A": {
+     "pred": "self._finalize_with_w2_lora(",
+     "score": 0.2174,
+     "latency": 2.0194451808929443,
+     "prompt_tokens": 127546,
+     "completion_tokens": 10,
+     "cached": 126144
+    }
+   }
+  },
+  {
+   "len": "128K",
+   "doc": "code",
+   "doc_tokens": 127460,
+   "task": "code-next",
+   "depth": 0.334,
+   "gold": "\"\"\"The first `fuser_cls` that applies to `module`, if one does.\"\"\"",
+   "question": "In the code above, which line comes right after this one? Output only that line.\ndef get_fuser(module: nn.Module, fuser_cls: type[F]) -> \"F | None\":",
+   "ep": {
+    "A": {
+     "pred": "    \"\"\"The first `fuser_cls` that applies to `module`, if one does.\"\"\"",
+     "score": 1.0,
+     "latency": 2.061844825744629,
+     "prompt_tokens": 127550,
+     "completion_tokens": 20,
+     "cached": 126144
+    }
+   }
+  },
+  {
+   "len": "128K",
+   "doc": "code",
+   "doc_tokens": 127460,
+   "task": "code-next",
+   "depth": 0.399,
+   "gold": "normalized = values * rstd * weight",
+   "question": "In the code above, which line comes right after this one? Output only that line.\nrstd = tl.rsqrt(tl.sum(values * values, axis=0) / HEAD_DIM + eps)",
+   "ep": {
+    "A": {
+     "pred": "normalized = values * rstd * weight",
+     "score": 1.0,
+     "latency": 1.9938502311706543,
+     "prompt_tokens": 127551,
+     "completion_tokens": 9,
+     "cached": 126144
+    }
+   }
+  },
+  {
+   "len": "128K",
+   "doc": "code",
+   "doc_tokens": 127460,
+   "task": "code-next",
+   "depth": 0.624,
+   "gold": "from vllm.utils.import_utils import LazyLoader",
+   "question": "In the code above, which line comes right after this one? Output only that line.\nfrom vllm.sampling_params import SamplingParams",
+   "ep": {
+    "A": {
+     "pred": "from vllm.utils.import_utils import LazyLoader",
+     "score": 1.0,
+     "latency": 2.015512704849243,
+     "prompt_tokens": 127538,
+     "completion_tokens": 11,
+     "cached": 126144
+    }
+   }
+  },
+  {
+   "len": "128K",
+   "doc": "code",
+   "doc_tokens": 127460,
+   "task": "code-next",
+   "depth": 0.631,
+   "gold": "self.serialized_grammar = serialize_guidance_grammar(",
+   "question": "In the code above, which line comes right after this one? Output only that line.\n) -> StructuredOutputGrammar:",
+   "ep": {
+    "A": {
+     "pred": "self.serialized_grammar = serialize_guidance_grammar(",
+     "score": 1.0,
+     "latency": 2.0141682624816895,
+     "prompt_tokens": 127535,
+     "completion_tokens": 13,
+     "cached": 126144
+    }
+   }
+  },
+  {
+   "len": "128K",
+   "doc": "code",
+   "doc_tokens": 127460,
+   "task": "code-next",
+   "depth": 0.813,
+   "gold": "Computes zero expert identity contributions as a side effect during routing.",
+   "question": "In the code above, which line comes right after this one? Output only that line.\nRoutes over all experts (real + zero) using full e_score_correction_bias.",
+   "ep": {
+    "A": {
+     "pred": "Computes zero expert identity contributions as a side effect during routing.",
+     "score": 1.0,
+     "latency": 2.0571584701538086,
+     "prompt_tokens": 127544,
+     "completion_tokens": 14,
+     "cached": 126144
+    }
+   }
+  },
+  {
+   "len": "128K",
+   "doc": "code",
+   "doc_tokens": 127460,
+   "task": "code-next",
+   "depth": 0.936,
+   "gold": "\"\"\"Calculates the exact string difference to safely append new tool parameters.",
+   "question": "In the code above, which line comes right after this one? Output only that line.\n) -> DeltaToolCall | None:",
+   "ep": {
+    "A": {
+     "pred": "```python\n        \"\"\"Calculates the exact string difference to safely append new tool parameters.\n```",
+     "score": 0.0506,
+     "latency": 2.082188367843628,
+     "prompt_tokens": 127536,
+     "completion_tokens": 21,
+     "cached": 126144
+    }
+   }
+  }
+ ],
+ "summary": {
+  "32K": {
+   "needle": {
+    "n": 1,
+    "A": 1.0
+   },
+   "essay-complete": {
+    "n": 6,
+    "A": 1.0
+   },
+   "code-next": {
+    "n": 8,
+    "A": 1.0
+   }
+  },
+  "64K": {
+   "needle": {
+    "n": 2,
+    "A": 1.0
+   },
+   "essay-complete": {
+    "n": 6,
+    "A": 1.0
+   },
+   "code-next": {
+    "n": 8,
+    "A": 1.0
+   }
+  },
+  "128K": {
+   "needle": {
+    "n": 4,
+    "A": 1.0
+   },
+   "essay-complete": {
+    "n": 6,
+    "A": 1.0
+   },
+   "code-next": {
+    "n": 8,
+    "A": 0.783
+   }
+  }
+ },
+ "speed": {
+  "A": {
+   "copy": {
+    "doc_tokens": 125830,
+    "prompt_tokens": 125903,
+    "completion_tokens": 512,
+    "cached": 0,
+    "ttft_s": 99.695,
+    "chunks": 84,
+    "decode_tok_s": 179.11,
+    "spec_accept_rate": 0.7418,
+    "spec_mean_accepted_len": 6.193,
+    "spec_metric_deltas": {
+     "vllm:spec_decode_num_drafts_total": 83.0,
+     "vllm:spec_decode_num_draft_tokens_total": 581.0,
+     "vllm:spec_decode_num_accepted_tokens_total": 431.0,
+     "vllm:spec_decode_num_accepted_tokens_per_pos_total": 431.0
+    },
+    "text_head": "```python\n    def __init__(\n        self,\n        config,  # AfmoeConfig\n        quant_config: QuantizationConfig | None = None,\n        prefix: str = \"\",\n        enable_eplb: bool = False,\n    ):\n   "
+   },
+   "explain": {
+    "doc_tokens": 125830,
+    "prompt_tokens": 125900,
+    "completion_tokens": 512,
+    "cached": 124416,
+    "ttft_s": 1.946,
+    "chunks": 146,
+    "decode_tok_s": 103.06,
+    "spec_accept_rate": 0.3606,
+    "spec_mean_accepted_len": 3.524,
+    "spec_metric_deltas": {
+     "vllm:spec_decode_num_drafts_total": 145.0,
+     "vllm:spec_decode_num_draft_tokens_total": 1015.0,
+     "vllm:spec_decode_num_accepted_tokens_total": 366.0,
+     "vllm:spec_decode_num_accepted_tokens_per_pos_total": 366.0
+    },
+    "text_head": "Here is a detailed, file-by-file explanation of the code in the document, presented as a numbered list:\n\n1.  **`vllm/v1/attention/ops/rocm_aiter_mla_merge.py`**\n    This file implements a Triton kerne"
+   }
+  }
+ }
+}

@@ -1,0 +1,237 @@
+diff --git a/.gitignore b/.gitignore
+index 78a3898..25e52e4 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -19,3 +19,7 @@ bench/results/
+ fa2/build-*/
+ fa2/third_party/
+ fa2/python/**/*.so
++run_release/logs/
++run_release/tmp/
++run_release/hf/
++run_release/*.pid
+diff --git a/patches/apply.sh b/patches/apply.sh
+index d2ef229..106953f 100755
+--- a/patches/apply.sh
++++ b/patches/apply.sh
+@@ -11,6 +11,14 @@
+ #                                     (site-packages/vllm, not site-packages)
+ #   bash patches/apply.sh --kvarn DIR apply the four KVarN patches in kvarn/ to DIR, after
+ #                                     the series (kvarn/install.sh calls this; so does CI)
++#   bash patches/apply.sh --sparse DIR
++#                                     apply only the sparse-KV entries of the series (the
++#                                     sparse-*.patch names, in series order) to DIR, a vllm
++#                                     tree that already has the rest of the series; idempotent
++#                                     like --kvarn (sparsekv/install.sh calls this). A fresh
++#                                     install gets them from the plain DIR mode, because they
++#                                     are in patches/series; every sparse patch is inert unless
++#                                     its SPARSE_* environment knob is set.
+ #
+ # Exit codes: 0 success; 1 a patch did not apply (the message names it); 2 a usage error,
+ # or a list and its directory disagree (patches/series and patches/, or KVARN and kvarn/).
+@@ -54,7 +62,7 @@ KVARN=(kvarn-0.31.0.patch kvarn-v2-runner-0.31.0.patch kvarn-recycled-pages-0.31
+        kvarn-fp16-dequant-0.31.0.patch)
+ 
+ usage() {
+-  echo "usage: bash patches/apply.sh --list [--kvarn] | [--kvarn] DIR  (DIR = the installed vllm package directory)" >&2
++  echo "usage: bash patches/apply.sh --list [--kvarn] | [--kvarn|--sparse] DIR  (DIR = the installed vllm package directory)" >&2
+   exit 2
+ }
+ 
+@@ -135,12 +143,31 @@ apply_kvarn() {
+   done
+ }
+ 
++# The sparse-KV entries of the series (sparse-*.patch), applied idempotently to a tree that
++# already carries the rest of the series: same reverse-dry-run check as --kvarn.
++apply_sparse() {
++  local dir=$1 names name n=0
++  [ -d "$dir" ] || { echo "ERROR: $dir is not a directory" >&2; usage; }
++  names=$(list) || exit 2
++  while IFS= read -r name; do
++    case "$name" in sparse-*.patch) ;; *) continue ;; esac
++    n=$((n + 1))
++    if patch -p1 -R --dry-run -s --fuzz 0 -d "$dir" -i "$HERE/$name" >/dev/null 2>&1; then
++      echo "== $name (already applied)"
++      continue
++    fi
++    apply_one "$dir" "$HERE/$name" "$name" "$SERIES_HINT"
++  done <<<"$names"
++  [ "$n" -gt 0 ] || { echo "ERROR: patches/series has no sparse-*.patch entries" >&2; exit 2; }
++}
++
+ case "${1:-}" in
+   --list)
+     if [ $# -eq 1 ]; then list
+     elif [ $# -eq 2 ] && [ "$2" = --kvarn ]; then list_kvarn
+     else usage; fi ;;
+   --kvarn) [ $# -eq 2 ] || usage; apply_kvarn "$2" ;;
++  --sparse) [ $# -eq 2 ] || usage; apply_sparse "$2" ;;
+   ""|-*) usage ;;
+   *) [ $# -eq 1 ] || usage; apply_series "$1" ;;
+ esac
+diff --git a/patches/series b/patches/series
+index 6f33db3..990bd8f 100644
+--- a/patches/series
++++ b/patches/series
+@@ -65,3 +65,5 @@ qwen3_5-embed-uva.patch
+ vllm-pr40371-prompt-progress.patch
+ vllm-pr61050-lru-running-prefix.patch
+ kv-cache-seat-budget.patch
++sparse-tier-spill-kvcheck.patch
++sparse-switch-dual-graphs.patch
+diff --git a/pthfa/python/pth_flash_attn/vllm_backend.py b/pthfa/python/pth_flash_attn/vllm_backend.py
+index 0b29ca4..542cc42 100644
+--- a/pthfa/python/pth_flash_attn/vllm_backend.py
++++ b/pthfa/python/pth_flash_attn/vllm_backend.py
+@@ -44,6 +44,7 @@ adaptive verification (device ``q_len`` smaller than the host bound) works.
+ 
+ from __future__ import annotations
+ 
++import dataclasses
+ import inspect
+ from dataclasses import dataclass
+ from typing import Any, ClassVar
+@@ -77,6 +78,7 @@ from vllm.v1.worker.workspace import (
+ )
+ 
+ from pth_flash_attn import ops
++from pth_flash_attn import sparse_kv
+ from pth_flash_attn.planner import (
+     MAX_ROWS_PER_CTA,
+     SUPPORTED_HEAD_SIZES,
+@@ -190,6 +192,9 @@ class PthAttnMetadata:
+     prefill: PthLaunchSlice | None
+     use_cascade: bool = False
+     common_prefix_len: int = 0
++    # SPARSE_KV=1: run the decode slice sparse this step (host decision from
++    # max_seq_len and the per-GPU cutoff table; see sparse_kv.decide).
++    sparse_decode: bool = True
+ 
+ 
+ def _group_size(num_heads_q: int, num_kv_heads: int) -> int:
+@@ -288,6 +293,13 @@ class PthFlashAttnMetadataBuilder(AttentionMetadataBuilder[PthAttnMetadata]):
+         # query_start_loc of the prefill slice, rebased to 0 on the device. One
+         # int32 per request plus one: persistent so the step allocates nothing,
+         # and not in the KV budget because it is a few bytes.
++        # Every build publishes the per-step dense/sparse decision that picks
++        # the decode graph family. MTP drafter layers can share this group; a
++        # drafter build comes after the target replay of the same step and the
++        # next target build overwrites the decision, so that is harmless.
++        self._sparse_target = sparse_kv.enabled()
++        logger.info("pth_flash_attn: builder for %d layers (%s ... %s)", len(layer_names),
++                    layer_names[0] if layer_names else "-", layer_names[-1] if layer_names else "-")
+         self._prefill_qsl = torch.zeros(
+             int(vllm_config.scheduler_config.max_num_seqs) + 1,
+             dtype=torch.int32,
+@@ -432,7 +444,14 @@ class PthFlashAttnMetadataBuilder(AttentionMetadataBuilder[PthAttnMetadata]):
+                 max_query_len=int(cam.max_query_len),
+                 is_prefill=True,
+             )
++        sparse_decode = True
++        if self._sparse_target:
++            ub = cam.seq_lens_cpu_upper_bound
++            # Real (unpadded) request count: padded FULL-graph rows have length 0.
++            n_real = int((ub.numpy() > 0).sum()) if ub is not None else num_reqs
++            sparse_decode = sparse_kv.decide(int(cam.max_seq_len), n_real)
+         return PthAttnMetadata(
++            sparse_decode=sparse_decode,
+             num_actual_tokens=num_tokens,
+             max_query_len=int(cam.max_query_len),
+             query_start_loc=cam.query_start_loc,
+@@ -640,7 +659,17 @@ class PthFlashAttnImpl(TritonAttentionImpl):
+         self._cache_views: tuple[int, tuple[torch.Tensor, ...]] | None = None
+         self._ws_token_splits = 0
+         self._no_workspace: torch.Tensor | None = None
+-        self._reserve_workspace(get_current_vllm_config_or_none())
++        vllm_config = get_current_vllm_config_or_none()
++        self._reserve_workspace(vllm_config)
++        if sparse_kv.enabled() and vllm_config is not None:
++            # G-1: budget sketch/staging/tier buffers (allocated after profiling) out of the KV pool
++            sparse_kv.install_memory_reserve()
++        # SPARSE_KV=1: per-layer sparse state, created at the first forward
++        # (the layer name is known there); False = dense layer.
++        self._sparse: sparse_kv.LayerSparse | bool | None = None
++        self._sparse_max_seqs = (
++            int(vllm_config.scheduler_config.max_num_seqs) if vllm_config else 1
++        )
+ 
+     def _reserve_workspace(self, vllm_config: VllmConfig | None) -> None:
+         """Reserve W_ts token-splits of fp32 partials in the shared workspace.
+@@ -785,12 +814,58 @@ class PthFlashAttnImpl(TritonAttentionImpl):
+             # Memory-profile run: no attention is executed.
+             return output.fill_(0)
+         caches = self._caches(kv_cache)
++        sp = self._sparse
++        if sp is None:
++            sp = False
++            if sparse_kv.enabled():
++                name = getattr(layer, "layer_name", "") or ""
++                st = sparse_kv.LayerSparse(name, self._sparse_max_seqs)
++                sp = st if st.active else False
++            self._sparse = sp
++        if sp:
++            sp.ensure(kv_cache)
++            if key is not None:
++                sp.write(key, attn_metadata.slot_mapping)
++        tier = sparse_kv._tier_runtime() if sparse_kv.enabled() else None
++        lname = getattr(layer, "layer_name", "") or ""
+         if attn_metadata.decode is not None:
+-            self._run_slice(
+-                attn_metadata.decode, query, output, caches, attn_metadata.causal
+-            )
++            part = attn_metadata.decode
++            if tier is not None and not sp:
++                part = tier.window_part(lname, part, 0)
++            # Dense/sparse switch: decided on the host per step (or fixed by the
++            # graph family being captured). Static shortcut: if the block table
++            # cannot hold more than C tokens, every request is selected whole.
++            if (
++                sp
++                and sparse_kv.decode_sparse(attn_metadata)
++                and part.block_table.shape[1] * kv_cache.shape[2] > sparse_kv.cfg().C
++            ):
++                st_kv, st_bt, n_valid = sp.select_and_stage(
++                    part, query, kv_cache, self.scale
++                )
++                part = dataclasses.replace(part, seq_lens=n_valid, block_table=st_bt)
++                self._run_slice(
++                    part, query, output, sparse_kv.staging_views(self, st_kv),
++                    attn_metadata.causal,
++                )
++            else:
++                self._run_slice(part, query, output, caches, attn_metadata.causal)
+         if attn_metadata.prefill is not None:
+-            self._run_slice(
+-                attn_metadata.prefill, query, output, caches, attn_metadata.causal
+-            )
++            part = attn_metadata.prefill
++            pcaches = caches
++            if tier is not None:
++                r0 = attn_metadata.decode.seq_lens.shape[0] if attn_metadata.decode is not None else 0
++                # S4: per-request prefill (follow-up suffixes sparse over sketch + host rows, long chunks staged
++                # in one batched copy without a host sync); False -> legacy staging below.
++                if sp and tier.prefill_layer(self, lname, sp, kv_cache, part, r0, query, output, caches,
++                                             attn_metadata.causal, sparse_kv.staging_views):
++                    return output
++                if sp:
++                    staged = tier.stage_prefill(lname, kv_cache, part, r0)
++                    if staged is not None:
++                        pf_kv, part = staged
++                        pcaches = sparse_kv.staging_views(self, pf_kv, attr="_tier_pf_views")
++                else:
++                    part = tier.window_part(lname, part, r0)
++            self._run_slice(part, query, output, pcaches, attn_metadata.causal)
+         return output
+diff --git a/single-user/start_qwen.sh b/single-user/start_qwen.sh
+index 7abace1..c75be6f 100755
+--- a/single-user/start_qwen.sh
++++ b/single-user/start_qwen.sh
+@@ -337,6 +337,7 @@ if [ "$PTH_FA" = 1 ]; then
+       echo "PTH_FA=1 sets --attention-backend, --kv-cache-dtype and the speculative config itself;" >&2
+       echo "  EXTRA_ARGS carries one of them and would override it. Remove it from EXTRA_ARGS." >&2
+       exit 1 ;;
++    *"HostTierConnector"*) ;;  # sparse-kv stream E host tier (SPARSE_TIER=1), the only connector allowed here
+     *"--kv-offloading-size"*|*"--kv-transfer-config"*)
+       echo "PTH_FA=1 with a KV connector (KV_OFFLOAD_GB, --kv-offloading-size, --kv-transfer-config) is" >&2
+       echo "  untested on this backend; refusing. Use PTH_FA=0 for a CPU KV tier." >&2

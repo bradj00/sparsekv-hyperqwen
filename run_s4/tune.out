@@ -1,0 +1,8 @@
+CFG {"sparse": false}: code ok [(0, True), (0, True), (1, False), (1, False), (2, True), (2, True), (3, False), (3, False)] ttft [6.41, 4.58, 8.74, 9.19, 6.49, 4.65, 8.83, 9.28]
+CFG {}: code ok [(0, True), (0, True), (1, False), (1, False), (2, False), (2, False), (3, False), (3, False)] ttft [4.08, 2.99, 5.6, 5.49, 4.12, 3.03, 5.65, 5.53]
+CFG {"seg_q": 32}: code ok [(0, True), (0, True), (1, False), (1, False), (2, False), (2, False), (3, False), (3, True)] ttft [3.02, 5.7, 4.11, 5.83, 5.75, 3.04, 5.87, 5.67]
+CFG {"ksel": 4096}: code ok [(0, True), (0, True), (1, False), (1, False), (2, False), (2, False), (3, False), (3, False)] ttft [4.24, 3.11, 5.77, 5.97, 4.24, 3.13, 5.8, 6.0]
+CFG {"seg_q": 16, "ksel": 4096}: code ok [(0, True), (0, True), (1, False), (1, False), (2, True), (2, True), (3, True), (3, True)] ttft [3.15, 5.92, 4.28, 5.72, 3.18, 5.96, 4.31, 5.77]
+CFG {"seg_last": 256, "seg_q": 32}: code ok [(0, True), (0, True), (1, False), (1, False), (2, False), (2, True), (3, False), (3, True)] ttft [5.68, 3.04, 4.14, 5.88, 3.07, 5.7, 4.17, 5.9]
+CFG {"seg": 128, "seg_q": 32}: code ok [(0, True), (0, True), (1, False), (1, False), (2, False), (2, False), (3, False), (3, True)] ttft [3.06, 4.16, 5.7, 5.91, 5.82, 3.09, 4.19, 5.94]
+TUNE_END

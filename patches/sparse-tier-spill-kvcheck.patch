@@ -1,0 +1,15 @@
+--- a/v1/core/kv_cache_utils.py
++++ b/v1/core/kv_cache_utils.py
+@@ -911,6 +911,12 @@
+             "for more details."
+         )
+ 
++    if os.environ.get("SPARSE_TIER_SPILL", "0") == "1":
++        # sparse-kv host tier (stream E): KV of the sparse full-attention layers beyond sink + tail lives in host
++        # RAM, so max_model_len may exceed the GPU pool. The host-pool size is checked by the tier connector.
++        logger.warning("SPARSE_TIER_SPILL=1: skipping the max_model_len vs GPU KV pool check (%.2f GiB available)",
++                       available_memory / (1 << 30))
++        return
+     needed_memory = get_needed_memory()
+ 
+     if needed_memory > available_memory:

@@ -1,0 +1,30 @@
+{
+ "doc_tokens": 177399,
+ "needle": {
+  "prompt_tokens": 177434,
+  "out": 10,
+  "ttft": 196.0,
+  "decode_tps": 82.1,
+  "ok": true,
+  "text": "7418-2295",
+  "want": "7418-2295"
+ },
+ "code": {
+  "prompt_tokens": 177446,
+  "out": 11,
+  "ttft": 194.9,
+  "decode_tps": 128.2,
+  "ok": false,
+  "text": "```python\n            expanded_size = (\n```",
+  "want": "else target_input_size"
+ },
+ "speed": {
+  "prompt_tokens": 177422,
+  "out": 384,
+  "ttft": 195.1,
+  "decode_tps": 117.0,
+  "ok": null,
+  "text": "The last file provided is `benchmarks/sweep/server.py`. It defines a class named `ServerProcess` which acts as a wrapper for managing the lifecycle of a vLLM server (or potentially other inference servers) during benchmarking experiments, specifically within the context of the `vllm bench sweep` fun",
+  "want": null
+ }
+}

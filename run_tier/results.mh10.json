@@ -1,0 +1,34 @@
+{
+ "doc_tokens": 57736,
+ "needle": {
+  "prompt_tokens": 57771,
+  "out": 10,
+  "ttft": 34.0,
+  "decode_tps": 178.0,
+  "ok": true,
+  "text": "7418-2295",
+  "want": "7418-2295"
+ },
+ "resets": [
+  true,
+  true
+ ],
+ "code": {
+  "prompt_tokens": 57799,
+  "out": 25,
+  "ttft": 1.5,
+  "decode_tps": 81.5,
+  "ok": true,
+  "text": "```\n        gate/up-interleaved weights, interleaved scale for w13 (gate/up), plain\n```",
+  "want": "gate/up-interleaved weights, interleaved scale for w13 (gate/up), plain"
+ },
+ "needle2": {
+  "prompt_tokens": 57770,
+  "out": 7,
+  "ttft": 1.5,
+  "decode_tps": 47.0,
+  "ok": true,
+  "text": "amber-quartz-41",
+  "want": "amber-quartz-41"
+ }
+}

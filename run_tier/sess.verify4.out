@@ -1,0 +1,18 @@
+[gpu1 blocking]
+[serve] pid 1142122 log $REPO/run_tier/logs/server.tierv4.log
+[session] healthy after 230s
+Capturing CUDA graphs (PIECEWISE):  71%|███████▏  | 5/7 [00:01<00:00,  2.71it/s]
+Capturing CUDA graphs (PIECEWISE):  86%|████████▌ | 6/7 [00:02<00:00,  3.00it/s]
+Capturing CUDA graphs (PIECEWISE): 100%|██████████| 7/7 [00:02<00:00,  3.33it/s]
+Capturing CUDA graphs (PIECEWISE): 100%|██████████| 7/7 [00:02<00:00,  3.12it/s]
+Capturing CUDA graphs (FULL):   0%|          | 0/2 [00:00<?, ?it/s]
+Capturing CUDA graphs (FULL):  50%|█████     | 1/2 [00:00<00:00,  4.38it/s]
+Capturing CUDA graphs (FULL): 100%|██████████| 2/2 [00:00<00:00,  4.43it/s]
+Capturing CUDA graphs (FULL): 100%|██████████| 2/2 [00:00<00:00,  4.42it/s]
+[code 32000] 29466 tok: PASS got='        return B12xPagedAttentionImpl' want='return B12xPagedAttentionImpl' (15s)
+[code 64000] 63767 tok: PASS got='            if general_spec != causal_backend.customize_spec(spec):' want='if general_spec != causal_backend.customize_spec(spec):' (25s)
+[code 128000] 126767 tok: PASS got='```\n        num_decodes = attn_metadata.num_decode_reqs\n```' want='num_decodes = attn_metadata.num_decode_reqs' (69s)
+CLIENT DONE
+[stop] group 1142122: 1142122 1142878 1142879
+0, 72 MiB
+1, 2 MiB

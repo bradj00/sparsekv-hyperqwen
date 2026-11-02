@@ -1,0 +1,66 @@
+{
+ "A": {
+  "doc_tokens": 176336,
+  "needle": {
+   "prompt_tokens": 176371,
+   "cached_tokens": 0,
+   "ttft_s": 188.63,
+   "total_s": 190.2,
+   "ok": true,
+   "text": "7418-2295",
+   "want": "7418-2295"
+  },
+  "code": {
+   "prompt_tokens": 176383,
+   "cached_tokens": 175392,
+   "ttft_s": 4.49,
+   "total_s": 4.63,
+   "ok": true,
+   "text": "    \"\"\"Implements a base class to replay various timed traces.",
+   "want": "\"\"\"Implements a base class to replay various timed traces."
+  },
+  "needle2": {
+   "prompt_tokens": 176370,
+   "cached_tokens": 175392,
+   "ttft_s": 4.41,
+   "total_s": 4.56,
+   "ok": true,
+   "text": "amber-quartz-41",
+   "want": "amber-quartz-41"
+  }
+ },
+ "B": {
+  "doc_tokens": 119777,
+  "needle": {
+   "prompt_tokens": 119812,
+   "cached_tokens": 0,
+   "ttft_s": 167.03,
+   "total_s": 167.12,
+   "ok": true,
+   "text": "5530-8817",
+   "want": "5530-8817"
+  },
+  "code": {
+   "prompt_tokens": 119842,
+   "cached_tokens": 118368,
+   "ttft_s": 3.99,
+   "total_s": 4.2,
+   "ok": true,
+   "text": "f\"{'aSdP':>4} {'adKV':>4} {'adQ':>4}  \"",
+   "want": "f\"{'aSdP':>4} {'adKV':>4} {'adQ':>4}  \""
+  },
+  "needle2": {
+   "prompt_tokens": 119811,
+   "cached_tokens": 118368,
+   "ttft_s": 3.97,
+   "total_s": 4.06,
+   "ok": true,
+   "text": "cobalt-ridge-07",
+   "want": "cobalt-ridge-07"
+  }
+ },
+ "resets": [
+  true,
+  true
+ ]
+}

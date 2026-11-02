@@ -1,0 +1,26 @@
+{
+ "speedshort/4000/explain": {
+  "prompt_tokens": 3569,
+  "completion": 512,
+  "decode_tps": 152.56165004007138,
+  "text": "This file, `v1/attention/backends/fa_utils.py`, serves as a **platform-agnostic utility layer** for the FlashAttention (FA) backend in vLLM. Its primary responsibilities are:\n\n1.  **Import Resolution:** It abstracts the import of FlashAttention functions (`flash_attn_varlen_func`, `reshape_and_cache"
+ },
+ "speedshort/4000/copy": {
+  "prompt_tokens": 3564,
+  "completion": 512,
+  "decode_tps": 224.96770202216877,
+  "text": "```python\n# ===== FILE: v1/attention/backends/fa_utils.py =====\n# SPDX-License-Identifier: Apache-2.0\n# SPDX-FileCopyrightText: Copyright contributors to the vLLM project\n\nfrom typing import Any\n\nimport vllm.envs as envs\nfrom vllm.logger import init_logger\nfrom vllm.platforms import current_platform"
+ },
+ "speedshort/8000/explain": {
+  "prompt_tokens": 7702,
+  "completion": 512,
+  "decode_tps": 125.74894090034412,
+  "text": "Here is a detailed explanation of the code provided, broken down by file.\n\n### File 1: `v1/attention/backends/composite.py`\n\nThis file implements a **Composite Attention Backend** pattern. In vLLM, different models or hardware configurations might require different attention implementations (e.g., o"
+ },
+ "speedshort/8000/copy": {
+  "prompt_tokens": 7697,
+  "completion": 512,
+  "decode_tps": 221.29832686771016,
+  "text": "# ===== FILE: v1/attention/backends/fa_utils.py =====\n# SPDX-License-Identifier: Apache-2.0\n# SPDX-FileCopyrightText: Copyright contributors to the vLLM project\n\nfrom typing import Any\n\nimport vllm.envs as envs\nfrom vllm.logger import init_logger\nfrom vllm.platforms import current_platform\nfrom vllm"
+ }
+}

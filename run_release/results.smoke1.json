@@ -1,0 +1,49 @@
+{
+ "doc_tokens": 126057,
+ "ntok": 128000,
+ "short": {
+  "prompt_tokens": 24,
+  "out": 2,
+  "ttft_s": 0.14,
+  "decode_tps": 36.6,
+  "ok": true,
+  "text": "Paris",
+  "want": "Paris"
+ },
+ "needle": {
+  "prompt_tokens": 126092,
+  "out": 10,
+  "ttft_s": 104.49,
+  "decode_tps": 82.5,
+  "ok": true,
+  "text": "7418-2295",
+  "want": "7418-2295"
+ },
+ "followup_code": {
+  "prompt_tokens": 126106,
+  "out": 13,
+  "ttft_s": 2.36,
+  "decode_tps": 145.1,
+  "ok": true,
+  "text": "```\n    def biased_topk_cpu_fake(\n```",
+  "want": "def biased_topk_cpu_fake("
+ },
+ "followup_needle2": {
+  "prompt_tokens": 126091,
+  "out": 7,
+  "ttft_s": 2.34,
+  "decode_tps": 52.9,
+  "ok": true,
+  "text": "amber-quartz-41",
+  "want": "amber-quartz-41"
+ },
+ "speed": {
+  "prompt_tokens": 126080,
+  "out": 256,
+  "ttft_s": 2.32,
+  "decode_tps": 99.8,
+  "ok": true,
+  "text": "The last file provided is `benchmarks/sweep/plot.py`. Its primary purpose is to **generate performance visualization plots (specifically line charts with error bars) from the results of a parameter sweep benchmark**.\n\nHere is a detailed breakdown of its functionality, structure, and workflow:\n\n### 1",
+  "want": null
+ }
+}

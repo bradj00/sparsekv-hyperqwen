@@ -1,0 +1,29 @@
+[gpu0 blocking]
+[serve] pid 1266258 log $REPO/run_tier/logs/server.press1.log
+[spill] healthy after 65s
+(EngineCore pid=1267176) INFO 11-01 05:53:41 [gpu_worker.py:713] Available KV cache memory: 4.61 GiB
+(EngineCore pid=1267176) WARNING 11-01 05:53:41 [kv_cache_utils.py:917] SPARSE_TIER_SPILL=1: skipping the max_model_len vs GPU KV pool check (4.58 GiB available)
+(EngineCore pid=1267176) INFO 11-01 05:53:41 [kv_cache_utils.py:2665] GPU KV cache size: 124,324 tokens, Maximum concurrency for 200,000 tokens per request: 0.62x
+(EngineCore pid=1267176) INFO 11-01 05:53:43 [tier_connector.py:50] tier: kv cache view shape (161, 4, 864, 520) strides (1797120, 520, 2080, 1) contiguous=False
+(EngineCore pid=1267176) INFO 11-01 05:53:43 [tier_connector.py:50] tier: runtime mode=SPILL: 16 sparse layers in group(s) [3], window layers ['mtp.layers.0.self_attn.attn'], host pool 6.70 GB (233 blocks), GPU pool 161 blocks, hot 20000 rows/slot (1364 MB total), C=3136, tail=1088
+(EngineCore pid=1267176) INFO 11-01 05:53:48 [tier_connector.py:50] tier: SPILL scheduler hook on KV group 3 (FullAttentionManager): frees blocks [1, (processed-1088)//864), policy pressure (watermark 16 free blocks); host prefix cache HostTierFullAttentionManager (233 host blocks)
+doc tokens 97662
+[needle] 97697 in, 10 out, ttft 83.5s, decode 218.7 tok/s, ok=True text='7418-2295'
+[code] 97710 in, 9 out, ttft 1.3s, decode 124.5 tok/s, ok=True text='    max_tokens_per_batch: int,'
+[speed] 97685 in, 384 out, ttft 1.2s, decode 121.6 tok/s, ok=None text='The last file provided is **`vllm/benchmarks/datasets/utils.py`**.\n\n### High-Level Purpose\nThis module provides shared u'
+CLIENT DONE
+(EngineCore pid=1267176) INFO 11-01 05:55:23 [tier_connector.py:50] tier: stats {'steps': 174, 'mirrored_blocks': 113, 'prefill_staged_blocks': 0, 'host_blocks_peak': 0, 'host_hit_blocks': 224, 'hostcache': {'alloc': 113, 'hit': 226, 'evict': 0, 'used': 113}} hot[hit,miss,resident]=[0, 0, 5620800] verify[diff,compared]=[0, 0]
+doc tokens 177422
+[needle] 177457 in, 10 out, ttft 202.2s, decode 93.7 tok/s, ok=True text='7418-2295'
+[code] 177469 in, 6 out, ttft 2.3s, decode 3709.8 tok/s, ok=True text='                else target_input_size'
+[needle2] 177456 in, 7 out, ttft 2.3s, decode 87.8 tok/s, ok=True text='amber-quartz-41'
+[speed] 177445 in, 384 out, ttft 2.3s, decode 106.9 tok/s, ok=None text='The last file provided is `benchmarks/sweep/server.py`. It defines a class named `ServerProcess` which acts as a wrapper'
+CLIENT DONE
+(EngineCore pid=1267176) INFO 11-01 05:58:57 [tier_connector.py:50] tier: stats {'steps': 295, 'mirrored_blocks': 284, 'prefill_staged_blocks': 84224, 'host_blocks_peak': 0, 'host_hit_blocks': 836, 'hostcache': {'alloc': 284, 'hit': 874, 'evict': 51, 'used': 233}} hot[hit,miss,resident]=[89614, 8585
+(EngineCore pid=1267176) INFO 11-01 05:58:59 [tier_connector.py:50] tier: stats {'steps': 300, 'mirrored_blocks': 284, 'prefill_staged_blocks': 86016, 'host_blocks_peak': 0, 'host_hit_blocks': 836, 'hostcache': {'alloc': 284, 'hit': 875, 'evict': 51, 'used': 233}} hot[hit,miss,resident]=[120181, 104
+(EngineCore pid=1267176) INFO 11-01 05:59:00 [tier_connector.py:50] tier: stats {'steps': 350, 'mirrored_blocks': 284, 'prefill_staged_blocks': 86016, 'host_blocks_peak': 0, 'host_hit_blocks': 836, 'hostcache': {'alloc': 284, 'hit': 875, 'evict': 51, 'used': 233}} hot[hit,miss,resident]=[714552, 195
+(EngineCore pid=1267176) INFO 11-01 05:59:02 [tier_connector.py:50] tier: stats {'steps': 400, 'mirrored_blocks': 284, 'prefill_staged_blocks': 86016, 'host_blocks_peak': 0, 'host_hit_blocks': 836, 'hostcache': {'alloc': 284, 'hit': 875, 'evict': 51, 'used': 233}} hot[hit,miss,resident]=[1276122, 23
+(EngineCore pid=1267176) INFO 11-01 05:59:02 [tier_connector.py:50] tier: stats {'steps': 411, 'mirrored_blocks': 284, 'prefill_staged_blocks': 86016, 'host_blocks_peak': 0, 'host_hit_blocks': 836, 'hostcache': {'alloc': 284, 'hit': 875, 'evict': 51, 'used': 233}} hot[hit,miss,resident]=[1386156, 24
+[stop] group 1266258: 1266258 1267175 1267176
+0, 72 MiB
+1, 2 MiB

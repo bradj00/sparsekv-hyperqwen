@@ -1,0 +1,165 @@
+--- a/v1/worker/gpu/cudagraph_utils.py
++++ b/v1/worker/gpu/cudagraph_utils.py
+@@ -140,6 +140,24 @@
+     )
+ 
+ 
++import os as _os
++import time as _time
++from collections import Counter as _Counter
++
++_CG_STATS = _os.environ.get("SPARSE_CG_STATS", "0") == "1"
++_CG_COUNTS: "_Counter" = _Counter()
++_CG_LAST = [0.0]
++
++
++def _cg_note(key) -> None:
++    """Count one dispatch/replay; log the counters every 20 s (host only)."""
++    _CG_COUNTS[key] += 1
++    now = _time.monotonic()
++    if now - _CG_LAST[0] > 20.0:
++        _CG_LAST[0] = now
++        logger.info("cg-stats: %s", dict(sorted(_CG_COUNTS.items(), key=lambda kv: str(kv[0]))))
++
++
+ class CudaGraphManager:
+     def __init__(
+         self,
+@@ -172,6 +190,12 @@
+         self._lora_dispatch_map, self._max_lora_case = self._build_lora_dispatch_map()
+ 
+         self.graphs: dict[BatchExecutionDescriptor, torch.cuda.CUDAGraph] = {}
++        # sparse-kv switch: a second FULL graph family (sparse decode) chosen per
++        # step on the host; only the target model's manager enables it.
++        self.graphs_sparse: dict[BatchExecutionDescriptor, torch.cuda.CUDAGraph] = {}
++        self._sparse_switch = None
++        self._family_mem: dict[str, int] = {}
++        self._family_count: dict[str, int] = {}
+         self.pool = current_platform.get_global_graph_pool() if cudagraph_mode else None
+ 
+         self._graphs_captured = False
+@@ -460,7 +484,10 @@
+                     descs = descs[: self._max_full_descs_to_capture]
+                 if is_global_first_rank():
+                     descs = tqdm(descs, desc=f"{progress_bar_desc} ({mode.name})")
+-                for desc in descs:
++                for desc, family in self._capture_families(descs):
++                    if self._sparse_switch is not None:
++                        self._sparse_switch.set_family(family)
++                    graphs = self.graphs_sparse if family == "sparse" else self.graphs
+                     # Prepare inputs and get forward function
+                     forward_fn = create_forward_fn(desc, warmup=True)
+ 
+@@ -484,7 +511,7 @@
+                         if desc.cg_mode == CUDAGraphMode.PIECEWISE:
+                             forward_fn(CUDAGraphMode.PIECEWISE)
+                             continue
+-                        assert desc not in self.graphs, (
++                        assert desc not in graphs, (
+                             f"Graph already captured for {desc}"
+                         )
+                         graph = torch.cuda.CUDAGraph()
+@@ -502,6 +529,9 @@
+                             # estimate never mixes an allocator total with
+                             # driver-measured samples.
+                             reserved_before = torch.accelerator.memory_reserved()
++                        if self._sparse_switch is not None:
++                            torch.accelerator.synchronize()
++                            _fam_before = torch.accelerator.memory_reserved()
+                         with torch.cuda.graph(
+                             graph, self.pool, stream=self._capture_stream(desc)
+                         ):
+@@ -515,11 +545,35 @@
+                             torch.accelerator.synchronize()
+                             reserved_after = torch.accelerator.memory_reserved()
+                             self._capture_mem_samples.append(reserved_after - reserved_before)
+-                        self.graphs[desc] = graph
++                        if self._sparse_switch is not None:
++                            torch.accelerator.synchronize()
++                            _fam = family or "dense"
++                            self._family_mem[_fam] = self._family_mem.get(_fam, 0) + (
++                                torch.accelerator.memory_reserved() - _fam_before
++                            )
++                            self._family_count[_fam] = self._family_count.get(_fam, 0) + 1
++                        graphs[desc] = graph
+                         compilation_counter.num_cudagraph_captured += 1
++            if self._sparse_switch is not None:
++                self._sparse_switch.set_family(None)
++                logger.info(
++                    "sparse-kv switch: FULL graphs captured per family %s; reserved-memory "
++                    "growth per family (MiB) %s",
++                    dict(self._family_count),
++                    {k: round(v / 2**20, 2) for k, v in self._family_mem.items()},
++                )
+ 
+         self._graphs_captured = True
+ 
++    def _capture_families(self, descs):
++        """(desc, family) pairs: FULL descs twice (dense, sparse) with the switch."""
++        for desc in descs:
++            if self._sparse_switch is not None and desc.cg_mode == CUDAGraphMode.FULL:
++                yield desc, "dense"
++                yield desc, "sparse"
++            else:
++                yield desc, None
++
+     def captured_token_counts(self) -> list[int]:
+         """Sorted token counts with a captured graph, ignoring LoRA variants."""
+         return sorted(
+@@ -549,7 +603,11 @@
+                     max_query_len,
+                     num_ubatches,
+                 ):
++                    if _CG_STATS:
++                        _cg_note((type(self).__name__, desc.cg_mode.name, num_tokens, num_reqs))
+                     return desc
++        if _CG_STATS:
++            _cg_note((type(self).__name__, "NONE", num_tokens, num_reqs, uniform_token_count, max_query_len))
+         return BatchExecutionDescriptor(
+             cg_mode=CUDAGraphMode.NONE,
+             num_tokens=num_tokens,
+@@ -564,6 +622,12 @@
+             f"Expected FULL mode, got {desc.cg_mode}"
+         )
+         assert desc in self.graphs, f"No cudagraph for {desc}"
++        graph = self.graphs[desc]
++        if self._sparse_switch is not None and self._sparse_switch.step_sparse():
++            graph = self.graphs_sparse.get(desc, graph)
++        if _CG_STATS:
++            _cg_note((type(self).__name__, "replay", desc.num_tokens,
++                      "sparse" if graph is not self.graphs[desc] else "dense"))
+         # Sync offloader before replay - needed when transitioning from
+         # eager/piecewise to full cudagraph (e.g., prefill → decode).
+         # The previous eager iteration's start_prefetch may have queued
+@@ -571,7 +635,7 @@
+         # cannot see. Without this, replay could overwrite static buffers
+         # while those copies are still in flight.
+         get_offloader().sync_prev_onload()
+-        self.graphs[desc].replay()
++        graph.replay()
+ 
+     def init_breakable_cg_runner(self, model: nn.Module) -> None:
+         if self.breakable_cg_runner is None:
+@@ -609,6 +673,13 @@
+             varlen_decode=varlen_decode,
+             ubatch_runner=ubatch_runner,
+         )
++        try:
++            from pth_flash_attn import sparse_kv as _skv
++
++            if _skv.dual_graphs():
++                self._sparse_switch = _skv
++        except Exception:  # noqa: BLE001
++            self._sparse_switch = None
+         self.hidden_states: torch.Tensor | None = None
+         self.aux_hidden_states: list[torch.Tensor] = []
+         self.use_aux_hidden_state_outputs = False
+@@ -963,6 +1034,8 @@
+             # they share the global pool at runtime, so the overlap is not
+             # double-counted.
+             num_full_graphs = len(manager._capture_descs.get(CUDAGraphMode.FULL, []))
++            if manager._sparse_switch is not None:
++                num_full_graphs *= 2  # dense + sparse families
+             full_estimate = _extrapolate_full_graph_memory(mem_samples, num_full_graphs)
+             return max(measured - sum(mem_samples) + full_estimate, 0)
+         finally:

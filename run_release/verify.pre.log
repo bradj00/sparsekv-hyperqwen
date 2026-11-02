@@ -1,0 +1,86 @@
+== environment
+  PASS  python: $REPO/venv/bin/python
+  PASS  vllm 0.31.0
+  PASS  vllm package at $REPO/venv/lib/python3.12/site-packages/vllm
+  FAIL  torch cannot see a CUDA GPU
+  PASS  power limit 280.00 W (README numbers are at 250 W)
+  PASS  python module triton
+  PASS  python module compressed_tensors
+  PASS  flashinfer usable by vLLM (nvcc or flashinfer-cubin present)
+== vLLM patches (order: patches/series)
+  PASS  patches/series lists all 52 patches
+  PASS  qwen3_5-embed-quant.patch applied (content check; hunks overlap another patch)
+  PASS  marlin-int8-layer-select.patch applied
+  PASS  marlin-int8-negative-scales.patch applied
+  PASS  qwen3_5-mtp-draft-vocab.patch applied
+  PASS  vllm-pr50021-gdn-spec-bounds.patch applied
+  PASS  sampler-small-topk-fast-softmax.patch applied
+  PASS  spec-decode-attn.patch applied (content check; hunks overlap another patch)
+  PASS  speed-knobs-envs.patch applied (content check; hunks overlap another patch)
+  PASS  hybrid-kv-groups-v2-cudagraph.patch applied
+  PASS  dflash2-lookup-drafting.patch applied (content check; hunks overlap another patch)
+  PASS  hybrid-sw-block-promote.patch applied
+  PASS  spec-decode-int8-kv.patch applied (content check; hunks overlap another patch)
+  PASS  vision-tower-cpu-offload.patch applied
+  PASS  int4-kv-per-token-head.patch applied
+  PASS  marlin-repack-staged-sm80.patch applied
+  PASS  offload-dflash-eagle-groups.patch applied
+  PASS  dflash2-ngram-chains.patch applied (content check; hunks overlap another patch)
+  PASS  offload-wsl2-devptr.patch applied
+  PASS  spec-decode-int4-kv-mq3d.patch applied (content check; hunks overlap another patch)
+  PASS  dflash2-prewarm.patch applied
+  PASS  marlin-tune-table.patch applied
+  PASS  prefill-attn-int8.patch applied
+  PASS  spec-sampler-prewarm.patch applied
+  PASS  mamba-align-checkpoint-order.patch applied
+  PASS  spec-decode-scratch-token-units.patch applied (superseded by spec-decode-scratch-within-budget.patch, which is applied)
+  PASS  mamba-chunked-prefill-align.patch applied
+  PASS  spec-decode-scratch-within-budget.patch applied
+  PASS  dflash2-z-adaptive-emitted.patch applied
+  PASS  dspark-draft-quant-config.patch applied
+  PASS  engine-completion-log.patch applied
+  PASS  engine-stall-sentinel.patch applied
+  PASS  triton-spec-attn-fp8-kv.patch applied (content check; hunks overlap another patch)
+  PASS  topk-honour-flashinfer-sampler-switch.patch applied
+  PASS  memory-profile-after-warmup.patch applied
+  PASS  cudagraph-memory-from-allocator.patch applied
+  PASS  bench-probe-errors.patch applied
+  PASS  serve-404-served-names.patch applied
+  PASS  serve-model-path-match.patch applied
+  PASS  tokenize-v1-route.patch applied
+  PASS  marlin-int8-asym-zp.patch applied
+  PASS  compile-key-runtime-knobs.patch applied
+  PASS  auth-deny-default.patch applied (content check; hunks overlap another patch)
+  PASS  spec-attn-smem-fit.patch applied
+  PASS  bench-sse-keepalive.patch applied
+  PASS  sampler-warmup-cuda.patch applied
+  PASS  pinned-kv-empty-cache.patch applied
+  PASS  api-root-health.patch applied
+  PASS  qwen3_5-embed-uva.patch applied
+  PASS  vllm-pr40371-prompt-progress.patch applied
+  PASS  vllm-pr61050-lru-running-prefix.patch applied
+  PASS  kv-cache-seat-budget.patch applied
+  FAIL  sparse-tier-spill-kvcheck.patch NOT applied (patch -p1 --fuzz 0 -d $REPO/venv/lib/python3.12/site-packages/vllm < patches/sparse-tier-spill-kvcheck.patch)
+  PASS  int8 layer-select env vars registered in envs.py (live registry)
+== KVarN (optional, kvarn/)
+  PASS  the KVARN list in patches/apply.sh names all 4 kvarn/ patches
+  PASS  kvarn-0.31.0.patch applied
+  PASS  kvarn-v2-runner-0.31.0.patch applied (SPEC=dflash2 + CTX=huge available)
+  PASS  kvarn-recycled-pages-0.31.0.patch applied (no late KVarN flush into mamba state, #208)
+  PASS  kvarn-fp16-dequant-0.31.0.patch applied (KVARN_FP16_DEQUANT registered in envs.py)
+  PASS  KVarN backend importable (KV=kvarn / CTX=huge available)
+== fp8-KV FA2 (optional, fa2/)
+  INFO  fa2_fp8kv_vllm not installed (optional; bash fa2/install.sh for FA2_FP8KV=1)
+== model at $REPO/models/Qwen3.8-27B-W4A16-AutoRound
+  FAIL  model not found (README Setup: hf download)
+== single-user fast variant (optional)
+  WARN  no models/Qwen3.8-27B-W4A16-AutoRound-fast (venv/bin/python prepare/fetch_fast_variant.py; single-user mode is ~15% slower without it)
+== tokenizers (every dir we serve --model from)
+== single-user DFlash2 drafter (optional, SPEC=dflash2)
+  WARN  no DFlash2 drafter (venv/bin/python prepare/fetch_dflash2.py; SPEC=dflash2 single-user mode needs it)
+== keys / units
+  WARN  no API key — the server binds 127.0.0.1 only, so other machines cannot reach it. To serve them: openssl rand -hex 24 > api_key.txt
+  WARN  qwen-serving unit not active (fine if you launch the scripts by hand)
+  PASS  model-name validation on (VLLM_SKIP_MODEL_NAME_VALIDATION unset)
+
+verify: 3 FAILURE(S)

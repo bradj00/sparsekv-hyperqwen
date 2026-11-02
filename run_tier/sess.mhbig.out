@@ -1,0 +1,29 @@
+[gpu0 blocking]
+[serve] pid 1654358 log $REPO/run_tier/logs/server.mhbig.log
+[spill] healthy after 70s
+(EngineCore pid=1655334) INFO 11-01 08:32:52 [tier_connector.py:55] tier: mamba group 0: 16 state tensors, first shapes [(161, 1, 1, 1777664), (161, 1, 1, 1777664)] strides [(1797120, 1777664, 1777664, 1), (1797120, 1777664, 1777664, 1)], num_blocks 161
+(EngineCore pid=1655334) INFO 11-01 08:32:52 [tier_connector.py:55] tier: mamba group 1: 16 state tensors, first shapes [(161, 1, 1, 1777664), (161, 1, 1, 1777664)] strides [(1797120, 1777664, 1777664, 1), (1797120, 1777664, 1777664, 1)], num_blocks 161
+(EngineCore pid=1655334) INFO 11-01 08:32:52 [tier_connector.py:55] tier: mamba group 2: 16 state tensors, first shapes [(161, 1, 1, 1777664), (161, 1, 1, 1777664)] strides [(1797120, 1777664, 1777664, 1), (1797120, 1777664, 1777664, 1)], num_blocks 161
+(EngineCore pid=1655334) INFO 11-01 08:32:52 [tier_connector.py:55] tier: mamba checkpoint host store: groups [0, 1, 2], 8 slots, 0.68 GB pinned (85.3 MB per checkpoint)
+(EngineCore pid=1655334) INFO 11-01 08:32:52 [tier_connector.py:55] tier: kv cache view shape (161, 4, 864, 520) strides (1797120, 520, 2080, 1) contiguous=False
+(EngineCore pid=1655334) INFO 11-01 08:32:52 [tier_connector.py:55] tier: runtime mode=SPILL: 16 sparse layers in group(s) [3], window layers ['mtp.layers.0.self_attn.attn'], host pool 6.70 GB (233 blocks), GPU pool 161 blocks, hot 20000 rows/slot (1364 MB total), C=3136, tail=1088
+(EngineCore pid=1655334) INFO 11-01 08:32:55 [tier_connector.py:55] tier: mamba groups [0, 1, 2], host checkpoint store HostTierMambaManager (8 slots)
+(EngineCore pid=1655334) INFO 11-01 08:32:55 [tier_connector.py:55] tier: SPILL scheduler hook on KV group 3 (FullAttentionManager): frees blocks [1, (processed-1088)//864), policy pressure (watermark 16 free blocks); host prefix cache HostTierFullAttentionManager (233 host blocks)
+doc tokens 177422
+[needle] 177457 in, 10 out, ttft 203.7s, decode 95.1 tok/s, ok=True text='7418-2295'
+[reset_prefix_cache] success=True
+[code] 177469 in, 6 out, ttft 2.3s, decode 140.6 tok/s, ok=True text='                else target_input_size'
+[reset_prefix_cache] success=True
+[needle2] 177456 in, 7 out, ttft 2.3s, decode 61.1 tok/s, ok=True text='amber-quartz-41'
+[reset_prefix_cache] success=True
+[speed] 177445 in, 384 out, ttft 2.3s, decode 126.2 tok/s, ok=None text='The last file provided is `benchmarks/sweep/server.py`. Its primary purpose is to provide a robust, context-manager-base'
+[reset_prefix_cache] success=True
+CLIENT DONE
+(EngineCore pid=1655334) INFO 11-01 08:36:32 [tier_connector.py:55] tier: stats {'steps': 121, 'mirrored_blocks': 205, 'prefill_staged_blocks': 86080, 'host_blocks_peak': 0, 'host_hit_blocks': 408, 'hostcache': {'alloc': 205, 'hit': 410, 'evict': 0, 'used': 205}, 'mamba_saved': 1, 'mamba_restored': 
+(EngineCore pid=1655334) INFO 11-01 08:36:33 [tier_connector.py:55] tier: stats {'steps': 122, 'mirrored_blocks': 205, 'prefill_staged_blocks': 86080, 'host_blocks_peak': 0, 'host_hit_blocks': 612, 'hostcache': {'alloc': 205, 'hit': 614, 'evict': 0, 'used': 205}, 'mamba_saved': 1, 'mamba_restored': 
+(EngineCore pid=1655334) INFO 11-01 08:36:36 [tier_connector.py:55] tier: stats {'steps': 150, 'mirrored_blocks': 205, 'prefill_staged_blocks': 89344, 'host_blocks_peak': 0, 'host_hit_blocks': 612, 'hostcache': {'alloc': 205, 'hit': 615, 'evict': 0, 'used': 205}, 'mamba_saved': 1, 'mamba_restored': 
+(EngineCore pid=1655334) INFO 11-01 08:36:37 [tier_connector.py:55] tier: stats {'steps': 200, 'mirrored_blocks': 205, 'prefill_staged_blocks': 89344, 'host_blocks_peak': 0, 'host_hit_blocks': 612, 'hostcache': {'alloc': 205, 'hit': 615, 'evict': 0, 'used': 205}, 'mamba_saved': 1, 'mamba_restored': 
+(EngineCore pid=1655334) INFO 11-01 08:36:38 [tier_connector.py:55] tier: stats {'steps': 224, 'mirrored_blocks': 205, 'prefill_staged_blocks': 89344, 'host_blocks_peak': 0, 'host_hit_blocks': 612, 'hostcache': {'alloc': 205, 'hit': 615, 'evict': 0, 'used': 205}, 'mamba_saved': 1, 'mamba_restored': 
+[stop] group 1654358: 1654358 1655333 1655334
+0, 72 MiB
+1, 2 MiB

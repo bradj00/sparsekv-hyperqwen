@@ -1,0 +1,30 @@
+{
+ "doc_tokens": 97662,
+ "needle": {
+  "prompt_tokens": 97697,
+  "out": 10,
+  "ttft": 83.5,
+  "decode_tps": 218.7,
+  "ok": true,
+  "text": "7418-2295",
+  "want": "7418-2295"
+ },
+ "code": {
+  "prompt_tokens": 97710,
+  "out": 9,
+  "ttft": 1.3,
+  "decode_tps": 124.5,
+  "ok": true,
+  "text": "    max_tokens_per_batch: int,",
+  "want": "max_tokens_per_batch: int,"
+ },
+ "speed": {
+  "prompt_tokens": 97685,
+  "out": 384,
+  "ttft": 1.2,
+  "decode_tps": 121.6,
+  "ok": null,
+  "text": "The last file provided is **`vllm/benchmarks/datasets/utils.py`**.\n\n### High-Level Purpose\nThis module provides shared utility functions for **sampling input and output token lengths** for benchmarking datasets. It is primarily used by other dataset classes (like `RandomDataset`, `ShareGPTDataset`, ",
+  "want": null
+ }
+}

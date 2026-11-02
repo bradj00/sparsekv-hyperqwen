@@ -1,0 +1,44 @@
+{
+ "doc_tokens": 177422,
+ "needle": {
+  "prompt_tokens": 177457,
+  "out": 10,
+  "ttft": 203.7,
+  "decode_tps": 95.1,
+  "ok": true,
+  "text": "7418-2295",
+  "want": "7418-2295"
+ },
+ "resets": [
+  true,
+  true,
+  true
+ ],
+ "code": {
+  "prompt_tokens": 177469,
+  "out": 6,
+  "ttft": 2.3,
+  "decode_tps": 140.6,
+  "ok": true,
+  "text": "                else target_input_size",
+  "want": "else target_input_size"
+ },
+ "needle2": {
+  "prompt_tokens": 177456,
+  "out": 7,
+  "ttft": 2.3,
+  "decode_tps": 61.1,
+  "ok": true,
+  "text": "amber-quartz-41",
+  "want": "amber-quartz-41"
+ },
+ "speed": {
+  "prompt_tokens": 177445,
+  "out": 384,
+  "ttft": 2.3,
+  "decode_tps": 126.2,
+  "ok": null,
+  "text": "The last file provided is `benchmarks/sweep/server.py`. Its primary purpose is to provide a robust, context-manager-based wrapper for managing the lifecycle of a vLLM server process during benchmarking experiments, specifically within the parameter sweep framework.\n\nHere is a detailed breakdown of i",
+  "want": null
+ }
+}

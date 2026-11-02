@@ -1,0 +1,23 @@
+{
+ "code/32000": {
+  "prompt_tokens": 29466,
+  "text": "        return B12xPagedAttentionImpl",
+  "want": "return B12xPagedAttentionImpl",
+  "ok": true,
+  "secs": 14.702484369277954
+ },
+ "code/64000": {
+  "prompt_tokens": 63767,
+  "text": "            if general_spec != causal_backend.customize_spec(spec):",
+  "want": "if general_spec != causal_backend.customize_spec(spec):",
+  "ok": true,
+  "secs": 24.69040322303772
+ },
+ "code/128000": {
+  "prompt_tokens": 126767,
+  "text": "```\n        num_decodes = attn_metadata.num_decode_reqs\n```",
+  "want": "num_decodes = attn_metadata.num_decode_reqs",
+  "ok": true,
+  "secs": 68.54912662506104
+ }
+}

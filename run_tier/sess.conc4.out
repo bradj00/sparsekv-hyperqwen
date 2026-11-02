@@ -1,0 +1,30 @@
+[gpu1 blocking]
+[serve] pid 1561353 log $REPO/run_tier/logs/server.conc4.log
+[spill] healthy after 75s
+(EngineCore pid=1562404) INFO 11-01 07:50:11 [gpu_worker.py:713] Available KV cache memory: 2.68 GiB
+(EngineCore pid=1562404) WARNING 11-01 07:50:11 [kv_cache_utils.py:917] SPARSE_TIER_SPILL=1: skipping the max_model_len vs GPU KV pool check (2.65 GiB available)
+(EngineCore pid=1562404) INFO 11-01 07:50:11 [kv_cache_utils.py:2665] GPU KV cache size: 72,586 tokens, Maximum concurrency for 200,000 tokens per request: 0.36x
+(EngineCore pid=1562404) INFO 11-01 07:50:13 [tier_connector.py:55] tier: mamba checkpoint host store: groups [0, 1, 2], 8 slots, 0.68 GB pinned (85.3 MB per checkpoint)
+(EngineCore pid=1562404) INFO 11-01 07:50:13 [tier_connector.py:55] tier: kv cache view shape (94, 4, 864, 520) strides (1797120, 520, 2080, 1) contiguous=False
+(EngineCore pid=1562404) INFO 11-01 07:50:13 [tier_connector.py:55] tier: runtime mode=SPILL: 16 sparse layers in group(s) [3], window layers ['mtp.layers.0.self_attn.attn'], host pool 13.37 GB (465 blocks), GPU pool 94 blocks, hot 20000 rows/slot (2046 MB total), C=3136, tail=1088
+(EngineCore pid=1562404) INFO 11-01 07:50:16 [tier_connector.py:55] tier: mamba groups [0, 1, 2], host checkpoint store HostTierMambaManager (8 slots)
+(EngineCore pid=1562404) INFO 11-01 07:50:16 [tier_connector.py:55] tier: SPILL scheduler hook on KV group 3 (FullAttentionManager): frees blocks [1, (processed-1088)//864), policy pressure (watermark 1 free blocks); host prefix cache HostTierFullAttentionManager (465 host blocks)
+[A] doc tokens 177422
+[A] [needle] 177457 in, 10 out, ttft 190.7s, decode 2.8 tok/s, ok=True text='7418-2295'
+[A] [code] 177469 in, 11 out, ttft 98.2s, decode 110.7 tok/s, ok=False text='`if target_input_size >= self.chunk_size`'
+[A] [needle2] 177456 in, 7 out, ttft 4.7s, decode 45.9 tok/s, ok=True text='amber-quartz-41'
+[A] CLIENT DONE
+[B] doc tokens 119776
+[B] [needle] 119811 in, 10 out, ttft 232.2s, decode 47.5 tok/s, ok=True text='7418-2295'
+[B] [code] 119841 in, 27 out, ttft 4.6s, decode 83.8 tok/s, ok=True text='f"{\'aSdP\':>4} {\'adKV\':>4} {\'adQ\':>4}  "'
+[B] [needle2] 119810 in, 7 out, ttft 2.2s, decode 51.5 tok/s, ok=True text='amber-quartz-41'
+[B] CLIENT DONE
+[preempt lines] 2
+(EngineCore pid=1562404) INFO 11-01 07:55:25 [tier_connector.py:55] tier: stats {'steps': 200, 'mirrored_blocks': 343, 'prefill_staged_blocks': 168768, 'host_blocks_peak': 0, 'host_hit_blocks': 606, 'hostcache': {'alloc': 343, 'hit': 609, 'evict': 0, 'used': 343}, 'mamba_saved': 2, 'mamba_restored':
+(EngineCore pid=1562404) INFO 11-01 07:55:25 [tier_connector.py:55] tier: stats {'steps': 201, 'mirrored_blocks': 343, 'prefill_staged_blocks': 168768, 'host_blocks_peak': 0, 'host_hit_blocks': 606, 'hostcache': {'alloc': 343, 'hit': 609, 'evict': 0, 'used': 343}, 'mamba_saved': 2, 'mamba_restored':
+(EngineCore pid=1562404) INFO 11-01 07:55:25 [tier_connector.py:55] tier: stats {'steps': 203, 'mirrored_blocks': 343, 'prefill_staged_blocks': 168768, 'host_blocks_peak': 0, 'host_hit_blocks': 606, 'hostcache': {'alloc': 343, 'hit': 609, 'evict': 0, 'used': 343}, 'mamba_saved': 2, 'mamba_restored':
+(EngineCore pid=1562404) INFO 11-01 07:55:25 [tier_connector.py:55] tier: stats {'steps': 204, 'mirrored_blocks': 343, 'prefill_staged_blocks': 168768, 'host_blocks_peak': 0, 'host_hit_blocks': 743, 'hostcache': {'alloc': 343, 'hit': 746, 'evict': 0, 'used': 343}, 'mamba_saved': 2, 'mamba_restored':
+(EngineCore pid=1562404) INFO 11-01 07:55:27 [tier_connector.py:55] tier: stats {'steps': 210, 'mirrored_blocks': 343, 'prefill_staged_blocks': 170688, 'host_blocks_peak': 0, 'host_hit_blocks': 743, 'hostcache': {'alloc': 343, 'hit': 747, 'evict': 0, 'used': 343}, 'mamba_saved': 2, 'mamba_restored':
+[stop] group 1561353: 1561353 1562403 1562404
+0, 75 MiB
+1, 2 MiB

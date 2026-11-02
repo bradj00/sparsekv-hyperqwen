@@ -1,0 +1,26 @@
+{
+ "speedshort/4000/explain": {
+  "prompt_tokens": 3569,
+  "completion": 512,
+  "decode_tps": 150.42209310298676,
+  "text": "The code provided is from a single file: `v1/attention/backends/fa_utils.py`. This file serves as a **utility and configuration layer** for the Flash Attention (FA) backends within the vLLM project. Its primary responsibilities are to:\n\n1.  **Abstract Platform Differences:** It handles the import an"
+ },
+ "speedshort/4000/copy": {
+  "prompt_tokens": 3564,
+  "completion": 512,
+  "decode_tps": 206.75663794073108,
+  "text": "```python\n# ===== FILE: v1/attention/backends/fa_utils.py =====\n# SPDX-License-Identifier: Apache-2.0\n# SPDX-FileCopyrightText: Copyright contributors to the vLLM project\n\nfrom typing import Any\n\nimport vllm.envs as envs\nfrom vllm.logger import init_logger\nfrom vllm.platforms import current_platform"
+ },
+ "speedshort/8000/explain": {
+  "prompt_tokens": 7702,
+  "completion": 512,
+  "decode_tps": 118.47039952631503,
+  "text": "Here is a detailed explanation of the code provided, broken down by file.\n\n### File 1: `v1/attention/backends/composite.py`\n\nThis file defines the infrastructure for **Composite Attention Backends**. In vLLM, different hardware architectures (e.g., NVIDIA Hopper vs. Blackwell) or different model req"
+ },
+ "speedshort/8000/copy": {
+  "prompt_tokens": 7697,
+  "completion": 512,
+  "decode_tps": 202.17664230781168,
+  "text": "```python\n# ===== FILE: v1/attention/backends/fa_utils.py =====\n# SPDX-License-Identifier: Apache-2.0\n# SPDX-FileCopyrightText: Copyright contributors to the vLLM project\n\nfrom typing import Any\n\nimport vllm.envs as envs\nfrom vllm.logger import init_logger\nfrom vllm.platforms import current_platform"
+ }
+}

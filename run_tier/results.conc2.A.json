@@ -1,0 +1,30 @@
+{
+ "doc_tokens": 177422,
+ "needle": {
+  "prompt_tokens": 177457,
+  "out": 10,
+  "ttft": 188.9,
+  "decode_tps": 84.3,
+  "ok": true,
+  "text": "7418-2295",
+  "want": "7418-2295"
+ },
+ "code": {
+  "prompt_tokens": 177469,
+  "out": 10,
+  "ttft": 104.2,
+  "decode_tps": 118.6,
+  "ok": true,
+  "text": "```\n                else target_input_size\n```",
+  "want": "else target_input_size"
+ },
+ "needle2": {
+  "prompt_tokens": 177456,
+  "out": 7,
+  "ttft": 4.7,
+  "decode_tps": 31.6,
+  "ok": true,
+  "text": "amber-quartz-41",
+  "want": "amber-quartz-41"
+ }
+}

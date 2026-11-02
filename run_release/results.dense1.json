@@ -1,0 +1,58 @@
+{
+ "doc_tokens": 126057,
+ "ntok": 128000,
+ "short": {
+  "prompt_tokens": 24,
+  "out": 2,
+  "ttft_s": 0.1,
+  "decode_tps": 50.6,
+  "ok": true,
+  "text": "Paris",
+  "want": "Paris"
+ },
+ "short_speed": {
+  "prompt_tokens": 27,
+  "out": 256,
+  "ttft_s": 0.11,
+  "decode_tps": 147.9,
+  "ok": true,
+  "text": "# How a Hash Map Works: A Detailed Technical Explanation\n\nA **hash map** (also called a **hash table** or **dictionary**) is a data structure that stores key-value pairs and provides average-case **O(1)** time complexity for insertion, lookup, and deletion. It achieves this through a combination of ",
+  "want": null
+ },
+ "needle": {
+  "prompt_tokens": 126092,
+  "out": 10,
+  "ttft_s": 99.11,
+  "decode_tps": 59.8,
+  "ok": true,
+  "text": "7418-2295",
+  "want": "7418-2295"
+ },
+ "followup_code": {
+  "prompt_tokens": 126106,
+  "out": 14,
+  "ttft_s": 2.13,
+  "decode_tps": 48.1,
+  "ok": true,
+  "text": "```python\n    def biased_topk_cpu_fake(\n```",
+  "want": "def biased_topk_cpu_fake("
+ },
+ "followup_needle2": {
+  "prompt_tokens": 126091,
+  "out": 7,
+  "ttft_s": 2.13,
+  "decode_tps": 31.3,
+  "ok": true,
+  "text": "amber-quartz-41",
+  "want": "amber-quartz-41"
+ },
+ "speed": {
+  "prompt_tokens": 126080,
+  "out": 256,
+  "ttft_s": 2.12,
+  "decode_tps": 70.7,
+  "ok": true,
+  "text": "The last file provided is `benchmarks/sweep/plot.py`. Its primary purpose is to **generate performance visualization plots (specifically line charts with error bars) from the results of a parameter sweep benchmark run.**\n\nHere is a detailed breakdown of its functionality, structure, and workflow:\n\n#",
+  "want": null
+ }
+}

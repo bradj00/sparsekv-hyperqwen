@@ -1,0 +1,22 @@
+[gpu1 blocking]
+[serve] pid 1088302 log $REPO/run_tier/logs/server.spill1x4.log
+[spill] healthy after 315s
+(EngineCore pid=1088977) INFO 11-01 04:33:52 [gpu_worker.py:713] Available KV cache memory: 4.62 GiB
+(EngineCore pid=1088977) WARNING 11-01 04:33:52 [kv_cache_utils.py:917] SPARSE_TIER_SPILL=1: skipping the max_model_len vs GPU KV pool check (4.59 GiB available)
+(EngineCore pid=1088977) INFO 11-01 04:33:52 [kv_cache_utils.py:2665] GPU KV cache size: 125,096 tokens, Maximum concurrency for 200,000 tokens per request: 0.63x
+(EngineCore pid=1088977) INFO 11-01 04:33:53 [tier_connector.py:48] tier: kv cache view shape (162, 4, 864, 520) strides (1797120, 520, 2080, 1) contiguous=False
+(EngineCore pid=1088977) INFO 11-01 04:33:53 [tier_connector.py:48] tier: runtime mode=SPILL: 16 sparse layers in group(s) [3], window layers ['mtp.layers.0.self_attn.attn'], host pool 6.70 GB (233 blocks), GPU pool 162 blocks, hot 20000 rows/slot (1364 MB total), C=3136, tail=1088
+(EngineCore pid=1088977) INFO 11-01 04:34:24 [tier_connector.py:48] tier: SPILL scheduler hook on KV group 3 (FullAttentionManager): frees blocks [1, (processed-1088)//864)
+doc tokens 177399
+[needle] 177434 in, 10 out, ttft 196.0s, decode 82.1 tok/s, ok=True text='7418-2295'
+[code] 177446 in, 11 out, ttft 194.9s, decode 128.2 tok/s, ok=False text='```python\n            expanded_size = (\n```'
+[speed] 177422 in, 384 out, ttft 195.1s, decode 117.0 tok/s, ok=None text='The last file provided is `benchmarks/sweep/server.py`. It defines a class named `ServerProcess` which acts as a wrapper'
+CLIENT DONE
+(EngineCore pid=1088977) INFO 11-01 04:41:38 [tier_connector.py:48] tier: stats {'steps': 250, 'mirrored_blocks': 473, 'prefill_staged_blocks': 344544, 'host_blocks_peak': 205} hot[hit,miss,resident]=[149451, 130928, 172293] verify[diff,compared]=[0, 0]
+(EngineCore pid=1088977) INFO 11-01 04:43:19 [tier_connector.py:48] tier: stats {'steps': 300, 'mirrored_blocks': 573, 'prefill_staged_blocks': 433344, 'host_blocks_peak': 205} hot[hit,miss,resident]=[149451, 130928, 172293] verify[diff,compared]=[0, 0]
+(EngineCore pid=1088977) INFO 11-01 04:44:20 [tier_connector.py:48] tier: stats {'steps': 350, 'mirrored_blocks': 615, 'prefill_staged_blocks': 494496, 'host_blocks_peak': 205} hot[hit,miss,resident]=[898828, 268412, 740536] verify[diff,compared]=[0, 0]
+(EngineCore pid=1088977) INFO 11-01 04:44:21 [tier_connector.py:48] tier: stats {'steps': 400, 'mirrored_blocks': 615, 'prefill_staged_blocks': 494496, 'host_blocks_peak': 205} hot[hit,miss,resident]=[2241178, 424878, 1750520] verify[diff,compared]=[0, 0]
+(EngineCore pid=1088977) INFO 11-01 04:44:22 [tier_connector.py:48] tier: stats {'steps': 422, 'mirrored_blocks': 615, 'prefill_staged_blocks': 494496, 'host_blocks_peak': 205} hot[hit,miss,resident]=[2830114, 463629, 2226705] verify[diff,compared]=[0, 0]
+[stop] group 1088302: 1088302 1088976 1088977
+0, 72 MiB
+1, 2 MiB

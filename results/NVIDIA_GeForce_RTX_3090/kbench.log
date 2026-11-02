@@ -1,0 +1,9 @@
+tiered 1 {'resolve_ms_16L': 0.581, 'copy_ms_16L': 1.124, 'miss_pct': 6.38}
+tiered 2 {'resolve_ms_16L': 0.637, 'copy_ms_16L': 1.183, 'miss_pct': 6.38}
+tiered 4 {'resolve_ms_16L': 0.642, 'copy_ms_16L': 1.183, 'miss_pct': 6.38}
+tiered 8 {'resolve_ms_16L': 0.647, 'copy_ms_16L': 1.188, 'miss_pct': 6.38}
+resident 1 {'resolve_ms_16L': 0.641, 'copy_ms_16L': 1.092, 'miss_pct': 0.0}
+resident 2 {'resolve_ms_16L': 0.656, 'copy_ms_16L': 1.146, 'miss_pct': 0.0}
+resident 4 {'resolve_ms_16L': 0.631, 'copy_ms_16L': 1.045, 'miss_pct': 0.0}
+resident 8 {'resolve_ms_16L': 0.633, 'copy_ms_16L': 1.053, 'miss_pct': 0.0}
+RESULT {"gpu": "NVIDIA GeForce RTX 3090", "ctx": 131072, "H": 13107, "tiered_tpp1": {"resolve_ms_16L": 0.581, "copy_ms_16L": 1.124, "miss_pct": 6.38}, "tiered_tpp2": {"resolve_ms_16L": 0.637, "copy_ms_16L": 1.183, "miss_pct": 6.38}, "tiered_tpp4": {"resolve_ms_16L": 0.642, "copy_ms_16L": 1.183, "miss_pct": 6.38}, "tiered_tpp8": {"resolve_ms_16L": 0.647, "copy_ms_16L": 1.188, "miss_pct": 6.38}, "resident_tpp1": {"resolve_ms_16L": 0.641, "copy_ms_16L": 1.092, "miss_pct": 0.0}, "resident_tpp2": {"resolve_ms_16L": 0.656, "copy_ms_16L": 1.146, "miss_pct": 0.0}, "resident_tpp4": {"resolve_ms_16L": 0.631, "copy_ms_16L": 1.045, "miss_pct": 0.0}, "resident_tpp8": {"resolve_ms_16L": 0.633, "copy_ms_16L": 1.053, "miss_pct": 0.0}}

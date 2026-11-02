@@ -1,0 +1,30 @@
+{
+ "doc_tokens": 119776,
+ "needle": {
+  "prompt_tokens": 119811,
+  "out": 10,
+  "ttft": 232.2,
+  "decode_tps": 47.5,
+  "ok": true,
+  "text": "7418-2295",
+  "want": "7418-2295"
+ },
+ "code": {
+  "prompt_tokens": 119841,
+  "out": 27,
+  "ttft": 4.6,
+  "decode_tps": 83.8,
+  "ok": true,
+  "text": "f\"{'aSdP':>4} {'adKV':>4} {'adQ':>4}  \"",
+  "want": "f\"{'aSdP':>4} {'adKV':>4} {'adQ':>4}  \""
+ },
+ "needle2": {
+  "prompt_tokens": 119810,
+  "out": 7,
+  "ttft": 2.2,
+  "decode_tps": 51.5,
+  "ok": true,
+  "text": "amber-quartz-41",
+  "want": "amber-quartz-41"
+ }
+}

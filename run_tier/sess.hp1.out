@@ -1,0 +1,23 @@
+[gpu0 blocking]
+[serve] pid 1236690 log $REPO/run_tier/logs/server.hp1.log
+[spill] healthy after 75s
+(EngineCore pid=1237728) INFO 11-01 05:40:01 [gpu_worker.py:713] Available KV cache memory: 4.61 GiB
+(EngineCore pid=1237728) WARNING 11-01 05:40:01 [kv_cache_utils.py:917] SPARSE_TIER_SPILL=1: skipping the max_model_len vs GPU KV pool check (4.58 GiB available)
+(EngineCore pid=1237728) INFO 11-01 05:40:01 [kv_cache_utils.py:2665] GPU KV cache size: 124,324 tokens, Maximum concurrency for 200,000 tokens per request: 0.62x
+(EngineCore pid=1237728) INFO 11-01 05:40:02 [tier_connector.py:50] tier: kv cache view shape (161, 4, 864, 520) strides (1797120, 520, 2080, 1) contiguous=False
+(EngineCore pid=1237728) INFO 11-01 05:40:02 [tier_connector.py:50] tier: runtime mode=SPILL: 16 sparse layers in group(s) [3], window layers ['mtp.layers.0.self_attn.attn'], host pool 6.70 GB (233 blocks), GPU pool 161 blocks, hot 20000 rows/slot (1364 MB total), C=3136, tail=1088
+(EngineCore pid=1237728) INFO 11-01 05:40:07 [tier_connector.py:50] tier: SPILL scheduler hook on KV group 3 (FullAttentionManager): frees blocks [1, (processed-1088)//864); host prefix cache HostTierFullAttentionManager (233 host blocks)
+doc tokens 177422
+[needle] 177457 in, 10 out, ttft 197.6s, decode 96.9 tok/s, ok=True text='7418-2295'
+[code] 177469 in, 6 out, ttft 2.3s, decode 137.7 tok/s, ok=True text='                else target_input_size'
+[needle2] 177456 in, 7 out, ttft 2.3s, decode 63.3 tok/s, ok=True text='amber-quartz-41'
+[speed] 177445 in, 384 out, ttft 2.4s, decode 106.6 tok/s, ok=None text='The last file provided is **`benchmarks/sweep/server.py`**.\n\nThis module defines the `ServerProcess` class, which acts a'
+CLIENT DONE
+(EngineCore pid=1237728) INFO 11-01 05:43:40 [tier_connector.py:50] tier: stats {'steps': 121, 'mirrored_blocks': 205, 'prefill_staged_blocks': 171328, 'host_blocks_peak': 0, 'host_hit_blocks': 408, 'hostcache': {'alloc': 205, 'hit': 410, 'evict': 0, 'used': 205}} hot[hit,miss,resident]=[224518, 175
+(EngineCore pid=1237728) INFO 11-01 05:43:41 [tier_connector.py:50] tier: stats {'steps': 122, 'mirrored_blocks': 205, 'prefill_staged_blocks': 171328, 'host_blocks_peak': 0, 'host_hit_blocks': 612, 'hostcache': {'alloc': 205, 'hit': 614, 'evict': 0, 'used': 205}} hot[hit,miss,resident]=[224518, 175
+(EngineCore pid=1237728) INFO 11-01 05:43:43 [tier_connector.py:50] tier: stats {'steps': 150, 'mirrored_blocks': 205, 'prefill_staged_blocks': 174576, 'host_blocks_peak': 0, 'host_hit_blocks': 612, 'hostcache': {'alloc': 205, 'hit': 615, 'evict': 0, 'used': 205}} hot[hit,miss,resident]=[903515, 326
+(EngineCore pid=1237728) INFO 11-01 05:43:45 [tier_connector.py:50] tier: stats {'steps': 200, 'mirrored_blocks': 205, 'prefill_staged_blocks': 174576, 'host_blocks_peak': 0, 'host_hit_blocks': 612, 'hostcache': {'alloc': 205, 'hit': 615, 'evict': 0, 'used': 205}} hot[hit,miss,resident]=[2282651, 47
+(EngineCore pid=1237728) INFO 11-01 05:43:46 [tier_connector.py:50] tier: stats {'steps': 243, 'mirrored_blocks': 205, 'prefill_staged_blocks': 174576, 'host_blocks_peak': 0, 'host_hit_blocks': 612, 'hostcache': {'alloc': 205, 'hit': 615, 'evict': 0, 'used': 205}} hot[hit,miss,resident]=[3410921, 56
+[stop] group 1236690: 1236690 1237727 1237728
+0, 72 MiB
+1, 1278 MiB
