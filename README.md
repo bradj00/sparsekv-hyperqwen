@@ -6,7 +6,7 @@ Query-aware sparse KV decode + a host-RAM KV tier for [HyperQwen](https://github
 
 Keep the full KV cache in host RAM at int4, and at each decode step attend only to the ~1% of tokens that matter most, picked by a cheap low-rank key sketch.
 
-> **~4 concurrent 250K-context agents per 24 GB GPU** (Qwen3.8-27B W4A16), with output divergence from dense at about the level of dense run on a second GPU.
+> **~4 concurrent 250K-context agents per 24 GB GPU** (Qwen3.8-27B W4A16), with output divergence comparable to dense run on a second GPU.
 
 ---
 
