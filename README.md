@@ -1,3 +1,5 @@
+<p align="center"><img src="docs/banner.png" alt="Sparse-KV for HyperQwen" width="100%"></p>
+
 # sparsekv-hyperqwen
 
 Query-aware sparse KV decode plus a host-RAM KV tier for HyperQwen (vLLM 0.31 + pthfa). Result: **8 concurrent agents at 250K context each on one RTX 3090 Ti + one RTX 3090** (Qwen3.8-27B W4A16), all from one box.
