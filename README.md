@@ -29,9 +29,29 @@ Throughout the 8 × 250K run: MemAvailable ≥ 11.6 GB, 0 errors, 0 re-prefills,
 
 **Honest notes**
 - **Missed target:** we aimed for 300+ explain tok/s per card at 4 × 250K and got 268-285. Selection cost (3.3 ms/agent/step at 246K) and host misses grow with context × agents.
-- **Accuracy is approximate attention.** Needles were always found. The code-line misses are near-duplicate lines (CuTe/asm blocks) that every build missed. Greedy output can diverge from dense after some tokens.
+- **Accuracy is approximate attention** (measured: see *Quality: KL divergence vs dense* below). Needles were always found. The code-line misses are near-duplicate lines (CuTe/asm blocks) that every build missed. Greedy output can diverge from dense after some tokens.
 - **No 5th agent per card** at MTP-7. That would need the GDN spec states outside the pool. MTP-3/5 change the block size to 816, and the kernels are built for 864.
 - The tier hooks monkeypatch vLLM scheduler internals and are fragile across vLLM upgrades.
+
+## Quality: KL divergence vs dense
+
+We ran a teacher-forced test (`eval/kld/`): the dense model generates a reference, and every config is forced along the same tokens. It records the full next-token distribution at every **decode** step and compares it with dense on the same card. The setup was 5 documents (3 code, 2 prose), 4 lengths and 3 tasks: 60 samples, 15,300 decode tokens per config. MTP was off and the temperature 0. KLD is in nats per token; top-1 is the share of steps where the run's argmax token matches dense's.
+
+| comparison | mean KLD | median | p99 | top-1 agree |
+|---|---|---|---|---|
+| noise floor: same dense server, rerun | 0 | 0 | 0 | 100% |
+| noise floor: dense on 3090 Ti vs dense on 3090 (same arch) | 0.0200 | 0.0004 | 0.241 | 96.2% |
+| sparse decode, GPU-only | 0.0188 | 0.0003 | 0.225 | 96.4% |
+| sparse + RAM tier, int8 host copy (3 docs) | 0.0249 | 0.0006 | 0.318 | 95.8% |
+| sparse + RAM tier, int4 host copy (production) | 0.0269 | 0.0009 | 0.333 | 95.6% |
+
+- GPU-only sparse decode diverges from dense less than dense does from itself on a second card of the same architecture.
+- The production config adds about 35% on top of that floor. On the samples both tier runs share, the int4 and int8 host copies score the same (0.0248 vs 0.0249), so the extra comes from the S4 speed knobs, not from int4 host storage.
+- Divergence grows slowly with context: production tier 0.024 at 32K, 0.033 at 192K.
+- Recall-style answers are almost untouched: 99.6-99.9% top-1.
+- The longest length tested is 192K, because the dense comparison server could not hold 250K.
+
+Method, per-length tables and caveats: [`eval/kld/README.md`](eval/kld/README.md).
 
 ## The rig
 
@@ -51,6 +71,7 @@ Throughout the 8 × 250K run: MemAvailable ≥ 11.6 GB, 0 errors, 0 re-prefills,
 - `patches/`: our two vLLM patches (`sparse-switch-dual-graphs.patch`, `sparse-tier-spill-kvcheck.patch`) and `hyperqwen-base.diff`. The diff holds our edits to upstream HyperQwen files (applied with `git apply`, so no modified HyperQwen files are shipped here): the `patches/series` / `patches/apply.sh --sparse` registration, the pthfa `vllm_backend.py` hook, `start_qwen.sh` and `.gitignore`.
 - `pthfa/python/pth_flash_attn/sparse_kv.py`: the decode hook.
 - `serve-sparse.sh` (launcher).
+- `eval/kld/`: the teacher-forced KL-divergence test against dense (scripts + results).
 - `run_s4/` (4 agents/card, 8 × 250K headline: `d.joint_g{0,1}.jsonl`), `run_250k/` (250K tier and streams-per-card sweep), `run_release/` (release smoke, grid, concurrency), `run_tier/`, `run/`, `results/` (kernel benches per GPU). These hold the harness scripts plus jsonl/json results.
 
 ## Install / run
