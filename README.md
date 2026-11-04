@@ -49,7 +49,7 @@ Throughput scales linearly across GPUs (2 GPUs at 8 × 250K: ~545 / ~790 tok/s, 
 - Recall-style answers: 99.6–99.9% top-1 agreement.
 - Divergence grows slowly with context (0.024 at 32K → 0.033 at 192K).
 
-Full method: [`eval/kld/README.md`](eval/kld/README.md) · every measurement and knob: `sparsekv/RELEASE.md`
+Full method: [`eval/kld/README.md`](eval/kld/README.md) · every measurement and knob: `sparsekv/RELEASE.md` · **full benchmark (RULER, call-site, SCBench, GPQA, LiveCodeBench, IFBench, MMLU-Pro; per-item data + runtimes): [`eval/bench/`](eval/bench/README.md)**
 
 ### Limitations
 
