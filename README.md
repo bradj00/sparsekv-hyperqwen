@@ -8,6 +8,24 @@ Keep the full KV cache in host RAM at int4, and at each decode step attend only 
 
 > **~4 concurrent 250K-context agents per 24 GB GPU** (Qwen3.8-27B W4A16), with output divergence comparable to dense run on a second GPU.
 
+## What's new in v1.1
+
+Less time waiting for prefill, at no measured accuracy cost. All changes are on by default; details are in
+[`docs/CHANGELOG.md`](docs/CHANGELOG.md) and [`eval/prefill/`](eval/prefill/README.md).
+
+- **Accuracy fix shipped:** exact follow-up prefill and crash-safe staging, the fixed configuration from the
+  benchmark: call-site F1 −13.7 → −2.1 vs dense, within noise.
+- **No more full re-prefills after tool waits:** 32 host GDN checkpoint slots plus decode-boundary saves. Re-prefills
+  went from 43% of prefill to 0, and per-step prefill from 6.4 to 4.0 s. Turn-2 TTFT after eviction: 5.75 → 2.06 s.
+- **Faster follow-ups:** +864 cached tokens per turn (MTP block drop off). Follow-up TTFT: 2.82 → 1.93 s.
+- **FlashAttention-2 prefill** over the int8 cache. Cold ~240K prefill: 397 → 337 s on the 3090 Ti.
+- **Short turns skip the prefill queue.** With 4 agents, median follow-up TTFT went 9.8 → 7.1 s, at 4-10% lower
+  decode throughput.
+- **Shared agent prefixes:** a pin knob plus [harness tips](docs/AGENT_HARNESS_TIPS.md). The common first-request
+  prefix grew from 7,262 to 16,026 tokens.
+
+The throughput table under Results was measured with the v1.0 knobs (`SPARSE_STATS_SUB=4 SPARSE_SELECT_EVERY=2`).
+
 ---
 
 ## How it works
@@ -81,7 +99,7 @@ bash sparsekv/install.sh venv --basis sparsekv/basis/basis27.pt   # idempotent; 
 ```bash
 HQ_GPU=0 SPARSE_PROFILE=tier MAX_LEN=262144 MAX_SEQS=4 GPU_UTIL=0.94 \
 SPARSE_TIER_HOT_FRAC=0.025 SPARSE_SKETCH_BITS=4 SPARSE_TIER_HOST_BITS=4 \
-SPARSE_TIER_HOST_GB=17.8 SPARSE_STATS_SUB=4 SPARSE_SELECT_EVERY=2 \
+SPARSE_TIER_HOST_GB=17.8 SPARSE_STATS_SUB=1 SPARSE_SELECT_EVERY=1 \
   ./serve-sparse.sh          # serves on 127.0.0.1:8093
 ```
 
@@ -108,8 +126,11 @@ To go back to dense without uninstalling, start the server with no `SPARSE_*` va
 ```
 sparsekv/       Triton kernels, host tier + vLLM KV connector, tests, basis, install.sh
 patches/        vLLM patches + hyperqwen-base.diff
-pthfa/          decode hook (python/pth_flash_attn/sparse_kv.py)
+pthfa/          decode hook (python/pth_flash_attn/sparse_kv.py), FA2 prefill (fa2_prefill.py)
 eval/kld/       KL-divergence test vs dense
+eval/bench/     full benchmark; eval/prefill/: v1.1 prefill results
+docs/           CHANGELOG, agent harness tips
+examples/       opencode stable-prefix plugin
 run*/ results/  harness scripts + raw results (inputs via env vars, see RELEASE.md)
 serve-sparse.sh launcher
 ```

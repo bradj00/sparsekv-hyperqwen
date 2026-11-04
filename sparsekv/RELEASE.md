@@ -564,3 +564,25 @@ SPARSE_SELECT_EVERY=2` (+ `SPARSE_TIER_HOST_BITS=4 SPARSE_TIER_HOST_GB=8.8`).
    target outputs stay exact.
 9. **Hot-buffer sizing:** real traces miss more often than the synthetic ones (64K: 16% at 10% hot). The first step
    after a new question is a cold burst of ~68 MB.
+
+## v1.1 (2026-11-04)
+
+v1.1 changes the defaults. Knobs, measurements and the rejected list are in `docs/CHANGELOG.md`; the prefill test
+tables are in `eval/prefill/README.md`. In short:
+
+| knob | v1.1 default | v1.0 behaviour |
+|---|---|---|
+| `SPARSE_TIER_SUFFIX_SPARSE` | 0 (exact follow-up prefill) | 1 |
+| `SPARSE_TIER_STAGE_SERIAL` | 1 (crash-safe staging) | 0 |
+| `SPARSE_STATS_SUB` / `SPARSE_SELECT_EVERY` | 1 / 1 | 4 / 2 in the recommended run line |
+| `SPARSE_TIER_HOST_MAMBA_SLOTS` | 32 | 8 |
+| `SPARSE_TIER_MAMBA_SAVE_AT_FINISH` | 1 | 0 |
+| `SPEC_NO_BLOCK_DROP` (start_qwen.sh, set by serve-sparse.sh) | 1 | 0 |
+| `PTHFA_PREFILL_FA2` (pthfa, set by serve-sparse.sh; needs pthfa rebuilt) | 1 | 0 |
+| `PTHFA_FLAT_GQA` | 0 (not bit-exact) | n/a |
+| `SPARSE_PREFILL_YIELD_STEPS_PER_1K` / `SPARSE_PREFILL_SHARE_CHUNK` | 12 / 864 | n/a (no yield) |
+| `SPARSE_PREFILL_YIELD_SHORT_BYPASS` | 2600 | n/a |
+| `SPARSE_TIER_PIN_PREFIX_MAX` | 2 (`vllm_xargs {"sparse_pin_prefix": 1}`) | n/a |
+
+The earlier sections that recommend `SPARSE_STATS_SUB=4 SPARSE_SELECT_EVERY=2` and sparse follow-up suffixes describe v1.0.
+Those shortcuts cost call-site accuracy (`eval/bench/README.md`).
