@@ -1,0 +1,42 @@
+--- a/v1/core/sched/scheduler.py
++++ b/v1/core/sched/scheduler.py
+@@ -654,7 +654,13 @@
+                 req_index += 1
+                 continue
+ 
+-            if defer_prefills and request.is_prefill_chunk:
++            if defer_prefills and request.is_prefill_chunk and not (
++                # sparse-prefill-yield-bypass: the short-request bypass of the
++                # sparsekv PrefillYield throttle (None unless its knob is set).
++                (yield_bypass := getattr(self, "_sparse_yield_bypass", None))
++                is not None
++                and yield_bypass(request, request.num_computed_tokens, True)
++            ):
+                 # DP prefill balancing: defer this in-progress prefill chunk to a
+                 # cadence-aligned step; decodes still run to fill this step.
+                 req_index += 1
+@@ -1065,9 +1071,23 @@
+                     # KVTransfer: loading remote KV, do not allocate for new work.
+                     assert num_external_computed_tokens > 0
+                     num_new_tokens = 0
+-                elif defer_prefills and num_computed_tokens < request.num_tokens - 1:
++                elif (
++                    defer_prefills
++                    and num_computed_tokens < request.num_tokens - 1
++                    and not (
++                        (yield_bypass := getattr(self, "_sparse_yield_bypass", None))
++                        is not None
++                        and yield_bypass(request, num_computed_tokens, False)
++                    )
++                ):
+                     # DP prefill balancing: defer this step's local prefill
+                     # compute to a cadence-aligned step.
++                    if yield_bypass is not None and getattr(yield_bypass, "scan", False):
++                        # sparse-prefill-yield-bypass: a long request waits in
++                        # order, but the scan goes on so a short one behind it
++                        # can still take the bypass.
++                        skip_request(request_queue)
++                        continue
+                     break
+                 else:
+                     request_token_budget = min(token_budget, input_budget - draft_slots)

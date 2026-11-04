@@ -696,7 +696,7 @@ def select(query, query_start_loc, seq_lens, block_table, sk_q8, sk_scale, basis
 
 
 def select_suffix(query, q_lens, seq_lens_host, seq_lens, block_table, sk_q8, sk_scale, basis_l, ksel=2048, sink=64,
-                  win=1024, scale=1.0 / 16, rows_per_part=16, score_group=32, quant=None, h2d=None):
+                  win=1024, scale=1.0 / 16, rows_per_part=16, score_group=32, quant=None, h2d=None, stats_sub=None):
     """S4: selection for a prefill SUFFIX (a follow-up's uncached tail, q_len up to a few thousand rows).
 
     Same score as select (softmax over tokens per (query row, q-head), summed over rows and heads, one score per token
@@ -706,6 +706,9 @@ def select_suffix(query, q_lens, seq_lens_host, seq_lens, block_table, sk_q8, sk
     layout with window = the last `win` tokens (win >= every q_len, so the suffix rows attend each other exactly).
     Eager only (the prefill path): host lists q_lens / seq_lens_host describe the requests, `seq_lens` is their device
     copy. h2d(list) -> int32 device tensor (pinned, non-blocking); default torch.tensor (synchronous).
+    stats_sub (S5): normaliser sampling for the suffix rows, independent of the decode knob SPARSE_STATS_SUB (which
+    used to apply here too: STATS_SUB=4 made every suffix row's softmax normaliser an estimate). None -> env
+    SPARSE_TIER_SUFFIX_STATS_SUB, unset -> SPARSE_STATS_SUB (old behaviour); 1 = exact normaliser.
     Returns (idx int32 [nreq, ksel+sink+win], n_valid int32 [nreq])."""
     Tq, Hq, D = query.shape
     nreq = len(q_lens)
@@ -719,6 +722,9 @@ def select_suffix(query, q_lens, seq_lens_host, seq_lens, block_table, sk_q8, sk
     quant = QUANT_Q if quant is None else quant
     h2d = h2d or (lambda xs: torch.tensor(xs, dtype=torch.int32, device=dev))
     P = int(rows_per_part)
+    if stats_sub is None:  # unset -> the decode knob, as before S5 (default-off rule); S5 recommends 1
+        stats_sub = os.environ.get("SPARSE_TIER_SUFFIX_STATS_SUB") or STATS_SUB
+    sub = max(1, int(stats_sub))
     pq, pl_stats, pl_score, preq = [0], [], [], []
     q0 = 0
     for r in range(nreq):
@@ -752,7 +758,7 @@ def select_suffix(query, q_lens, seq_lens_host, seq_lens, block_table, sk_q8, sk
     _stats_kernel[(npart * Hkv, NSA)](qn, qs, pqsl, psl_stats, pbt, pbt.stride(0), sk_q8, sk_scale, wsm, wsl, C, NSA,
                                       psl_stats,
                                       HQ=Hq, HKV=Hkv, G=G, R=R, BS_=BS, MA=MA, MB=MB, MBS=MBS, QMAX=P,
-                                      BLOCK_T=CFG["block_a"], QUANT=quant, HALF=False, SK4=SK4, SUB=STATS_SUB,
+                                      BLOCK_T=CFG["block_a"], QUANT=quant, HALF=False, SK4=SK4, SUB=sub,
                                       num_warps=CFG["stats_warps"], num_stages=CFG["stats_stages"])
     mz = torch.empty(npart * Hkv * MT, dtype=torch.float32, device=dev)
     lens_p = torch.empty(npart, dtype=torch.int32, device=dev)

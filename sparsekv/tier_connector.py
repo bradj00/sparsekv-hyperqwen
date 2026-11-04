@@ -28,6 +28,7 @@ import itertools
 import os
 import re
 import sys
+import time
 from typing import Any
 
 import numpy as np
@@ -85,13 +86,35 @@ def gpu_extra_bytes(vllm_config, nlayers: int, hkv: int, w: int, r: int, bs: int
         out["tier_prefill_staging"] = (d["maxblk"] + 1) * hkv * bs * w
         # S4: suffix staging lives in the prefill staging cache (sparse suffixes run before dense chunks per layer)
         out["tier_prefill_staging"] = max(d["maxblk"] + 1, suffix_staging_blocks(C, bs)) * hkv * bs * w
+        if s5_landing_enabled():
+            # S5: int4 landing buffer for the copy-engine prefetch of the next sparse layer's host blocks
+            out["tier_s5_landing"] = (d["maxblk"] + 1) * hkv * bs * 272
     return out
+
+
+def stage_serial_enabled() -> bool:
+    """Bounded staging (SPARSE_TIER_STAGE_SERIAL, default 1 = on): every 'dense' prefill request of a step -- cold
+    chunks and SUFFIX_SPARSE=0 follow-ups alike -- is staged ALONE at pf_kv[1 : 1 + nblk] right before its own
+    attention launch, so the staging cache never needs more than maxblk + 1 blocks (the reserved size). The old
+    batched staging put all dense requests of the step back to back (need = sum of their nblk): 2-3 concurrent
+    150K prefills at MAX_SEQS 4 grew it to 349 / 522 blocks outside the reserve -> OOM in marlin_gemm (observed with
+    4 concurrent agents). Same bytes copied, same launches, same results."""
+    return os.environ.get("SPARSE_TIER_STAGE_SERIAL", "1") == "1"
+
+
+def s5_landing_enabled() -> bool:
+    """EXPERIMENTAL, untested at scale. Copy-engine prefetch (SPARSE_TIER_S5_DMA=1, default off): int4 host tier, and serial staging or exact
+    suffixes on (the prefetch feeds the one-at-a-time staging)."""
+    e = os.environ.get
+    return (e("SPARSE_TIER_SPILL", "0") == "1" and e("SPARSE_TIER_HOST_BITS", "8") == "4"
+            and e("SPARSE_TIER_S5_DMA", "0") == "1"
+            and (stage_serial_enabled() or e("SPARSE_TIER_SUFFIX_EXACT", "0") == "1"))
 
 
 def suffix_sparse_enabled() -> bool:
     """S4: follow-up suffixes (uncached prefill tails <= SPARSE_TIER_SUFFIX_MAX tokens) of requests with spilled blocks
     attend sparsely (select over the sketch + tiered gather of only the picked rows) instead of staging every block."""
-    return os.environ.get("SPARSE_TIER_SUFFIX_SPARSE", "1") == "1"
+    return os.environ.get("SPARSE_TIER_SUFFIX_SPARSE", "0") == "1"
 
 
 def suffix_cfg() -> dict:
@@ -100,10 +123,16 @@ def suffix_cfg() -> dict:
     last SEG_LAST rows (the new question) in segments of SEG_Q rows, the uncached document tail before it in SEG-row
     segments. One summed selection over ~1.5K rows let the tail rows drown the question's picks (s4a128n4)."""
     e = os.environ.get
-    return {"sparse": e("SPARSE_TIER_SUFFIX_SPARSE", "1") == "1", "max": int(e("SPARSE_TIER_SUFFIX_MAX", "2048")),
+    return {"sparse": e("SPARSE_TIER_SUFFIX_SPARSE", "0") == "1", "max": int(e("SPARSE_TIER_SUFFIX_MAX", "2048")),
             "ksel": int(e("SPARSE_TIER_SUFFIX_KSEL", "4096")),  # tuned (run_s4/tune.out): 6/8 code lines vs 2/8
             "seg": int(e("SPARSE_TIER_SUFFIX_SEG", "256")), "seg_last": int(e("SPARSE_TIER_SUFFIX_SEG_LAST", "128")),
-            "seg_q": int(e("SPARSE_TIER_SUFFIX_SEG_Q", "16"))}
+            "seg_q": int(e("SPARSE_TIER_SUFFIX_SEG_Q", "16")),
+            # EXPERIMENTAL (default off): follow-up suffix rows attend EXACTLY over the whole context, host blocks streamed
+            # into the prefill staging cache (copy-engine prefetch one sparse layer ahead), no GPU pool blocks.
+            # exact_rows = 0: every suffix row exact (same math as SUFFIX_SPARSE=0); N > 0: only the last N rows
+            # (the question) exact, the document tail before them stays S4-sparse.
+            "exact": e("SPARSE_TIER_SUFFIX_EXACT", "0") == "1",
+            "exact_rows": int(e("SPARSE_TIER_SUFFIX_EXACT_ROWS", "0"))}
 
 
 def suffix_segments(ql: int, cfg: dict | None = None) -> list[int]:
@@ -226,6 +255,13 @@ class TierRuntime:
         # capture) and counted in sparse_kv.gpu_reserve_bytes; grows only if one prefill slice needs more.
         self.pf_kv = (torch.empty((max(maxblk + 1, suffix_staging_blocks(self.C, BS)), HKV, BS, W), dtype=any_kv.dtype,
                                   device=dev) if self.spill else None)
+        # S5: int4 landing buffer + copy stream for the exact-suffix prefetch (allocated before graph capture, counted
+        # in gpu_extra_bytes as tier_s5_landing). None -> exact suffixes stage through the UVA dequant kernel instead.
+        self.s5_land = (torch.empty((maxblk + 1, HKV, BS, self.WH), dtype=torch.int8, device=dev)
+                        if self.spill and self.host4 and s5_landing_enabled() else None)
+        self.s5_stream = torch.cuda.Stream(device=dev) if self.s5_land is not None else None
+        self.stage_serial = self.spill and stage_serial_enabled()
+        self._s5_pf = None  # in-flight prefetch: {"key", "l", "rid", "ev", "n"}
         # GDN/mamba checkpoint host store (worker half): per mamba group, per layer state tensor, [slots, ...] pinned
         self.mamba_items: dict[int, list[torch.Tensor]] = {}
         self.mamba_done: set[int] = set()  # G-23: save ids whose GPU->host copy is enqueued (read by the scheduler)
@@ -280,7 +316,8 @@ class TierRuntime:
         self.free_slots = list(range(self.max_reqs - 1, -1, -1))
         self.batch_rows: list[str | None] = []
         self.stats = {"steps": 0, "mirrored_blocks": 0, "prefill_staged_blocks": 0, "host_blocks_peak": 0,
-                      "suffix_sparse": 0, "suffix_tokens": 0}
+                      "suffix_sparse": 0, "suffix_tokens": 0, "suffix_exact": 0, "suffix_exact_rows": 0,
+                      "s5_dma_blocks": 0, "s5_uva_blocks": 0}
         _log("tier: kv cache view shape %s strides %s contiguous=%s", tuple(any_kv.shape), any_kv.stride(),
              any_kv.is_contiguous())
         _log("tier: runtime mode=%s: %d sparse layers in group(s) %s, window layers %s, host pool %.2f GB "
@@ -470,6 +507,11 @@ class TierRuntime:
         self._msave_q = keep
 
     def _copy_save(self, slot, blocks, sid):
+        if sid in _DEC_CANCELLED:
+            _DEC_CANCELLED.discard(sid)
+            self.mamba_done.add(sid)
+            self.stats["mamba_save_cancelled"] = self.stats.get("mamba_save_cancelled", 0) + 1
+            return
         for g, b in blocks.items():
             for it, hb in zip(self.mamba_items[g], self.mamba_host[g]):
                 k = self.mamba_k[id(it)]
@@ -766,15 +808,26 @@ class TierRuntime:
                 return None
             fu = st.get("freed", 0)
             spl = [b for b in sorted(st["host"]) if b < nblk and (blocks[b] == 0 or self.sink_blocks <= b < fu)]
+            follow_up = (ql <= sfx["max"] and L - ql > self.C and st.get("uncached", 1 << 30) <= sfx["max"])
+            nx = 0
             if not spl:
                 mode = "plain"
-            elif (self.suffix_sparse and ql <= sfx["max"] and L - ql > self.C
-                  and st.get("uncached", 1 << 30) <= sfx["max"]):
+            elif self.spill and sfx.get("exact") and follow_up:
+                mode = "exact"  # S5: exact rows over the whole context (last nx rows; all of them by default)
+                er = int(sfx.get("exact_rows", 0))
+                nx = ql if er <= 0 or er >= ql else er
+            elif self.suffix_sparse and follow_up:
                 mode = "sparse"
             else:
                 mode = "dense"
+            if mode == "sparse":
+                segs = suffix_segments(ql, sfx)
+            elif mode == "exact" and nx < ql:
+                segs = suffix_segments(ql - nx, sfx) + [nx]  # S4-sparse document tail, then one exact segment
+            else:
+                segs = [ql]
             plan.append({"r": r, "rid": rid, "st": st, "ql": ql, "L": L, "nblk": nblk, "spl": spl, "qoff": qoff,
-                         "mode": mode, "segs": suffix_segments(ql, sfx) if mode == "sparse" else [ql]})
+                         "mode": mode, "segs": segs, "nx": nx})
             qoff += ql
         if qoff != part.token_end - part.token_start:
             if not getattr(self, "_pp_warned", False):
@@ -798,7 +851,8 @@ class TierRuntime:
                 ends.append(p["L"] - p["ql"] + tot)
             p["seg_ends"] = ends
             small += acc + ends
-            if p["mode"] == "dense":
+            p["serial"] = p["mode"] == "exact" or (p["mode"] == "dense" and getattr(self, "stage_serial", False))
+            if p["mode"] == "dense" and not p["serial"]:
                 spl = set(p["spl"])
                 blocks = p["st"]["blocks"][g]
                 for b in range(p["nblk"]):
@@ -808,8 +862,26 @@ class TierRuntime:
                         gdst.append(nxt + b); gsrc.append(blocks[b])
                 p["pf0"] = nxt
                 nxt += p["nblk"]
-        need = max(nxt, max((len(p["segs"]) * -(-(self.C - self.ksel + sfx["ksel"]) // self.BS)
-                             for p in plan if p["mode"] == "sparse"), default=0))
+            elif p["serial"]:
+                # S5: per-request lists (serial dense / exact requests are staged one after the other at pf_kv[1:],
+                # after every sparse and batched-dense launch of the layer); host runs for the copy-engine prefetch
+                p["pf0"] = 1
+                spl = set(p["spl"])
+                blocks = p["st"]["blocks"][g]
+                xh, xs, xg, xgs = [], [], [], []
+                for b in range(p["nblk"]):
+                    if b in spl:
+                        xh.append(1 + b); xs.append(p["st"]["host"][b])
+                    else:
+                        xg.append(1 + b); xgs.append(blocks[b])
+                p["x_n"] = (len(xh), len(xg))
+                p["x_runs"] = _runs(xs)
+                p["x_small"] = len(small)
+                small += [0, p["nx"] if p["mode"] == "exact" else p["ql"]] + xh + xs + xg + xgs + list(range(len(xh)))
+        nbs_s = -(-(self.C - self.ksel + sfx["ksel"]) // self.BS)
+        need = max(nxt, max((len(p["segs"]) * nbs_s for p in plan if p["mode"] == "sparse"), default=0),
+                   max((max(1 + p["nblk"], (len(p["segs"]) - 1) * nbs_s if p["mode"] == "exact" else 0)
+                        for p in plan if p["serial"]), default=0))
         if need > (self.pf_kv.shape[0] if self.pf_kv is not None else 0):
             nxt = need
             _log("tier: WARNING prefill staging grows to %d blocks outside the memory reserve", nxt)
@@ -826,14 +898,32 @@ class TierRuntime:
             ns = len(p["segs"])
             p["qsl_d"] = dv[p["so"]:p["so"] + ns + 1]
             p["L_d"] = dv[p["so"] + ns + 1:p["so"] + 2 * ns + 1]
-            if p["mode"] == "dense":
+            if p["mode"] in ("dense", "exact"):
+                f0 = p["pf0"]
                 bt = torch.zeros((1, W), dtype=part.block_table.dtype, device=self.dev)
-                bt[0, :p["nblk"]] = torch.arange(p["pf0"], p["pf0"] + p["nblk"], dtype=bt.dtype, device=self.dev)
+                bt[0, :p["nblk"]] = torch.arange(f0, f0 + p["nblk"], dtype=bt.dtype, device=self.dev)
                 p["bt_d"] = bt
+            if p.get("serial"):
+                o2, (nh2, ng2) = p["x_small"], p["x_n"]
+                p["x_qsl"] = dv[o2:o2 + 2]
+                o2 += 2
+                p["x_h"] = (dv[o2:o2 + nh2], dv[o2 + nh2:o2 + 2 * nh2])
+                o2 += 2 * nh2
+                p["x_g"] = (dv[o2:o2 + ng2], dv[o2 + ng2:o2 + 2 * ng2])
+                o2 += 2 * ng2
+                p["x_land"] = dv[o2:o2 + nh2]  # landing-buffer index of each host block, in x_h order
         self.stats["prefill_staged_blocks"] += nh * self.L
         ns = [p for p in plan if p["mode"] == "sparse"]
         self.stats["suffix_sparse"] += len(ns)
         self.stats["suffix_tokens"] += sum(p["ql"] for p in ns)
+        nx_ = [p for p in plan if p["mode"] == "exact"]
+        if nx_:
+            self.stats["suffix_exact"] = self.stats.get("suffix_exact", 0) + len(nx_)
+            self.stats["suffix_exact_rows"] = self.stats.get("suffix_exact_rows", 0) + sum(p["nx"] for p in nx_)
+        ser = [p for p in plan if p.get("serial")]
+        if ser:
+            self.stats["serial_staged"] = self.stats.get("serial_staged", 0) + len(ser)
+            self._s5_kick(0, ser[0])  # layer 0's prefetch (exposed: nothing to overlap with yet; see DESIGN_S5)
         if os.environ.get("SPARSE_TIER_DEBUG", "0") == "1":
             _log("tier: prefill plan step %d: %s", self.stats["steps"],
                  [(p["rid"][-8:], p["mode"], p["ql"], p["L"], len(p["spl"])) for p in plan])
@@ -868,16 +958,22 @@ class TierRuntime:
             return True
         l, g = lg
         # sparse suffixes first: they stage into pf_kv[0:...], which the dense chunks' copy then overwrites (stream order)
-        order = [p for p in plan if p["mode"] == "sparse"] + [p for p in plan if p["mode"] != "sparse"]
+        # S5: exact suffixes last, one after the other, each restaging pf_kv[1:] after every earlier launch
+        order = ([p for p in plan if p["mode"] == "sparse"]
+                 + [p for p in plan if p["mode"] in ("dense", "plain") and not p.get("serial")]
+                 + [p for p in plan if p.get("serial")])
         copied = False
         for p in order:
-            if p["mode"] == "dense" and not copied:
+            if p["mode"] == "dense" and not copied and not p.get("serial"):
                 (copy_blocks_from_host4 if self.host4 else copy_blocks)(self.pf_kv, self._pp_h[0], self.mirror.dev[l],
                                                                         self._pp_h[1])
                 copy_blocks(self.pf_kv, self._pp_g[0], kv, self._pp_g[1])
                 copied = True
             r, ql = p["r"], p["ql"]
             t0 = part.token_start + p["qoff"]
+            if p["mode"] == "exact":
+                self._s5_layer(impl, sp, l, g, kv, part, req_start, p, t0, query, output, causal, views)
+                continue
             ns, mq = len(p["segs"]), max(p["segs"])
             sub = dict(plan=self._sub_plan(impl, ql, ns, mq), token_start=t0, token_end=t0 + ql, max_query_len=mq,
                        query_start_loc=p["qsl_d"])
@@ -886,6 +982,8 @@ class TierRuntime:
                 impl._run_slice(dataclasses.replace(part, seq_lens=nv, block_table=st_bt, **sub), query, output,
                                 views(impl, st_kv, attr="_tier_pf_views"), causal)
             elif p["mode"] == "dense":
+                if p.get("serial"):
+                    self._s5_stage(l, p, kv)  # S5: this request alone at pf_kv[1:] (bounded staging)
                 impl._run_slice(dataclasses.replace(part, seq_lens=p["L_d"], block_table=p["bt_d"], **sub), query,
                                 output, views(impl, self.pf_kv, attr="_tier_pf_views"), causal)
             else:
@@ -893,6 +991,71 @@ class TierRuntime:
                                                     block_table=part.block_table[r:r + 1], **sub),
                                 query, output, caches, causal)
         return True
+
+    # ---------------------------------------------------------------- S5: exact follow-up suffix
+    def _s5_layer(self, impl, sp, l, g, kv, part, req_start, p, t0, query, output, causal, views):
+        """One sparse layer of an exact suffix: [optional S4-sparse document tail] then the last nx rows attend
+        exactly over every block of the request (pf_kv[1 : 1 + nblk], causal end L). Same launch shape as the
+        'dense' mode, so with nx == ql the result equals SPARSE_TIER_SUFFIX_SPARSE=0 bit for bit."""
+        ql, nx = p["ql"], p["nx"]
+        if nx < ql:
+            ns = len(p["segs"]) - 1
+            ps = dict(p, segs=p["segs"][:-1], seg_ends=p["seg_ends"][:-1], L_d=p["L_d"][:-1])
+            mq = max(ps["segs"])
+            sub = dict(plan=self._sub_plan(impl, ql - nx, ns, mq), token_start=t0, token_end=t0 + ql - nx,
+                       max_query_len=mq, query_start_loc=p["qsl_d"][:ns + 1])
+            st_kv, st_bt, nv = self._suffix_stage(sp, l, g, kv, part, req_start, ps, query[t0:t0 + ql - nx],
+                                                  impl.scale)
+            impl._run_slice(dataclasses.replace(part, seq_lens=nv, block_table=st_bt, **sub), query, output,
+                            views(impl, st_kv, attr="_tier_pf_views"), causal)
+        self._s5_stage(l, p, kv)
+        tx = t0 + ql - nx
+        sub = dict(plan=self._sub_plan(impl, nx, 1, nx), token_start=tx, token_end=tx + nx, max_query_len=nx,
+                   query_start_loc=p["x_qsl"])
+        impl._run_slice(dataclasses.replace(part, seq_lens=p["L_d"][-1:], block_table=p["bt_d"], **sub), query,
+                        output, views(impl, self.pf_kv, attr="_tier_pf_views"), causal)
+
+    def _s5_stage(self, l, p, kv):
+        """Fill pf_kv[1 : 1 + nblk] with layer l of the request: host blocks from the landing buffer when this layer
+        was prefetched for this request (copy engine, int4 -> dequant GPU->GPU), else through the UVA dequant kernel
+        (the old dense-mode copy, SM-driven, ~10 / 6.2 GB/s); resident blocks GPU->GPU. Then prefetch layer l + 1."""
+        nh, ng = p["x_n"]
+        pf = self._s5_pf
+        if pf is not None and pf["l"] == l and pf["rid"] == p["rid"] and pf["step"] == self.stats["steps"]:
+            torch.cuda.current_stream(self.dev).wait_event(pf["ev"])
+            self._s5_pf = None
+            if nh:
+                copy_blocks_from_host4(self.pf_kv, p["x_h"][0], self.s5_land, p["x_land"])
+            self.stats["s5_dma_blocks"] += nh
+            if l + 1 < self.L:
+                self._s5_kick(l + 1, p)  # the copy stream waits for the dequant above (wait_stream)
+        elif nh:
+            (copy_blocks_from_host4 if self.host4 else copy_blocks)(self.pf_kv, p["x_h"][0], self.mirror.dev[l],
+                                                                    p["x_h"][1])
+            self.stats["s5_uva_blocks"] += nh
+        if ng:
+            copy_blocks(self.pf_kv, p["x_g"][0], kv, p["x_g"][1])
+        self.stats["prefill_staged_blocks"] += nh
+
+    def _s5_kick(self, l, p):
+        """Copy-engine prefetch of layer l's host blocks of request p into the int4 landing buffer, on the S5 copy
+        stream, ordered after everything already enqueued on the compute stream (in particular the dequant that
+        consumed the previous layer from the same buffer, and any GPU->host mirror writes of this step). The
+        consuming layer waits on the recorded event. Host blocks of a running request are never reassigned
+        mid-step, so the pinned source stays valid. One request per step is prefetched; others use the UVA path."""
+        if self.s5_land is None:
+            return
+        nh = p["x_n"][0]
+        if nh == 0 or nh > self.s5_land.shape[0]:
+            return
+        s = self.s5_stream
+        s.wait_stream(torch.cuda.current_stream(self.dev))
+        with torch.cuda.stream(s):
+            for h0, i0, n in p["x_runs"]:
+                self.s5_land[i0:i0 + n].copy_(self.mirror.host[l, h0:h0 + n], non_blocking=True)
+        ev = torch.cuda.Event()
+        ev.record(s)
+        self._s5_pf = {"l": l, "rid": p["rid"], "step": self.stats["steps"], "ev": ev}
 
     def _suffix_stage(self, sp, l, g, kv, part, req_start, p, q, scale):
         """Select the suffix's rows over the sketch (spilled blocks read the host-indexed sketch region) and gather only
@@ -917,11 +1080,24 @@ class TierRuntime:
             self._sf_bt = torch.arange(max(ns, 16) * nbs, dtype=torch.int32, device=self.dev).view(-1, nbs)
         st_bt = self._sf_bt[:ns]
         gather_rows_tiered(kv, gbt, self.mirror.dev[l], hbt, idx, nv, self.pf_kv, st_bt, self.hot, l,
-                           self.pad_slots[:ns], self.sf_scratch, stats=self.sf_stats)
+                           self.pad_slots[:ns], self.sf_scratch, stats=self.sf_stats,
+                           cache_rows=False)  # padding slot only: C may exceed hot.H (KSEL 16K crash fix)
         return self.pf_kv, st_bt, nv
 
     def group_of(self, layer_name: str) -> tuple[int, int] | None:
         return self.layers.get(layer_name)
+
+
+def _runs(xs: list[int]) -> list[tuple[int, int, int]]:
+    """[h0, h0+1, ..., h5, h9, h10] -> [(h0, 0, 6), (h9, 6, 2)]: (first host block, list index, length) of each run of
+    consecutive host ids (one cudaMemcpyAsync per run instead of per block)."""
+    out = []
+    for i, h in enumerate(xs):
+        if out and out[-1][0] + out[-1][2] == h:
+            out[-1] = (out[-1][0], out[-1][1], out[-1][2] + 1)
+        else:
+            out.append((h, i, 1))
+    return out
 
 
 HOST_HEADROOM_GB = 8.0
@@ -959,7 +1135,7 @@ def host_pool_blocks(max_len: int, max_reqs: int, bs: int, block_bytes: int, che
 
 
 def host_mamba_slots() -> int:
-    return int(os.environ.get("SPARSE_TIER_HOST_MAMBA_SLOTS", "8"))
+    return int(os.environ.get("SPARSE_TIER_HOST_MAMBA_SLOTS", "32"))
 
 
 def single_process_engine(vllm_config) -> bool:
@@ -979,12 +1155,267 @@ def sparse_layer_ids() -> list[int]:
     return list(range(3, 64, 4))
 
 
+# ------------------------------------------------------------------------------------------- prefill yield (S4)
+class PrefillYield:
+    """Scheduler duty cycle: a long prefill must not starve the running decodes.
+
+    Chunked prefill co-batches one ~2048-token chunk (~1.2-1.4 s of GEMM on a 24 GB consumer card) with every decode, so while an
+    agent's long uncached turn prefills, every other stream gets one decode step per ~1.4 s (2-5 tok/s for 30-60 s on
+    4 x 250K agents per card). After a step that schedules n prefill tokens while decodes run, the next
+    ceil(n / 1024 * STEPS_PER_1K) steps are decode-only, using vLLM's own prefill deferral (schedule(throttle_prefills=
+    True): in-progress chunks and new admissions wait, decodes run in FULL graphs). STEPS_PER_1K = 8 gives a 2048-token
+    chunk 16 decode steps (~0.9 s): prefill keeps ~60 % of the time, decodes ~40 % instead of ~5 %. Default 12 (~50/50:
+    one decoding stream stays near 30 tok/s). SPARSE_PREFILL_YIELD_STEPS_PER_1K=0 disables it; SPARSE_PREFILL_SHARE_CHUNK
+    (864) caps prefill chunks while requests wait (0 = off).
+
+    s9 short-request bypass (SPARSE_PREFILL_YIELD_SHORT_BYPASS = N tokens, default 2600; 0 = off = the v1.0 behaviour): on a decode-only
+    (yield) step, a request whose UNCACHED prompt (tokens left after its prefix/host hit, measured at admission) is
+    <= N tokens still gets scheduled -- a fresh admission, or the next chunk of a request admitted short. At most N such
+    tokens per step. The long prefill stays deferred, so its starvation fix is untouched; the bypass tokens are charged
+    to the decoders' debt ADDITIVELY (debt += ceil(n_bypass * K / 1024)), so the decode duty cycle is kept and the
+    long prefill is pushed back instead (shortest-remaining-first). No bypass while debt > SHORT_MAX_DEBT (default 240
+    steps), so a stream of short requests cannot hold a long prefill forever. Needs the vLLM hook in
+    patches/sparse-prefill-yield-bypass.patch (Scheduler._sparse_yield_bypass; inert when unset).
+    SPARSE_PREFILL_YIELD_SHORT_SCAN (default 1): a deferred long waiting request no longer blocks the scan of the
+    waiting queue (it is skipped in order), so a short request behind it is seen.
+    SPARSE_PREFILL_YIELD_LOG=1: one 'tier: admit' line per request (uncached / cached tokens, queue wait, yield steps
+    it waited through, bypass). Counters are logged as 'tier: yield stats' at most every 60 s when they change."""
+
+    WAIT_EDGES = (1.0, 5.0, 20.0, 60.0)  # admission-wait histogram edges (s): <1, 1-5, 5-20, 20-60, >=60
+
+    def __init__(self, steps_per_1k: float, share_chunk: int = 0, ctx_unit: float = 0.0, short_bypass: int = 0,
+                 short_scan: bool = True, short_max_debt: int = 240, log_admit: bool = False):
+        self.k = float(steps_per_1k)
+        # S5: an exact follow-up's attention cost grows with its context (ql x L), not just with ql. ctx_unit > 0
+        # weighs each prefill token by (1 + context / ctx_unit) when computing the yield debt
+        # (SPARSE_PREFILL_YIELD_CTX_UNIT, 0 = off = S4 behaviour; ~100000 matches GEMM ~= attention at 100K).
+        self.ctx_unit = float(ctx_unit)
+        # When requests wait behind a running prefill (its chunk takes the whole token budget, so their next turns are
+        # not even admitted: 'Running 1, Waiting 3' for 40 s at 4 x 250K), cap prefill chunks at share_chunk
+        # tokens (vLLM long_prefill_token_threshold, per step; 864 = one mamba-aligned block) so the rest of the
+        # budget admits the waiting requests.
+        self.share_chunk = int(share_chunk)
+        self.short_bypass = int(short_bypass)
+        self.short_scan = bool(short_scan)
+        self.short_max_debt = int(short_max_debt)
+        self.log_admit = bool(log_admit)
+        self.debt = 0
+        self.stats = {"yield_steps": 0, "prefill_steps": 0, "shared_steps": 0,
+                      # s9 bypass counters
+                      "bypass_steps": 0, "bypass_reqs": 0, "bypass_tokens": 0, "bypass_debt_added": 0,
+                      "bypass_denied_debt": 0, "bypass_denied_budget": 0,
+                      # admissions: [short (uncached <= N, or <= 1728 when the bypass is off), long] x wait buckets
+                      "admit_short": 0, "admit_long": 0, "admit_waited_yield": 0,
+                      "wait_short": [0] * (len(self.WAIT_EDGES) + 1), "wait_long": [0] * (len(self.WAIT_EDGES) + 1),
+                      "wait_short_sum_s": 0.0, "wait_long_sum_s": 0.0}
+        self._seen: dict = {}  # waiting request id -> (first seen monotonic, yield_steps then)
+        self._last_log = 0.0
+        self._last_logged: dict | None = None
+
+    # --- s9 bypass predicate, installed as Scheduler._sparse_yield_bypass for one throttled schedule() call
+    def _make_bypass(self):
+        pol = self
+        left = [pol.short_bypass]
+
+        def bypass(request, num_computed_tokens, running):
+            if running:
+                unc = getattr(request, "_sparse_uncached", None)
+                if unc is None or unc > pol.short_bypass:
+                    return False
+            elif request.num_tokens - num_computed_tokens > pol.short_bypass:
+                return False
+            rem = request.num_tokens - num_computed_tokens
+            if rem > left[0]:
+                pol.stats["bypass_denied_budget"] += 1
+                return False
+            left[0] -= rem
+            bypass.granted.add(request.request_id)
+            return True
+
+        bypass.granted = set()
+        bypass.scan = pol.short_scan
+        return bypass
+
+    def _short_behind_long(self, sched) -> bool:
+        pf = [r for r in sched.running if r.is_prefill_chunk]
+        if len(pf) < 2:
+            return False
+        short = [getattr(r, "_sparse_uncached", None) is not None and r._sparse_uncached <= self.short_bypass
+                 for r in pf]
+        return any(short) and not all(short)
+
+    def _note_waiting(self, sched):
+        now = time.monotonic()
+        for q in (getattr(sched, "waiting", ()), getattr(sched, "kv_holding_waiting", ())):
+            try:
+                for r in q:
+                    if r.request_id not in self._seen:
+                        self._seen[r.request_id] = (now, self.stats["yield_steps"])
+            except TypeError:
+                pass
+
+    def _note_admissions(self, sched, out, bypassed):
+        reqs = getattr(sched, "requests", None) or {}
+        short_n = self.short_bypass or 1728
+        for nr in getattr(out, "scheduled_new_reqs", None) or ():
+            rid = getattr(nr, "req_id", None)
+            req = reqs.get(rid)
+            if req is None:
+                continue
+            unc = int(req.num_tokens) - int(getattr(nr, "num_computed_tokens", 0) or 0)
+            first = getattr(req, "_sparse_uncached", None) is None
+            req._sparse_uncached = unc  # re-tagged on a resume after preemption (V2 sends it as new again)
+            if not first:
+                continue
+            seen = self._seen.pop(rid, None)
+            arr = getattr(req, "arrival_time", None)
+            wait = (time.time() - arr) if arr else ((time.monotonic() - seen[0]) if seen else 0.0)
+            ysteps = (self.stats["yield_steps"] - seen[1]) if seen else 0
+            kind = "short" if unc <= short_n else "long"
+            self.stats["admit_" + kind] += 1
+            self.stats["wait_%s_sum_s" % kind] += wait
+            self.stats["wait_" + kind][sum(wait >= e for e in self.WAIT_EDGES)] += 1
+            if ysteps:
+                self.stats["admit_waited_yield"] += 1
+            if self.log_admit:
+                _log("tier: admit %s uncached %d cached %d wait %.2fs yield_steps_waited %d bypass %d debt %d", rid,
+                     unc, int(getattr(nr, "num_computed_tokens", 0) or 0), wait, ysteps, int(rid in bypassed),
+                     self.debt)
+        if len(self._seen) > 4096:  # aborted while waiting: forget
+            self._seen.clear()
+
+    def _maybe_log(self):
+        now = time.monotonic()
+        if now - self._last_log < 60.0:
+            return
+        snap = {k: (list(v) if isinstance(v, list) else v) for k, v in self.stats.items()}
+        if snap == self._last_logged:
+            return
+        self._last_log, self._last_logged = now, snap
+        _log("tier: yield stats %s debt %d", {k: (round(v, 1) if isinstance(v, float) else v)
+                                              for k, v in snap.items()}, self.debt)
+
+    def wrap(self, orig):
+        pol = self
+
+        def schedule(sched, throttle_prefills: bool = False):
+            decodes = {r.request_id for r in sched.running if not r.is_prefill_chunk}
+            throttle = bool(throttle_prefills)
+            ours = False
+            if not throttle and pol.debt > 0 and decodes:
+                pol.debt -= 1
+                pol.stats["yield_steps"] += 1
+                throttle = ours = True
+                sched.prefill_capacity_bound = False  # otherwise vLLM ignores the deferral when requests wait
+            elif not decodes:
+                pol.debt = 0
+            bypass = None
+            if ours and pol.short_bypass > 0:
+                if pol.debt <= pol.short_max_debt:
+                    bypass = pol._make_bypass()
+                    sched._sparse_yield_bypass = bypass
+                else:
+                    pol.stats["bypass_denied_debt"] += 1
+            if pol.short_bypass > 0 or pol.log_admit:
+                pol._note_waiting(sched)
+            cfg = getattr(sched, "scheduler_config", None)
+            share = (pol.share_chunk > 0 and cfg is not None and not throttle
+                     and any(r.is_prefill_chunk for r in sched.running)
+                     and (len(getattr(sched, "waiting", ())) + len(getattr(sched, "kv_holding_waiting", ())) > 0
+                          # s9: a short request's leftover chunk sits behind a long prefill in running order (the long
+                          # chunk takes the whole budget until it ends): cap chunks so both progress
+                          or (pol.short_bypass > 0 and pol._short_behind_long(sched))))
+            if share:
+                old_thr = cfg.long_prefill_token_threshold
+                cfg.long_prefill_token_threshold = (min(old_thr, pol.share_chunk) if old_thr > 0
+                                                    else pol.share_chunk)
+                pol.stats["shared_steps"] += 1
+            try:
+                out = orig(sched, throttle)
+            finally:
+                if share:
+                    cfg.long_prefill_token_threshold = old_thr
+                if bypass is not None:
+                    sched._sparse_yield_bypass = None
+            nst = out.num_scheduled_tokens or {}
+            if pol.ctx_unit > 0:
+                reqs = getattr(sched, "requests", None) or {}
+                n = sum(v * (1.0 + getattr(reqs.get(rid), "num_computed_tokens", 0) / pol.ctx_unit)
+                        for rid, v in nst.items() if rid not in decodes)
+            else:
+                n = sum(v for rid, v in nst.items() if rid not in decodes)
+            bypassed = set()
+            if bypass is not None and bypass.granted:
+                bypassed = {rid for rid in bypass.granted if nst.get(rid, 0) > 0}
+            if n > 0 and decodes:
+                pol.stats["prefill_steps"] += 1
+                owed = -(-int(n * pol.k) // 1024)
+                if bypassed:
+                    # only bypass requests could prefill in a throttled step: charge them on top of the remaining debt
+                    pol.stats["bypass_steps"] += 1
+                    pol.stats["bypass_reqs"] += sum(1 for rid in bypassed
+                                                    if not getattr(sched.requests.get(rid), "_sparse_bypassed", False))
+                    for rid in bypassed:
+                        r = sched.requests.get(rid)
+                        if r is not None:
+                            r._sparse_bypassed = True
+                    pol.stats["bypass_tokens"] += sum(nst[rid] for rid in bypassed)
+                    pol.stats["bypass_debt_added"] += owed
+                    pol.debt += owed
+                else:
+                    pol.debt = max(pol.debt, owed)
+            if pol.short_bypass > 0 or pol.log_admit:
+                pol._note_admissions(sched, out, bypassed)
+                pol._maybe_log()
+            return out
+
+        schedule._sparse_prefill_yield = pol
+        return schedule
+
+
+def install_prefill_yield(cls=None) -> "PrefillYield | None":
+    k = float(os.environ.get("SPARSE_PREFILL_YIELD_STEPS_PER_1K", "12"))
+    share = int(os.environ.get("SPARSE_PREFILL_SHARE_CHUNK", "864"))
+    if k <= 0:
+        return None
+    if cls is None:
+        from vllm.v1.core.sched.scheduler import Scheduler as cls  # noqa: N813
+    cur = cls.schedule
+    if getattr(cur, "_sparse_prefill_yield", None) is not None:
+        return cur._sparse_prefill_yield
+    short = int(os.environ.get("SPARSE_PREFILL_YIELD_SHORT_BYPASS", "2600"))
+    if short > 0 and not _sched_has_bypass_hook(cls):
+        _log("tier: SPARSE_PREFILL_YIELD_SHORT_BYPASS=%d IGNORED: vLLM lacks the sparse-prefill-yield-bypass hook "
+             "(re-run sparsekv/install.sh)", short)
+        short = 0
+    pol = PrefillYield(k, share, float(os.environ.get("SPARSE_PREFILL_YIELD_CTX_UNIT", "0")), short_bypass=short,
+                       short_scan=os.environ.get("SPARSE_PREFILL_YIELD_SHORT_SCAN", "1") == "1",
+                       short_max_debt=int(os.environ.get("SPARSE_PREFILL_YIELD_SHORT_MAX_DEBT", "240")),
+                       log_admit=os.environ.get("SPARSE_PREFILL_YIELD_LOG", "0") == "1")
+    cls.schedule = pol.wrap(cur)
+    _log("tier: prefill yield on: %.1f decode-only steps per 1K prefill tokens while decodes run; prefill chunks capped "
+         "at %d tokens while requests wait; short-request bypass %s", k, share,
+         ("<= %d uncached tokens (scan %d, max debt %d)" % (short, pol.short_scan, pol.short_max_debt)) if short
+         else "off")
+    return pol
+
+
+def _sched_has_bypass_hook(cls) -> bool:
+    try:
+        import inspect
+        return "_sparse_yield_bypass" in inspect.getsource(cls.schedule)
+    except Exception:  # noqa: BLE001
+        return False
+
+
 # ---------------------------------------------------------------------------------------------------- connector
 try:
     from vllm.distributed.kv_transfer.kv_connector.v1.base import (KVConnectorBase_V1, KVConnectorMetadata,
                                                                    KVConnectorRole, SupportsHMA)
 except Exception:  # noqa: BLE001  (importable without vLLM for docs/tests)
-    KVConnectorBase_V1 = object
+    class KVConnectorBase_V1:  # noqa: D101  (a class, not object: object before SupportsHMA breaks the MRO)
+        def __init__(self, *a, **k):
+            pass
     KVConnectorMetadata = object
     KVConnectorRole = None
 
@@ -1056,6 +1487,12 @@ class HostCache:
             else:
                 self.free.append(hb)
 
+    def pin(self, hb: int) -> None:
+        """s9: hold a cached block out of LRU eviction (an extra reference that no request owns)."""
+        if self.ref[hb] == 0:
+            self.lru.pop(hb, None)
+        self.ref[hb] += 1
+
 
 _HOST_CACHE: "HostCache | None" = None
 
@@ -1073,6 +1510,7 @@ class MambaHostStore:
         self.pending_loads: list = []
         self.pending_compares: list = []
         self.stats = {"saved": 0, "restored": 0, "evict": 0, "pinned": 0, "unpinned": 0, "flushed_at_finish": 0}
+        self.kept: set = set()  # s9: boundary hashes of pinned warm prefixes (never LRU-evicted or dropped)
 
     def lookup(self, h):
         s = self.h2s.get(h)
@@ -1088,7 +1526,11 @@ class MambaHostStore:
         if self.free:
             slot = self.free.pop()
         else:
-            _, slot = self.h2s.popitem(last=False)
+            victim = next((k for k in self.h2s if k not in self.kept), None)  # oldest unpinned
+            if victim is None:
+                self.stats["refused_kept"] = self.stats.get("refused_kept", 0) + 1
+                return None
+            slot = self.h2s.pop(victim)
             self.stats["evict"] += 1
         self.h2s[h] = slot
         sid = self.next_sid
@@ -1097,8 +1539,23 @@ class MambaHostStore:
         self.stats["saved"] += 1
         return sid
 
+    def drop(self, h, slot) -> bool:
+        """s7: forget h (and free its slot) if it still maps to slot."""
+        if self.h2s.get(h) != slot or h in self.kept:
+            return False
+        del self.h2s[h]
+        self.free.append(slot)
+        return True
+
 
 _MAMBA_HOST: "MambaHostStore | None" = None
+# s7 (SPARSE_TIER_MAMBA_SAVE_AT_FINISH): decode-boundary save ids cancelled at request finish because their checkpoint
+# block may not be final yet (offered < SAVE_DELAY steps before the end). The worker skips their copy (_copy_save).
+_DEC_CANCELLED: set = set()
+
+
+def mamba_save_at_finish() -> bool:
+    return os.environ.get("SPARSE_TIER_MAMBA_SAVE_AT_FINISH", "1") == "1"
 
 
 def make_mamba_hit_manager_cls(base):
@@ -1298,6 +1755,10 @@ class HostTierConnector(KVConnectorBase_V1, SupportsHMA):
     hook and ships the scheduler output + host mappings to the worker. Worker side: TierRuntime.
     SupportsHMA keeps vLLM's hybrid KV cache manager on (required for the GDN hybrid)."""
 
+    save_at_finish = False  # class fallback for instances built without __init__ (CPU tests); __init__ reads the env
+    _dec: dict = {}
+    _dec_sid: dict = {}
+
     def __init__(self, vllm_config, role, kv_cache_config=None):
         super().__init__(vllm_config, role, kv_cache_config)
         self._kvc = kv_cache_config
@@ -1316,6 +1777,10 @@ class HostTierConnector(KVConnectorBase_V1, SupportsHMA):
         self.resumed = 0
         self.preempted = 0
         if self.spill and role == KVConnectorRole.SCHEDULER:
+            try:
+                self.prefill_yield = install_prefill_yield()
+            except Exception as e:  # noqa: BLE001
+                _log("tier: prefill yield NOT installed: %s", e)
             global _HOST_CACHE
             g = self._sparse_group()
             self.bs = self._kvc.kv_cache_groups[g].kv_cache_spec.block_size
@@ -1345,6 +1810,13 @@ class HostTierConnector(KVConnectorBase_V1, SupportsHMA):
         self._fholds: dict[int, list] = {}
         self._fin_pending: list = []
         self._fin_next = 0
+        # s7 SAVE_AT_FINISH: rid -> {"done": [(hash, slot, boundary)...], "pending": {sid: (hash, slot, boundary)}};
+        # sid -> rid for decode-boundary saves
+        self.save_at_finish = mamba_save_at_finish()
+        self._dec: dict[str, dict] = {}
+        self._dec_sid: dict[int, str] = {}
+        if self.save_at_finish:
+            _log("tier: SPARSE_TIER_MAMBA_SAVE_AT_FINISH=1: host-saving the last decode-boundary GDN state per request")
 
     def _sparse_group(self) -> int:
         ids = sparse_layer_ids()
@@ -1483,11 +1955,22 @@ class HostTierConnector(KVConnectorBase_V1, SupportsHMA):
             for gid, block_id, boundary in entries:
                 per_b.setdefault(boundary, {})[gid] = block_id
             for boundary, blocks in sorted(per_b.items()):
+                dec = self.save_at_finish and boundary > req.num_prompt_tokens
                 if (boundary % bs or len(blocks) != len(self._mamba_gids)
-                        or not (req.num_prompt_tokens - keep * bs < boundary <= req.num_prompt_tokens)
+                        or not (dec or req.num_prompt_tokens - keep * bs < boundary <= req.num_prompt_tokens)
                         or boundary // bs > len(req.block_hashes)):
                     continue
-                sid = _MAMBA_HOST.save(req.block_hashes[boundary // bs - 1], blocks)
+                h = req.block_hashes[boundary // bs - 1]
+                if dec:
+                    ds = self._dec.setdefault(rid, {"done": [], "pending": {}})
+                    top = max([e[2] for e in ds["done"]] + [e[2] for e in ds["pending"].values()] + [0])
+                    if boundary <= top:
+                        continue
+                sid = _MAMBA_HOST.save(h, blocks)
+                if dec and sid is not None:
+                    ds["pending"][sid] = (h, _MAMBA_HOST.h2s[h], boundary)
+                    self._dec_sid[sid] = rid
+                    _MAMBA_HOST.stats["dec_saved"] = _MAMBA_HOST.stats.get("dec_saved", 0) + 1
                 if sid is not None and self._block_pool is not None:
                     # G-23: pin the checkpoint blocks until the delayed copy is enqueued; otherwise a finished
                     # request's block can be re-handed-out and zeroed (update_requests) before it is copied.
@@ -1509,8 +1992,59 @@ class HostTierConnector(KVConnectorBase_V1, SupportsHMA):
             self._block_pool.free_blocks(self._mholds.pop(sid)[1])
             if _MAMBA_HOST is not None:
                 _MAMBA_HOST.stats["unpinned"] += 1
+            self._dec_promote(sid)
         if len(self._mholds) > 64:
             _log("tier: WARNING %d GDN checkpoint saves still pinned (worker not running saves?)", len(self._mholds))
+
+    def _dec_keep(self) -> int:
+        # with the eagle block drop on, a hit lands one block below the highest saved boundary: keep two
+        sc = getattr(getattr(self, "_vllm_config", None), "speculative_config", None)
+        return 2 if (sc is not None and sc.use_eagle_block_drop()) else 1
+
+    def _dec_promote(self, sid):
+        """s7: decode save sid's copy is enqueued: it becomes the request's newest decode checkpoint; older decode
+        checkpoints of the same request beyond _dec_keep() are dropped from the host store (one slot per agent)."""
+        rid = self._dec_sid.pop(sid, None)
+        if rid is None or _MAMBA_HOST is None:
+            return
+        ds = self._dec.get(rid)
+        if ds is None:
+            return
+        e = ds["pending"].pop(sid, None)
+        if e is None:
+            return
+        ds["done"].append(e)
+        ds["done"].sort(key=lambda x: x[2])
+        while len(ds["done"]) > self._dec_keep():
+            h, slot, _ = ds["done"].pop(0)
+            if _MAMBA_HOST.drop(h, slot):
+                _MAMBA_HOST.stats["dec_dropped"] = _MAMBA_HOST.stats.get("dec_dropped", 0) + 1
+
+    def _dec_finish(self, rid):
+        """s7: at request finish, cancel decode saves whose copy is not enqueued yet (their align-mode checkpoint
+        block may not hold the boundary state yet); the request keeps its newest completed decode checkpoint."""
+        ds = self._dec.get(rid)
+        if not ds or _MAMBA_HOST is None:
+            return
+        ms = _MAMBA_HOST
+        for sid, (h, slot, b) in list(ds["pending"].items()):
+            if _RT is not None and sid in _RT.mamba_done:
+                continue  # copy enqueued: promoted by _release_mamba_holds
+            queued = [x for x in ms.pending_saves if x[2] == sid]
+            if queued:  # never shipped to the worker: drop it here and release the hold now
+                ms.pending_saves = [x for x in ms.pending_saves if x[2] != sid]
+                hold = self._mholds.pop(sid, None)
+                if hold is not None and self._block_pool is not None:
+                    self._block_pool.free_blocks(hold[1])
+                    ms.stats["unpinned"] += 1
+            else:  # shipped (or queued in the worker): the worker skips the copy and reports it done
+                _DEC_CANCELLED.add(sid)
+            ds["pending"].pop(sid)
+            self._dec_sid.pop(sid, None)
+            ms.drop(h, slot)
+            ms.stats["dec_cancelled"] = ms.stats.get("dec_cancelled", 0) + 1
+            if os.environ.get("SPARSE_TIER_DEBUG", "0") == "1":
+                _log("tier: decode GDN save %d of %s at boundary %d cancelled at finish (not final)", sid, rid, b)
 
     def _mirror_tail_at_finish(self, request, block_ids):
         """G-25: mirroring is planned at scheduling time from num_computed_tokens - MARGIN, so the blocks computed in
@@ -1531,6 +2065,8 @@ class HostTierConnector(KVConnectorBase_V1, SupportsHMA):
         gblocks = block_ids[g] if isinstance(block_ids, tuple) else block_ids
         processed = int(request.num_computed_tokens) - int(getattr(request, "num_in_flight_tokens", 0) or 0)
         upto = max(0, processed - self.margin) // self.bs  # same rule as _plan_req (in-flight spec tokens)
+        if self.save_at_finish:  # s7: the decode-boundary GDN checkpoint needs KV up to its boundary
+            upto = max(upto, processed // self.bs)
         if getattr(request, "num_output_tokens", 0) >= 1:  # a sampled token: the whole prompt's KV is written
             upto = max(upto, int(request.num_prompt_tokens) // self.bs)
         upto = min(len(gblocks), upto)
@@ -1576,11 +2112,95 @@ class HostTierConnector(KVConnectorBase_V1, SupportsHMA):
         if len(self._fholds) > 64:
             _log("tier: WARNING %d finish-time tail copies still held (worker not running steps?)", len(self._fholds))
 
+    # ---- s9: pinned warm prefix (SPARSE_TIER_PIN_PREFIX_MAX > 0)
+    def _maybe_pin_prefix(self, request):
+        """s9: a request sent with vllm_xargs {"sparse_pin_prefix": 1} (the harness's warm request: the agents' shared
+        system + tools + brief prefix, max_tokens 1, prompt ideally ending on an 864-token boundary) pins, at finish,
+        its host GDN checkpoint at the highest saved boundary <= its prompt end and the host KV blocks below that
+        boundary: they are held out of LRU eviction (host KV pool and the SPARSE_TIER_HOST_MAMBA_SLOTS store), so
+        every later request with the same prefix hits it however much traffic passed (GPU copies may go; the host
+        restore path brings them back). At most SPARSE_TIER_PIN_PREFIX_MAX pins (default 2; 0 = feature off: the xarg is
+        ignored); the oldest is released first. {"sparse_pin_prefix": "clear"} releases all pins.
+        Cost per pin: one GDN slot (85 MB) + the prefix's host KV blocks (~0.3 GB at 16.5K int4)."""
+        nmax = int(os.environ.get("SPARSE_TIER_PIN_PREFIX_MAX", "2"))
+        if nmax <= 0 or self.hc is None:
+            return
+        xa = getattr(getattr(request, "sampling_params", None), "extra_args", None) or {}
+        want = xa.get("sparse_pin_prefix")
+        if not want:
+            return
+        pins = self.__dict__.setdefault("_pins", collections.OrderedDict())
+        if want == "clear":
+            n = len(pins)
+            while pins:
+                self._unpin_prefix(next(iter(pins)))
+            _log("tier: pinned warm prefixes cleared (%d released)", n)
+            return
+        rid = request.request_id
+        st = self.sreq.get(rid)
+        req = self.req_obj.get(rid) or request
+        hashes = req.block_hashes
+        bs = self.bs
+        P = int(request.num_prompt_tokens)
+        ms = _MAMBA_HOST
+        boundary, mh = (P // bs) * bs, None
+        if ms is not None:
+            boundary = 0
+            for b in range(min(P // bs, len(hashes)), 0, -1):  # same key as _save_mamba_offers
+                if hashes[b - 1] in ms.h2s:
+                    boundary, mh = b * bs, hashes[b - 1]
+                    break
+            if mh is None:
+                _log("tier: pin prefix %s REFUSED: no host GDN checkpoint at or below the prompt end (%d tokens)", rid,
+                     P)
+                return
+        nb = boundary // bs
+        hbs = []
+        for b in range(nb):
+            hb = self.hc.lookup(self._bhash(hashes, b))  # what a later lookup finds
+            if hb is None and st is not None:
+                hb = st["host"].get(b)
+            if hb is None:
+                _log("tier: pin prefix %s REFUSED: host KV block %d of %d missing", rid, b, nb)
+                return
+            hbs.append(hb)
+        key = mh if mh is not None else self._bhash(hashes, nb - 1)
+        if key in pins:
+            self._unpin_prefix(key)
+        for hb in hbs:
+            self.hc.pin(hb)
+        if mh is not None:
+            ms.kept.add(mh)
+            ms.stats["kept"] = len(ms.kept)
+        pins[key] = (hbs, mh, boundary)
+        while len(pins) > nmax:
+            self._unpin_prefix(next(iter(pins)))
+        self.hc.stats["pinned_blocks"] = sum(len(v[0]) for v in pins.values())
+        _log("tier: pinned warm prefix of %s: %d tokens (prompt %d), %d host KV blocks, GDN slot %s; %d pin(s) held",
+             rid, boundary, P, len(hbs), ms.h2s.get(mh) if ms is not None else None, len(pins))
+
+    def _unpin_prefix(self, key):
+        pins = self.__dict__.get("_pins") or {}
+        ent = pins.pop(key, None)
+        if ent is None:
+            return
+        hbs, mh, boundary = ent
+        for hb in hbs:
+            self.hc.release(hb)
+        if mh is not None and _MAMBA_HOST is not None:
+            _MAMBA_HOST.kept.discard(mh)
+            _MAMBA_HOST.stats["kept"] = len(_MAMBA_HOST.kept)
+        self.hc.stats["pinned_blocks"] = sum(len(v[0]) for v in pins.values())
+        _log("tier: released pinned warm prefix (%d tokens)", boundary)
+
     def request_finished(self, request, block_ids):
         # G-23: a finished request's last step is already enqueued, so its checkpoints are final: copy its pending
         # saves now (same process/stream) and drop the holds, so idle engines do not keep blocks pinned (and
         # reset_prefix_cache still works).
-        mine = {sid for sid, (rid, _) in self._mholds.items() if rid == request.request_id}
+        if self.save_at_finish:
+            self._dec_finish(request.request_id)
+        mine = {sid for sid, (rid, _) in self._mholds.items() if rid == request.request_id
+                and sid not in _DEC_CANCELLED}
         if mine and _RT is not None and _RT.mamba_items:
             pending = {i for _, _, _, i in getattr(_RT, "_msave_q", [])} & mine
             if pending and _MAMBA_HOST is not None:
@@ -1588,10 +2208,19 @@ class HostTierConnector(KVConnectorBase_V1, SupportsHMA):
             _RT.run_saves_now(lambda s, i: i in mine)
             self._release_mamba_holds()
         self._mirror_tail_at_finish(request, block_ids)
+        self._maybe_pin_prefix(request)
         self.freed.pop(request.request_id, None)
         self.safe.pop(request.request_id, None)
         self._drop_req(request.request_id)
         self.req_obj.pop(request.request_id, None)
+        if self.save_at_finish:
+            ds = self._dec.pop(request.request_id, None)
+            if ds and ds["pending"]:  # copies enqueued but not yet promoted: promote now (sids already done)
+                for sid in list(ds["pending"]):
+                    self._dec_sid.pop(sid, None)
+            if ds and os.environ.get("SPARSE_TIER_DEBUG", "0") == "1":
+                _log("tier: finish %s: decode GDN checkpoints kept at %s", request.request_id,
+                     [e[2] for e in ds["done"]])
         return False, None
 
     def request_finished_all_groups(self, request, block_ids):

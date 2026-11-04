@@ -436,7 +436,7 @@ class TierScratch:
 
 def gather_rows_tiered(kv, gpu_bt, host_dev, host_bt, idx, n_valid, staging_kv, staging_bt, hot: HotBuffer, layer: int,
                        req_slot, scratch: TierScratch, tpp: int = 4, block: int = 0, block2: int = 1024,
-                       null_block: int = -1, stats: torch.Tensor | None = None):
+                       null_block: int = -1, stats: torch.Tensor | None = None, cache_rows: bool = True):
     """Tiered version of the contract's gather_rows for one sparse layer (graph-capturable).
 
     kv         [NB, Hkv, BS, W] int8 GPU cache of this layer
@@ -449,10 +449,16 @@ def gather_rows_tiered(kv, gpu_bt, host_dev, host_bt, idx, n_valid, staging_kv, 
                is cached -- S4 uses the padding slot this way for prefill suffixes)
     null_block block id that also means "not resident" (vLLM's null block 0 when fed a Model Runner V2 table)
     stats      int64[3] device counters [hit, miss, resident] to add to (default hot.stats)
+    cache_rows S5: False = the caller guarantees every req_slot is >= hot.kv_slots (the padding slot: nothing is
+               cached, misses are staged straight from host), so C may exceed hot.H. The S4 suffix path always uses the
+               padding slot; requiring C <= hot.H there made SPARSE_TIER_SUFFIX_KSEL=16384 (C = 17472 > H = 6553 at
+               HOT_FRAC 0.025 x 262144) die with an AssertionError inside the forward -> EngineCore fatal -> HTTP 500.
+               The padding slot's pos2row is never filled (no hits), victims are computed but never written (copy
+               kernel: code 3 & s < KVS is false), so no hot-buffer state is touched.
     """
     nreq, C = idx.shape
     NB, HKV, BS, W = kv.shape
-    assert W % 4 == 0 and C <= hot.H
+    assert W % 4 == 0 and (C <= hot.H or not cache_rows), (C, hot.H)
     # G-10: host_bt may be wider/padded (own row stride); gpu_bt row stride is its width; idx rows are C apart
     assert gpu_bt.stride(1) == 1 and gpu_bt.stride(0) == gpu_bt.shape[1], "gpu_bt rows must be dense"
     assert host_bt.stride(1) == 1 and host_bt.shape[1] >= gpu_bt.shape[1], "host_bt narrower than gpu_bt"

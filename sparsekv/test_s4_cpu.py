@@ -108,7 +108,69 @@ def test_prefill_plan_no_uncached_info_is_dense_and_mismatch_is_none():
     print("S4 prefill plan: unknown remainder -> dense; token mismatch -> legacy (None): OK")
 
 
+def test_prefill_yield_duty_cycle():
+    from sparsekv.tier_connector import install_prefill_yield
+
+    class R:
+        def __init__(self, rid, pf):
+            self.request_id, self.is_prefill_chunk = rid, pf
+
+    class FakeSched:
+        def __init__(self):
+            self.running, self.prefill_capacity_bound, self.calls = [], True, []
+            self.waiting, self.kv_holding_waiting = [], []
+            self.scheduler_config = types.SimpleNamespace(long_prefill_token_threshold=0)
+            self.thr = []
+
+        def schedule(self, throttle_prefills=False):
+            self.calls.append(throttle_prefills)
+            self.thr.append(self.scheduler_config.long_prefill_token_threshold)
+            chunk = self.scheduler_config.long_prefill_token_threshold or 2048
+            sched = {r.request_id: 8 for r in self.running if not r.is_prefill_chunk}
+            if not throttle_prefills:
+                sched.update({r.request_id: chunk for r in self.running if r.is_prefill_chunk})
+            return types.SimpleNamespace(num_scheduled_tokens=sched)
+
+    os.environ["SPARSE_PREFILL_YIELD_STEPS_PER_1K"] = "8"
+    os.environ["SPARSE_PREFILL_SHARE_CHUNK"] = "864"
+    pol = install_prefill_yield(FakeSched)
+    assert install_prefill_yield(FakeSched) is pol  # idempotent
+    s = FakeSched()
+    s.running = [R("d0", False), R("d1", False), R("p", True)]
+    for _ in range(40):
+        s.schedule()
+    # pattern: one prefill step then 16 decode-only steps
+    assert s.calls[:18] == [False] + [True] * 16 + [False], s.calls[:18]
+    assert s.prefill_capacity_bound is False
+    # no decodes running -> prefill every step, debt cleared
+    s2 = FakeSched()
+    s2.running = [R("p", True)]
+    for _ in range(5):
+        s2.schedule()
+    assert s2.calls == [False] * 5
+    # an external DP throttle request is passed through unchanged
+    s3 = FakeSched()
+    s3.running = [R("d", False)]
+    s3.schedule(True)
+    assert s3.calls == [True]
+    # requests waiting behind a running prefill: the chunk is capped at 864 for that step (and restored), and the
+    # yield owed is proportional (864 tokens -> 7 decode steps)
+    s4 = FakeSched()
+    s4.running, s4.waiting = [R("d", False), R("p", True)], ["w"]
+    for _ in range(9):
+        s4.schedule()
+    assert s4.thr[0] == 864 and s4.scheduler_config.long_prefill_token_threshold == 0
+    assert s4.calls[:9] == [False] + [True] * 7 + [False], s4.calls[:9]
+    s5 = FakeSched()
+    s5.running = [R("p", True)]
+    s5.schedule()
+    assert s5.thr == [0], "no waiting requests -> no cap"
+    print("S4 prefill yield: 2048-token chunk -> 16 decode-only steps, prefill-only batches unthrottled, chunk capped at "
+          "864 while requests wait: OK")
+
+
 if __name__ == "__main__":
     test_prefill_plan_modes_and_staging()
     test_prefill_plan_no_uncached_info_is_dense_and_mismatch_is_none()
+    test_prefill_yield_duty_cycle()
     print("ALL OK")

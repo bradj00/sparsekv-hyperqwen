@@ -10,6 +10,19 @@ index 78a3898..25e52e4 100644
 +run_release/tmp/
 +run_release/hf/
 +run_release/*.pid
+diff --git a/launcher_common.sh b/launcher_common.sh
+index 8e51b21..1735f4d 100644
+--- a/launcher_common.sh
++++ b/launcher_common.sh
+@@ -137,7 +137,7 @@ QWEN_BOOL_KNOBS="KVARN_DBG_LAYERS KVARN_FAST_FLUSH KVARN_FP16_DEQUANT KVARN_FUSE
+   VLLM_DFLASH2_CHAIN VLLM_DFLASH2_CHAIN_GREEDY_ONLY VLLM_DFLASH2_DRAFT_TOPK_TOPP \
+   VLLM_DFLASH2_GRAPH_BOTH VLLM_DFLASH2_LOOKUP VLLM_DFLASH2_LOOKUP_ADAPTIVE VLLM_DRAFT_TOPK_TOPP \
+   VLLM_EMBED_UVA VLLM_INT4_MQ_3D VLLM_INT4_MQ_3D_DEBUG VLLM_MAMBA_ALIGN_KEEP_CHECKPOINTS \
+-  VLLM_MARLIN_TUNE VLLM_SPEC_ATTN_DEBUG VLLM_SPEC_DECODE_ATTN FA2_FP8KV"
++  VLLM_MARLIN_TUNE VLLM_SPEC_ATTN_DEBUG VLLM_SPEC_DECODE_ATTN FA2_FP8KV SPEC_NO_BLOCK_DROP"
+ 
+ qwen_check_bool_knobs() {
+   local k v bad=0
 diff --git a/patches/apply.sh b/patches/apply.sh
 index d2ef229..106953f 100755
 --- a/patches/apply.sh
@@ -71,17 +84,354 @@ index d2ef229..106953f 100755
    *) [ $# -eq 1 ] || usage; apply_series "$1" ;;
  esac
 diff --git a/patches/series b/patches/series
-index 6f33db3..990bd8f 100644
+index 6f33db3..f180b38 100644
 --- a/patches/series
 +++ b/patches/series
-@@ -65,3 +65,5 @@ qwen3_5-embed-uva.patch
+@@ -65,3 +65,6 @@ qwen3_5-embed-uva.patch
  vllm-pr40371-prompt-progress.patch
  vllm-pr61050-lru-running-prefix.patch
  kv-cache-seat-budget.patch
 +sparse-tier-spill-kvcheck.patch
 +sparse-switch-dual-graphs.patch
++sparse-prefill-yield-bypass.patch
+diff --git a/pthfa/csrc/pth_attn/attn_args.h b/pthfa/csrc/pth_attn/attn_args.h
+index 3a85528..4ad6fe1 100644
+--- a/pthfa/csrc/pth_attn/attn_args.h
++++ b/pthfa/csrc/pth_attn/attn_args.h
+@@ -141,6 +141,12 @@ typedef struct PthAttnArgs {
+   // default (window 0, causal 1) is the causal attention above.
+   int32_t window;
+   int32_t causal;
++
++  // sparsekv-hyperqwen v1.1 (E1): 1 = flat GQA row packing (cache_geometry.cuh row_tile_flat)
++  // where the launcher allows it (D = 256, causal, no window, wm = 4, rows
++  // padded). 0 = the shipped token-major tiles. Appended last; zero-init
++  // callers get the shipped kernel.
++  int32_t flat_rows;
+ } PthAttnArgs;
+ 
+ typedef struct PthAttnCombineArgs {
+diff --git a/pthfa/csrc/pth_attn/attn_kernel.cuh b/pthfa/csrc/pth_attn/attn_kernel.cuh
+index 6575675..a0e7631 100644
+--- a/pthfa/csrc/pth_attn/attn_kernel.cuh
++++ b/pthfa/csrc/pth_attn/attn_kernel.cuh
+@@ -150,13 +150,15 @@ template <int D, int kRows, typename QT>
+ __device__ __forceinline__ void stage_q(const KernelParams& p,
+                                         const RowTile& rt, int32_t kvh,
+                                         uint8_t* smem_q, float* row_factor,
+-                                        int warp, int lane) {
++                                        int warp, int lane,
++                                        int32_t row_off = 0) {
+   constexpr int kPairsPerLane = D / 2 / kWarpSize;
+   #pragma unroll 1
+   for (int r = warp; r < kRows; r += kWarps) {
+     int32_t tok = 0, h = 0;
+-    const bool valid = row_to_token_head(static_cast<uint32_t>(r), p.group,
+-                                         rt.num_tok, tok, h);
++    // row_off: the flat kernel's head of row 0 (E1); 0 in every other kernel.
++    const bool valid = row_to_token_head(static_cast<uint32_t>(r + row_off),
++                                         p.group, rt.num_tok, tok, h);
+     const char* src =
+         static_cast<const char*>(p.q) +
+         q_offset(p, static_cast<int64_t>(rt.q_start) + rt.tok_begin + tok,
+@@ -400,10 +402,15 @@ __device__ __forceinline__ void run_producer_warp(
+ // compiles to the causal kernel exactly (every window branch is
+ // `if constexpr`); true exists only where it is instantiated
+ // (attn_fwd_window_kernel: D = 128, separate streams).
+-template <int D, int WM, int SUB, typename QT, bool kCell, bool kWindow = false>
++// kFlat (sparsekv-hyperqwen v1.1, E1): flat GQA row packing (cache_geometry.cuh row_tile_flat);
++// false compiles to the shipped kernel exactly (row_off is the constant 0).
++template <int D, int WM, int SUB, typename QT, bool kCell, bool kWindow = false,
++          bool kFlat = false>
+ __device__ __forceinline__ void attn_fwd_body(const AttnParams& ap) {
+   static_assert(!kWindow || (!kCell && kAttnProducerWarps<D> == 0),
+                 "windowed kernels: separate streams, no producer warps");
++  static_assert(!kFlat || (!kWindow && WM * kMmaM == kFlatRows),
++                "flat rows: causal, 64-row tiles");
+   using TT = AttnGeometry<D, WM, SUB>;
+   using Sm = AttnSmem<D, WM, SUB, kCell>;
+   using R = typename Sm::R;
+@@ -417,9 +424,17 @@ __device__ __forceinline__ void attn_fwd_body(const AttnParams& ap) {
+   const int32_t split = static_cast<int32_t>(blockIdx.z);
+ 
+   RowTile rt{};
+-  if (!row_tile(p.query_start_loc, p.seq_lens, p.bq_div, p.bq, p.num_reqs,
+-                static_cast<int32_t>(blockIdx.x), rt)) {
+-    return;  // surplus q-tile of the padded grid
++  int32_t row_off = 0;
++  if constexpr (kFlat) {
++    if (!row_tile_flat(p.query_start_loc, p.seq_lens, p.group, p.num_reqs,
++                       static_cast<int32_t>(blockIdx.x), rt, row_off)) {
++      return;  // surplus q-tile of the flat grid
++    }
++  } else {
++    if (!row_tile(p.query_start_loc, p.seq_lens, p.bq_div, p.bq, p.num_reqs,
++                  static_cast<int32_t>(blockIdx.x), rt)) {
++      return;  // surplus q-tile of the padded grid
++    }
+   }
+   // The CTA's KV range [kv_begin, kv_end) and its split's tiles [tb, te):
+   // bottom-right causal, or the sliding / non-causal window, whose first
+@@ -464,7 +479,8 @@ __device__ __forceinline__ void attn_fwd_body(const AttnParams& ap) {
+   }
+ 
+   float* row_factor = reinterpret_cast<float*>(smem + Sm::kRowFactor);
+-  stage_q<D, WM * kMmaM, QT>(p, rt, kvh, smem + Sm::kQ, row_factor, warp, lane);
++  stage_q<D, WM * kMmaM, QT>(p, rt, kvh, smem + Sm::kQ, row_factor, warp, lane,
++                             row_off);
+   consumer_sync<kProducers>();
+ 
+   const int g = frag_g(lane), q = frag_q(lane);
+@@ -486,7 +502,7 @@ __device__ __forceinline__ void attn_fwd_body(const AttnParams& ap) {
+                                      ap.causal != 0)
+                       : -1;
+     } else {
+-      limit[h] = row_to_token_head(static_cast<uint32_t>(r), p.group,
++      limit[h] = row_to_token_head(static_cast<uint32_t>(r + row_off), p.group,
+                                    rt.num_tok, tok, hh)
+                      ? kv_limit(rt.q_len, rt.seq_len, rt.tok_begin + tok)
+                      : -1;
+@@ -629,8 +645,8 @@ __device__ __forceinline__ void attn_fwd_body(const AttnParams& ap) {
+   for (int h = 0; h < 2; ++h) {
+     const int r = warp_m * kMmaM + g + 8 * h;
+     int32_t tok = 0, hh = 0;
+-    if (!row_to_token_head(static_cast<uint32_t>(r), p.group, rt.num_tok, tok,
+-                           hh)) {
++    if (!row_to_token_head(static_cast<uint32_t>(r + row_off), p.group,
++                           rt.num_tok, tok, hh)) {
+       continue;  // padding row: never stored
+     }
+     const int64_t t_abs = static_cast<int64_t>(rt.q_start) + rt.tok_begin + tok;
+@@ -684,6 +700,14 @@ __global__ void __launch_bounds__(kAttnThreads<D>, ctas_per_sm(D))
+   attn_fwd_body<D, WM, SUB, QT, false, true>(ap);
+ }
+ 
++// sparsekv-hyperqwen v1.1 (E1): the flat-GQA-row kernels, a separate name so the shipped kernels
++// keep their symbols and machine code. Instantiated at D = 256, WM = 4 only.
++template <int D, int WM, int SUB, typename QT, bool kCell>
++__global__ void __launch_bounds__(kAttnThreads<D>, ctas_per_sm(D))
++    attn_fwd_flat_kernel(const __grid_constant__ AttnParams ap) {
++  attn_fwd_body<D, WM, SUB, QT, kCell, false, true>(ap);
++}
++
+ // ---------------------------------------------------------------------------
+ // Host side: one launch descriptor, and the per-D dispatchers defined in
+ // instantiate_d{64,128,256}.cu (one translation unit per head size, so the
+@@ -697,6 +721,7 @@ struct AttnLaunch {
+   int32_t q_dtype;  // PTH_ATTN_F16 or PTH_ATTN_BF16
+   bool cell;        // whole-cell loader (ap.cell_width set) or separate streams
+   bool windowed;    // ap.window > 0 or !ap.causal: the windowed kernels
++  bool flat;        // v1.1 (E1): flat GQA rows (attn_fwd_flat_kernel)
+ };
+ 
+ // The whole-cell loader exists where it fits next to the kernel's
+@@ -736,6 +761,14 @@ cudaError_t launch_attn_one(const AttnLaunch& L, cudaStream_t stream) {
+                           kAttnThreads<D>>(L.grid, stream, L.ap);
+ }
+ 
++template <int D, int WM, typename QT, bool kCell>
++cudaError_t launch_attn_flat_one(const AttnLaunch& L, cudaStream_t stream) {
++  constexpr int kSub = default_sub<D, WM>();
++  return launch_with_smem<attn_fwd_flat_kernel<D, WM, kSub, QT, kCell>,
++                          AttnSmem<D, WM, kSub, kCell>::kBytes,
++                          kAttnThreads<D>>(L.grid, stream, L.ap);
++}
++
+ template <int D, int WM, typename QT>
+ cudaError_t launch_attn_window_one(const AttnLaunch& L, cudaStream_t stream) {
+   constexpr int kSub = default_sub<D, WM>();
+@@ -757,6 +790,17 @@ cudaError_t launch_attn_wm(const AttnLaunch& L, cudaStream_t stream) {
+     }
+     return cudaErrorInvalidValue;
+   }
++  if constexpr (D == 256 && WM == 4) {
++    if (L.flat) {
++      if (L.cell) {
++        return bf16 ? launch_attn_flat_one<D, WM, __nv_bfloat16, true>(L, stream)
++                    : launch_attn_flat_one<D, WM, __half, true>(L, stream);
++      }
++      return bf16 ? launch_attn_flat_one<D, WM, __nv_bfloat16, false>(L, stream)
++                  : launch_attn_flat_one<D, WM, __half, false>(L, stream);
++    }
++  }
++  if (L.flat) return cudaErrorInvalidValue;
+   if constexpr (kAttnHasCell<D>) {
+     if (L.cell) {
+       return bf16 ? launch_attn_one<D, WM, __nv_bfloat16, true>(L, stream)
+diff --git a/pthfa/csrc/pth_attn/attn_launch.cu b/pthfa/csrc/pth_attn/attn_launch.cu
+index 368ecea..ab6cf45 100644
+--- a/pthfa/csrc/pth_attn/attn_launch.cu
++++ b/pthfa/csrc/pth_attn/attn_launch.cu
+@@ -186,8 +186,19 @@ int32_t build(const PthAttnArgs& a, int32_t loader, AttnLaunch* L) {
+   L->wm = wm;
+   L->rows = a.bq * group;
+   L->q_dtype = a.q_dtype;
++  // sparsekv-hyperqwen v1.1 (E1): flat GQA rows where the flat kernel is instantiated (D = 256,
++  // wm = 4, causal, no window) and the token-major tile would pad (bq * G <
++  // 64 rows at the full capacity bq = floor(64 / G)). Grid: floor(T G / 64)
++  // + R tiles (cache_geometry.cuh first_q_tile_flat).
++  L->flat = a.flat_rows == 1 && !windowed && a.head_size == 256 && wm == 4 &&
++            a.bq == pth_attn::bq_capacity(4, group) &&
++            a.bq * group < pth_attn::kFlatRows && a.num_q_tiles == 0;
+   const int32_t tiles =
+-      a.num_q_tiles > 0 ? a.num_q_tiles : a.num_tokens / a.bq + a.num_reqs;
++      L->flat ? static_cast<int32_t>(static_cast<int64_t>(a.num_tokens) *
++                                         group / pth_attn::kFlatRows) +
++                    a.num_reqs
++      : a.num_q_tiles > 0 ? a.num_q_tiles
++                          : a.num_tokens / a.bq + a.num_reqs;
+   L->grid =
+       dim3(static_cast<unsigned>(tiles), static_cast<unsigned>(a.num_kv_heads),
+            static_cast<unsigned>(a.num_splits));
+diff --git a/pthfa/csrc/pth_attn/cache_geometry.cuh b/pthfa/csrc/pth_attn/cache_geometry.cuh
+index 9d84f31..604d221 100644
+--- a/pthfa/csrc/pth_attn/cache_geometry.cuh
++++ b/pthfa/csrc/pth_attn/cache_geometry.cuh
+@@ -366,6 +366,74 @@ PTH_HD bool row_tile(const int32_t* query_start_loc, const int32_t* seq_lens,
+   return true;
+ }
+ 
++// ------------------------------------------------- flat GQA rows (E1, sparsekv-hyperqwen v1.1)
++// PTHFA_FLAT_GQA=1, prefill launches only (attn_launch.cu decides). The rows of
++// request r are the flat (token, head) pairs f = tok * G + h, f < q_len * G,
++// cut every kFlatRows rows: tile x of r covers flat rows
++// [64 (x - first), 64 (x - first) + 64). No padding rows except in the
++// request's last tile, so G = 6 fills 64 of 64 MMA rows instead of 60.
++// Request r owns tiles [floor(qsl[r] G / 64) + r, floor(qsl[r+1] G / 64) + r
++// + 1): >= ceil(q_len G / 64) tiles (same argument as first_q_tile), and the
++// last request ends at floor(T G / 64) + R, the flat grid.x.
++// A tile's first row may be in the middle of a token: row_off = row_begin %
++// G is the head of its first row, and CTA row r is the request-local flat row
++// tok_begin * G + row_off + r, i.e. row_to_token_head(r + row_off, ...). Every
++// real row keeps its own causal limit (from its own token), so each row's
++// arithmetic is the padded kernel's.
++constexpr int32_t kFlatRows = 64;
++
++PTH_HD int32_t first_q_tile_flat(const int32_t* query_start_loc, int32_t group,
++                                 int32_t r) {
++  return static_cast<int32_t>(static_cast<int64_t>(query_start_loc[r]) * group /
++                              kFlatRows) +
++         r;
++}
++
++PTH_HD int32_t find_request_flat(const int32_t* query_start_loc, int32_t group,
++                                 int32_t num_reqs, int32_t x) {
++  int32_t lo = 0, hi = num_reqs - 1;
++  while (lo < hi) {
++    const int32_t mid = lo + (hi - lo + 1) / 2;
++    if (first_q_tile_flat(query_start_loc, group, mid) <= x) {
++      lo = mid;
++    } else {
++      hi = mid - 1;
++    }
++  }
++  return lo;
++}
++
++// Fills `t` and `row_off` for flat q-tile x; false if the tile holds no row.
++// t.tok_begin is the token of the tile's first row, t.num_tok the tokens the
++// tile touches (partially at both ends), so kv_range_end / kv_min_limit keep
++// their meaning (last / first row's token).
++PTH_HD bool row_tile_flat(const int32_t* query_start_loc,
++                          const int32_t* seq_lens, const FastDivmod& group,
++                          int32_t num_reqs, int32_t x, RowTile& t,
++                          int32_t& row_off) {
++  if (num_reqs <= 0) return false;
++  const int32_t g = static_cast<int32_t>(group.divisor);
++  const int32_t r = find_request_flat(query_start_loc, g, num_reqs, x);
++  t.req = r;
++  t.q_start = query_start_loc[r];
++  t.q_len = query_start_loc[r + 1] - t.q_start;
++  t.seq_len = seq_lens[r];
++  const int64_t rows = static_cast<int64_t>(t.q_len) * g;
++  const int64_t begin =
++      static_cast<int64_t>(x - first_q_tile_flat(query_start_loc, g, r)) *
++      kFlatRows;
++  if (begin >= rows) return false;
++  const int64_t last = begin + kFlatRows - 1 < rows ? begin + kFlatRows - 1
++                                                    : rows - 1;
++  uint32_t tb = 0, off = 0;
++  group.divmod(static_cast<uint32_t>(begin), tb, off);
++  t.tok_begin = static_cast<int32_t>(tb);
++  row_off = static_cast<int32_t>(off);
++  t.num_tok = static_cast<int32_t>(group.div(static_cast<uint32_t>(last))) -
++              t.tok_begin + 1;
++  return true;
++}
++
+ // ----------------------------------------------------------- causal geometry
+ // Bottom-right alignment: query token i of a request with q_len
+ // query tokens and seq_len KV tokens (new ones included) sees KV positions
+diff --git a/pthfa/csrc/pth_attn/launch.cu b/pthfa/csrc/pth_attn/launch.cu
+index 51b8661..f0d5556 100644
+--- a/pthfa/csrc/pth_attn/launch.cu
++++ b/pthfa/csrc/pth_attn/launch.cu
+@@ -33,6 +33,8 @@
+ 
+ #include <cmath>
+ #include <cstdint>
++#include <cstdlib>
++#include <cstring>
+ 
+ #include "attn_launch.h"
+ #include "ops.h"
+@@ -398,6 +400,18 @@ void check_wm_matches_rows(int64_t wm, int64_t group, int32_t bq) {
+                   " need wm = ", derived, ")");
+ }
+ 
++// sparsekv-hyperqwen v1.1 (E1): PTHFA_FLAT_GQA=1 asks for flat GQA row packing on prefill
++// launches. Only launches whose longest request has >= kFlatMinQuery tokens
++// ask (decode and MTP verify slices never do), so the decode path is
++// untouched. Read per such launch (not cached) so a test can flip it in one
++// process; getenv on a prefill launch costs nothing next to the kernel.
++constexpr int64_t kFlatMinQuery = 64;
++bool flat_rows_requested(int64_t max_query_len) {
++  if (max_query_len < kFlatMinQuery) return false;
++  const char* e = std::getenv("PTHFA_FLAT_GQA");
++  return e != nullptr && std::strcmp(e, "1") == 0;
++}
++
+ int32_t dtype_code(ScalarType t) {
+   return t == ScalarType::Half ? PTH_ATTN_F16 : PTH_ATTN_BF16;
+ }
+@@ -471,6 +485,7 @@ void launch_library(Tensor& out, const Tensor& q, const Tensor& k_cache,
+   // A window wider than any int32 sequence is the same as INT32_MAX.
+   a.window = window > INT32_MAX ? INT32_MAX : static_cast<int32_t>(window);
+   a.causal = causal ? 1 : 0;
++  a.flat_rows = flat_rows_requested(max_query_len) ? 1 : 0;
+   if (num_splits > 1) {
+     a.ws_o = static_cast<float*>(ws_o.data_ptr());
+     a.ws_o_stride_split = byte_stride(ws_o, 0);
+diff --git a/pthfa/install.sh b/pthfa/install.sh
+index bb1da70..02f565f 100755
+--- a/pthfa/install.sh
++++ b/pthfa/install.sh
+@@ -46,7 +46,10 @@ echo "== nvcc: $(nvcc --version | tail -1)  (CUDA_HOME=$CUDA_HOME)"
+ # torch 2.11 is the library's stable-ABI floor; PIN names the version it was built and measured with.
+ TORCH_NOW=$("$PY" -c 'import torch; print(torch.__version__.split("+")[0])')
+ case "$TORCH_NOW" in "$TORCH_VERSION"*) ;; *) echo "pthfa/install.sh: note: torch $TORCH_NOW, PIN says $TORCH_VERSION" >&2 ;; esac
+-STAMP_NOW="$PTH_COMMIT | arch $TORCH_CUDA_ARCH_LIST | torch $TORCH_NOW | $(nvcc --version | tail -1)"
++# sparsekv-hyperqwen v1.1: the stamp also carries a hash of csrc/ and python/, so a local source change (E1 flat GQA rows,
++# fa2_prefill.py) rebuilds instead of being skipped as "already installed for this PIN".
++SRC_HASH=$(cd "$HERE" && find csrc python -type f \( -name '*.cu' -o -name '*.cuh' -o -name '*.h' -o -name '*.cpp' -o -name '*.py' \) -print0 | sort -z | xargs -0 sha256sum | sha256sum | cut -c1-16)
++STAMP_NOW="$PTH_COMMIT+src.$SRC_HASH | arch $TORCH_CUDA_ARCH_LIST | torch $TORCH_NOW | $(nvcc --version | tail -1)"
+ PKG_DIR=$("$PY" -c 'import importlib.util as u; s = u.find_spec("pth_flash_attn"); print(s.submodule_search_locations[0] if s else "")' 2>/dev/null || true)
+ if [ -n "$PKG_DIR" ] && [ -f "$PKG_DIR/_C.abi3.so" ] && [ "$(cat "$PKG_DIR/.pthfa-stamp" 2>/dev/null)" = "$STAMP_NOW" ]; then
+   echo "== pth_flash_attn already installed for this PIN ($PKG_DIR); nothing to do"
+@@ -75,6 +78,11 @@ for c in "$(command -v cuobjdump || true)" "$(ls "$("$PY" -c 'import triton, os;
+   if [ "$(printf '%s\n' "$NVCC_VER" "$v" | sort -V | head -1)" = "$NVCC_VER" ]; then CUOBJDUMP=$c; break; fi
+   OLD="$OLD $c (CUDA ${v:-unknown})"
+ done
++# sparsekv-hyperqwen v1.1: on a host without a CUDA 13.2 cuobjdump, PTHFA_CUOBJDUMP_ALLOW_OLDER=1 takes the newest older one if it can read
++# the library (Triton's 13.1 lists the 13.2 cubins correctly).
++if [ -z "$CUOBJDUMP" ] && [ "${PTHFA_CUOBJDUMP_ALLOW_OLDER:-0}" = 1 ]; then
++  for c in $OLD; do [ -x "$c" ] && "$c" --list-elf "$LIB" >/dev/null 2>&1 && { CUOBJDUMP=$c; echo "== using older $c (PTHFA_CUOBJDUMP_ALLOW_OLDER=1)"; break; }; done
++fi
+ [ -n "$CUOBJDUMP" ] || [ -z "$OLD" ] || fail "no cuobjdump of CUDA $NVCC_VER or newer to check $LIB, only:$OLD (put a newer one first on PATH)"
+ if [ -n "$CUOBJDUMP" ]; then
+   want=$(printf '%s\n' ${TORCH_CUDA_ARCH_LIST//;/ } | sed 's/\.//; s/^/sm_/' | sort -u | tr '\n' ' ')
 diff --git a/pthfa/python/pth_flash_attn/vllm_backend.py b/pthfa/python/pth_flash_attn/vllm_backend.py
-index 0b29ca4..542cc42 100644
+index 0b29ca4..51d6adb 100644
 --- a/pthfa/python/pth_flash_attn/vllm_backend.py
 +++ b/pthfa/python/pth_flash_attn/vllm_backend.py
 @@ -44,6 +44,7 @@ adaptive verification (device ``q_len`` smaller than the host bound) works.
@@ -100,7 +450,20 @@ index 0b29ca4..542cc42 100644
  from pth_flash_attn.planner import (
      MAX_ROWS_PER_CTA,
      SUPPORTED_HEAD_SIZES,
-@@ -190,6 +192,9 @@ class PthAttnMetadata:
+@@ -108,6 +110,12 @@ SUPPORTED_CC_MAJOR = 8
+ # Verify length of a decode request without speculation.
+ NO_SPEC_QUERY_LEN = 1
+ 
++# sparsekv-hyperqwen v1.1: PTHFA_PREFILL_FA2=1 runs prefill launches on FA2 over a dequantised int8 workspace
++# (fa2_prefill.py). Unset, nothing is imported and _run_slice is the shipped code path.
++_fa2_prefill = None
++if __import__("os").environ.get("PTHFA_PREFILL_FA2", "0") == "1":
++    from pth_flash_attn import fa2_prefill as _fa2_prefill
++
+ 
+ def verify_query_len(vllm_config: VllmConfig) -> int:
+     """Return q_dec_max, the verify length ``1 + k`` that sizes the workspace.
+@@ -190,6 +198,9 @@ class PthAttnMetadata:
      prefill: PthLaunchSlice | None
      use_cascade: bool = False
      common_prefix_len: int = 0
@@ -110,7 +473,7 @@ index 0b29ca4..542cc42 100644
  
  
  def _group_size(num_heads_q: int, num_kv_heads: int) -> int:
-@@ -288,6 +293,13 @@ class PthFlashAttnMetadataBuilder(AttentionMetadataBuilder[PthAttnMetadata]):
+@@ -288,6 +299,13 @@ class PthFlashAttnMetadataBuilder(AttentionMetadataBuilder[PthAttnMetadata]):
          # query_start_loc of the prefill slice, rebased to 0 on the device. One
          # int32 per request plus one: persistent so the step allocates nothing,
          # and not in the KV budget because it is a few bytes.
@@ -124,7 +487,7 @@ index 0b29ca4..542cc42 100644
          self._prefill_qsl = torch.zeros(
              int(vllm_config.scheduler_config.max_num_seqs) + 1,
              dtype=torch.int32,
-@@ -432,7 +444,14 @@ class PthFlashAttnMetadataBuilder(AttentionMetadataBuilder[PthAttnMetadata]):
+@@ -432,7 +450,14 @@ class PthFlashAttnMetadataBuilder(AttentionMetadataBuilder[PthAttnMetadata]):
                  max_query_len=int(cam.max_query_len),
                  is_prefill=True,
              )
@@ -139,7 +502,7 @@ index 0b29ca4..542cc42 100644
              num_actual_tokens=num_tokens,
              max_query_len=int(cam.max_query_len),
              query_start_loc=cam.query_start_loc,
-@@ -640,7 +659,17 @@ class PthFlashAttnImpl(TritonAttentionImpl):
+@@ -640,7 +665,17 @@ class PthFlashAttnImpl(TritonAttentionImpl):
          self._cache_views: tuple[int, tuple[torch.Tensor, ...]] | None = None
          self._ws_token_splits = 0
          self._no_workspace: torch.Tensor | None = None
@@ -158,7 +521,17 @@ index 0b29ca4..542cc42 100644
  
      def _reserve_workspace(self, vllm_config: VllmConfig | None) -> None:
          """Reserve W_ts token-splits of fp32 partials in the shared workspace.
-@@ -785,12 +814,58 @@ class PthFlashAttnImpl(TritonAttentionImpl):
+@@ -711,6 +746,9 @@ class PthFlashAttnImpl(TritonAttentionImpl):
+     ) -> None:
+         """One op call for one slice; workspace views of this launch's size."""
+         plan = part.plan
++        if _fa2_prefill is not None and plan.is_prefill and _fa2_prefill.try_prefill(
++                self, part, query, output, caches, causal):
++            return  # sparsekv-hyperqwen v1.1: PTHFA_PREFILL_FA2=1 (fa2_prefill.py); decode/verify never get here
+         if plan.num_splits > 1:
+             if (
+                 self._ws_token_splits
+@@ -785,12 +823,58 @@ class PthFlashAttnImpl(TritonAttentionImpl):
              # Memory-profile run: no attention is executed.
              return output.fill_(0)
          caches = self._caches(kv_cache)
@@ -224,7 +597,7 @@ index 0b29ca4..542cc42 100644
 +            self._run_slice(part, query, output, pcaches, attn_metadata.causal)
          return output
 diff --git a/single-user/start_qwen.sh b/single-user/start_qwen.sh
-index 7abace1..c75be6f 100755
+index 7abace1..792a274 100755
 --- a/single-user/start_qwen.sh
 +++ b/single-user/start_qwen.sh
 @@ -337,6 +337,7 @@ if [ "$PTH_FA" = 1 ]; then
@@ -235,3 +608,21 @@ index 7abace1..c75be6f 100755
      *"--kv-offloading-size"*|*"--kv-transfer-config"*)
        echo "PTH_FA=1 with a KV connector (KV_OFFLOAD_GB, --kv-offloading-size, --kv-transfer-config) is" >&2
        echo "  untested on this backend; refusing. Use PTH_FA=0 for a CPU KV tier." >&2
+@@ -696,6 +697,17 @@ if [ -n "${DYNAMIC_K:-}" ]; then
+     SPEC_CFG="${SPEC_CFG%\}},\"num_speculative_tokens_per_batch_size\":$DYNAMIC_K}"
+   fi
+ fi
++# SPEC_NO_BLOCK_DROP=1 (default 0 here; serve-sparse.sh sets 1; sparsekv-hyperqwen v1.1): "disable_eagle_block_drop":true in the speculative
++# config. vLLM otherwise drops the trailing 864-token prefix-cache block on every hit for the MTP drafter, so a
++# follow-up turn stops one block short of the previous prompt. Target outputs stay exact (spec decode is verified);
++# only drafter acceptance on the first tokens after the hit can move.
++if [ "${SPEC_NO_BLOCK_DROP:-0}" = 1 ]; then
++  if [ -z "$SPEC_CFG" ]; then
++    echo "[start_qwen] SPEC_NO_BLOCK_DROP ignored: SPEC=$SPEC has no speculative decoding." >&2
++  else
++    SPEC_CFG="${SPEC_CFG%\}},\"disable_eagle_block_drop\":true}"
++  fi
++fi
+ SPEC_ARGS=()
+ [ -n "$SPEC_CFG" ] && SPEC_ARGS=(--speculative-config "$SPEC_CFG")
+ 

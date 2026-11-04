@@ -7,13 +7,15 @@ This repository includes or modifies the following third-party works:
 
 * HyperQwen (https://github.com/syv-ai/HyperQwen, commit ce9615c), Apache-2.0.
   patches/hyperqwen-base.diff contains our changes to HyperQwen files
-  (.gitignore, patches/apply.sh, patches/series, single-user/start_qwen.sh,
+  (.gitignore, launcher_common.sh, patches/apply.sh, patches/series,
+  single-user/start_qwen.sh, pthfa/install.sh, pthfa/csrc/pth_attn/*,
   pthfa/python/pth_flash_attn/vllm_backend.py). No HyperQwen files are
   redistributed here beyond the diff context in that patch.
 
 * vLLM (https://github.com/vllm-project/vllm), Copyright contributors to the
-  vLLM project, Apache-2.0. patches/sparse-switch-dual-graphs.patch and
-  patches/sparse-tier-spill-kvcheck.patch modify vLLM 0.31 files. Result
+  vLLM project, Apache-2.0. patches/sparse-switch-dual-graphs.patch,
+  patches/sparse-tier-spill-kvcheck.patch and
+  patches/sparse-prefill-yield-bypass.patch modify vLLM 0.31 files. Result
   files under run*/ contain vLLM source excerpts quoted in model outputs
   (Apache-2.0; some vllm_flash_attn excerpts derive from
   Dao-AILab/flash-attention, https://github.com/Dao-AILab/flash-attention,
@@ -22,7 +24,15 @@ This repository includes or modifies the following third-party works:
 * pth-flash-attn (https://github.com/noon-at-cgn/pth-flash-attn, v0.1.0,
   commit b0d4f7ee), Copyright (c) 2026 noon-at-cgn, Apache-2.0.
   sparsekv/patches/pthfa-sparse-kv.patch modifies its vllm_backend.py.
-  pthfa/python/pth_flash_attn/sparse_kv.py is a new file by this project.
+  pthfa/python/pth_flash_attn/sparse_kv.py and fa2_prefill.py are new files
+  by this project. The pthfa sources under pthfa/csrc/ that
+  patches/hyperqwen-base.diff modifies (flat GQA rows, off by default) are
+  pth-flash-attn code as carried in HyperQwen.
+
+* FlashAttention-2 (https://github.com/Dao-AILab/flash-attention), BSD-3-Clause.
+  pthfa/python/pth_flash_attn/fa2_prefill.py calls FA2 at run time through
+  vLLM's vllm.vllm_flash_attn package (flash_attn_varlen_func). No
+  FlashAttention source code is included or vendored in this repository.
 
 * sparsekv/basis/basis27.pt is derived from key activations of Qwen3.8-27B
   (https://huggingface.co/Qwen/Qwen3.8-27B), Apache-2.0, Copyright Alibaba
