@@ -1,0 +1,62 @@
+{
+ "gpqa": {
+  "n": 198,
+  "max_tokens": 32768,
+  "sampling": {
+   "temperature": 1.0,
+   "top_p": 0.95,
+   "top_k": 20
+  },
+  "prompt_tokens_mean": 313.0,
+  "prompt_tokens_max": 2841
+ },
+ "lcb": {
+  "n": 80,
+  "max_tokens": 32768,
+  "sampling": {
+   "temperature": 1.0,
+   "top_p": 0.95,
+   "top_k": 20
+  },
+  "prompt_tokens_mean": 657.8,
+  "prompt_tokens_max": 1501,
+  "window": [
+   "2025-02-01",
+   "2025-05-31"
+  ],
+  "n_in_window": 131,
+  "window_by_difficulty": {
+   "hard": 61,
+   "easy": 31,
+   "medium": 39
+  },
+  "chosen_by_difficulty": {
+   "easy": 19,
+   "hard": 37,
+   "medium": 24
+  },
+  "data_max_contest_date": "2025-04-06T00:00:00"
+ },
+ "ifbench": {
+  "n": 300,
+  "max_tokens": 32768,
+  "sampling": {
+   "temperature": 1.0,
+   "top_p": 0.95,
+   "top_k": 20
+  },
+  "prompt_tokens_mean": 125.4,
+  "prompt_tokens_max": 298
+ },
+ "mmlupro": {
+  "n": 280,
+  "max_tokens": 32768,
+  "sampling": {
+   "temperature": 1.0,
+   "top_p": 0.95,
+   "top_k": 20
+  },
+  "prompt_tokens_mean": 303.0,
+  "prompt_tokens_max": 811
+ }
+}

@@ -1,0 +1,3638 @@
+{
+ "xfile/vllm/64k/00-_builder": {
+  "corpus": "vllm",
+  "length": "64k",
+  "prompt_tokens": 62123,
+  "files_in_pack": 13,
+  "name": "_builder",
+  "def": [
+   "vllm/v1/attention/backends/composite.py",
+   314
+  ],
+  "calls": [
+   [
+    "vllm/v1/attention/backends/composite.py",
+    "_build"
+   ]
+  ],
+  "n_pairs": 1,
+  "n_calls": 1,
+  "n_files": 1
+ },
+ "xfile/vllm/64k/01-full_cls_name": {
+  "corpus": "vllm",
+  "length": "64k",
+  "prompt_tokens": 62129,
+  "files_in_pack": 13,
+  "name": "full_cls_name",
+  "def": [
+   "vllm/v1/attention/backend.py",
+   96
+  ],
+  "calls": [
+   [
+    "vllm/v1/attention/backends/composite.py",
+    "create_composite_attention_backend"
+   ]
+  ],
+  "n_pairs": 1,
+  "n_calls": 2,
+  "n_files": 1
+ },
+ "xfile/vllm/64k/02-supports_batch_invariance": {
+  "corpus": "vllm",
+  "length": "64k",
+  "prompt_tokens": 62139,
+  "files_in_pack": 13,
+  "name": "supports_batch_invariance",
+  "def": [
+   "vllm/v1/attention/backend.py",
+   208
+  ],
+  "calls": [
+   [
+    "vllm/v1/attention/backend.py",
+    "validate_configuration"
+   ],
+   [
+    "vllm/v1/attention/selector.py",
+    "_cached_get_mamba_attn_backend"
+   ]
+  ],
+  "n_pairs": 2,
+  "n_calls": 2,
+  "n_files": 2
+ },
+ "xfile/vllm/64k/03-is_alive": {
+  "corpus": "vllm",
+  "length": "64k",
+  "prompt_tokens": 62125,
+  "files_in_pack": 13,
+  "name": "is_alive",
+  "def": [
+   "vllm/v1/utils.py",
+   461
+  ],
+  "calls": [
+   [
+    "vllm/v1/utils.py",
+    "_shutdown_subprocesses"
+   ],
+   [
+    "vllm/v1/utils.py",
+    "shutdown"
+   ]
+  ],
+  "n_pairs": 2,
+  "n_calls": 6,
+  "n_files": 1
+ },
+ "xfile/vllm/64k/04-terminate": {
+  "corpus": "vllm",
+  "length": "64k",
+  "prompt_tokens": 62121,
+  "files_in_pack": 13,
+  "name": "terminate",
+  "def": [
+   "vllm/v1/utils.py",
+   464
+  ],
+  "calls": [
+   [
+    "vllm/v1/utils.py",
+    "_shutdown_subprocesses"
+   ],
+   [
+    "vllm/v1/utils.py",
+    "shutdown"
+   ],
+   [
+    "vllm/v1/utils.py",
+    "terminate"
+   ]
+  ],
+  "n_pairs": 3,
+  "n_calls": 3,
+  "n_files": 1
+ },
+ "xfile/vllm/64k/05-_decode_tensor": {
+  "corpus": "vllm",
+  "length": "64k",
+  "prompt_tokens": 62127,
+  "files_in_pack": 13,
+  "name": "_decode_tensor",
+  "def": [
+   "vllm/v1/serial_utils.py",
+   398
+  ],
+  "calls": [
+   [
+    "vllm/v1/serial_utils.py",
+    "_decode_nested_tensors"
+   ],
+   [
+    "vllm/v1/serial_utils.py",
+    "dec_hook"
+   ]
+  ],
+  "n_pairs": 2,
+  "n_calls": 2,
+  "n_files": 1
+ },
+ "xfile/vllm/64k/06-set_workspace_buffer": {
+  "corpus": "vllm",
+  "length": "64k",
+  "prompt_tokens": 62129,
+  "files_in_pack": 13,
+  "name": "set_workspace_buffer",
+  "def": [
+   "vllm/v1/attention/backends/composite.py",
+   360
+  ],
+  "calls": [
+   [
+    "vllm/v1/attention/backends/composite.py",
+    "_get_workspace_buffer"
+   ],
+   [
+    "vllm/v1/attention/backends/composite.py",
+    "set_workspace_buffer"
+   ]
+  ],
+  "n_pairs": 2,
+  "n_calls": 2,
+  "n_files": 1
+ },
+ "xfile/vllm/64k/07-_encode_nested_tensors": {
+  "corpus": "vllm",
+  "length": "64k",
+  "prompt_tokens": 62131,
+  "files_in_pack": 13,
+  "name": "_encode_nested_tensors",
+  "def": [
+   "vllm/v1/serial_utils.py",
+   291
+  ],
+  "calls": [
+   [
+    "vllm/v1/serial_utils.py",
+    "_encode_mm_field_elem"
+   ],
+   [
+    "vllm/v1/serial_utils.py",
+    "_encode_nested_tensors"
+   ]
+  ],
+  "n_pairs": 2,
+  "n_calls": 2,
+  "n_files": 1
+ },
+ "xfile/vllm/64k/08-_decode_nested_tensors": {
+  "corpus": "vllm",
+  "length": "64k",
+  "prompt_tokens": 62131,
+  "files_in_pack": 13,
+  "name": "_decode_nested_tensors",
+  "def": [
+   "vllm/v1/serial_utils.py",
+   455
+  ],
+  "calls": [
+   [
+    "vllm/v1/serial_utils.py",
+    "_decode_mm_field_elem"
+   ],
+   [
+    "vllm/v1/serial_utils.py",
+    "_decode_nested_tensors"
+   ]
+  ],
+  "n_pairs": 2,
+  "n_calls": 2,
+  "n_files": 1
+ },
+ "xfile/vllm/64k/09-_is_b12x_fp8_kv_cache": {
+  "corpus": "vllm",
+  "length": "64k",
+  "prompt_tokens": 62155,
+  "files_in_pack": 13,
+  "name": "_is_b12x_fp8_kv_cache",
+  "def": [
+   "vllm/v1/attention/backends/b12x.py",
+   144
+  ],
+  "calls": [
+   [
+    "vllm/v1/attention/backends/b12x.py",
+    "__init__"
+   ],
+   [
+    "vllm/v1/attention/backends/b12x.py",
+    "_compile_paged_extend_entry"
+   ],
+   [
+    "vllm/v1/attention/backends/b12x.py",
+    "_kv_cache_views"
+   ],
+   [
+    "vllm/v1/attention/backends/b12x.py",
+    "_prepare_fp8_descales"
+   ],
+   [
+    "vllm/v1/attention/backends/b12x.py",
+    "supports_combination"
+   ]
+  ],
+  "n_pairs": 5,
+  "n_calls": 5,
+  "n_files": 1
+ },
+ "xfile/vllm/128k/00-get_kernel_options": {
+  "corpus": "vllm",
+  "length": "128k",
+  "prompt_tokens": 126494,
+  "files_in_pack": 27,
+  "name": "get_kernel_options",
+  "def": [
+   "vllm/v1/attention/backends/flex_attention.py",
+   1431
+  ],
+  "calls": [
+   [
+    "vllm/v1/attention/backends/flex_attention.py",
+    "forward"
+   ]
+  ],
+  "n_pairs": 1,
+  "n_calls": 1,
+  "n_files": 1
+ },
+ "xfile/vllm/128k/01-get_attn_spec_kind": {
+  "corpus": "vllm",
+  "length": "128k",
+  "prompt_tokens": 126502,
+  "files_in_pack": 27,
+  "name": "get_attn_spec_kind",
+  "def": [
+   "vllm/v1/attention/selector.py",
+   64
+  ],
+  "calls": [
+   [
+    "vllm/v1/attention/selector.py",
+    "get_attn_backend"
+   ]
+  ],
+  "n_pairs": 1,
+  "n_calls": 1,
+  "n_files": 1
+ },
+ "xfile/vllm/128k/02-_compute_common_metadata": {
+  "corpus": "vllm",
+  "length": "128k",
+  "prompt_tokens": 126496,
+  "files_in_pack": 27,
+  "name": "_compute_common_metadata",
+  "def": [
+   "vllm/v1/attention/backends/mamba_attn.py",
+   461
+  ],
+  "calls": [
+   [
+    "vllm/v1/attention/backends/mamba1_attn.py",
+    "build"
+   ],
+   [
+    "vllm/v1/attention/backends/mamba2_attn.py",
+    "build"
+   ],
+   [
+    "vllm/v1/attention/backends/mamba_attn.py",
+    "build"
+   ]
+  ],
+  "n_pairs": 3,
+  "n_calls": 3,
+  "n_files": 3
+ },
+ "xfile/vllm/128k/03-_prefill_cpu_metadata": {
+  "corpus": "vllm",
+  "length": "128k",
+  "prompt_tokens": 126500,
+  "files_in_pack": 27,
+  "name": "_prefill_cpu_metadata",
+  "def": [
+   "vllm/v1/attention/backends/mamba_attn.py",
+   353
+  ],
+  "calls": [
+   [
+    "vllm/v1/attention/backends/mamba2_attn.py",
+    "build"
+   ],
+   [
+    "vllm/v1/attention/backends/mamba_attn.py",
+    "_build_chunk_metadata_tensors"
+   ],
+   [
+    "vllm/v1/attention/backends/mamba_attn.py",
+    "_compute_common_metadata"
+   ]
+  ],
+  "n_pairs": 3,
+  "n_calls": 3,
+  "n_files": 2
+ },
+ "xfile/vllm/128k/04-_build_chunk_metadata_tensors": {
+  "corpus": "vllm",
+  "length": "128k",
+  "prompt_tokens": 126500,
+  "files_in_pack": 27,
+  "name": "_build_chunk_metadata_tensors",
+  "def": [
+   "vllm/v1/attention/backends/mamba_attn.py",
+   380
+  ],
+  "calls": [
+   [
+    "vllm/v1/attention/backends/mamba1_attn.py",
+    "build"
+   ],
+   [
+    "vllm/v1/attention/backends/mamba2_attn.py",
+    "build"
+   ]
+  ],
+  "n_pairs": 2,
+  "n_calls": 2,
+  "n_files": 2
+ },
+ "xfile/vllm/128k/05-_forward_encoder_attention": {
+  "corpus": "vllm",
+  "length": "128k",
+  "prompt_tokens": 126496,
+  "files_in_pack": 27,
+  "name": "_forward_encoder_attention",
+  "def": [
+   "vllm/v1/attention/backends/rocm_attn.py",
+   329
+  ],
+  "calls": [
+   [
+    "vllm/v1/attention/backends/flash_attn_diffkv.py",
+    "forward"
+   ],
+   [
+    "vllm/v1/attention/backends/rocm_aiter_unified_attn.py",
+    "forward"
+   ],
+   [
+    "vllm/v1/attention/backends/rocm_attn.py",
+    "forward"
+   ]
+  ],
+  "n_pairs": 3,
+  "n_calls": 3,
+  "n_files": 3
+ },
+ "xfile/vllm/128k/06-compute_num_computed_tokens": {
+  "corpus": "vllm",
+  "length": "128k",
+  "prompt_tokens": 126502,
+  "files_in_pack": 27,
+  "name": "compute_num_computed_tokens",
+  "def": [
+   "vllm/v1/attention/backend.py",
+   488
+  ],
+  "calls": [
+   [
+    "vllm/v1/attention/backends/flex_attention.py",
+    "build"
+   ],
+   [
+    "vllm/v1/attention/backends/gdn_attn.py",
+    "build"
+   ],
+   [
+    "vllm/v1/attention/backends/mamba_attn.py",
+    "_compute_common_metadata"
+   ],
+   [
+    "vllm/v1/attention/backends/mamba_attn.py",
+    "_compute_prefix_caching_block_indices"
+   ],
+   [
+    "vllm/v1/attention/backends/short_conv_attn.py",
+    "_build_non_spec_metadata"
+   ],
+   [
+    "vllm/v1/attention/backends/short_conv_attn.py",
+    "build"
+   ]
+  ],
+  "n_pairs": 6,
+  "n_calls": 7,
+  "n_files": 4
+ },
+ "xfile/vllm/128k/07-get_flash_attn_version": {
+  "corpus": "vllm",
+  "length": "128k",
+  "prompt_tokens": 126502,
+  "files_in_pack": 27,
+  "name": "get_flash_attn_version",
+  "def": [
+   "vllm/v1/attention/backends/fa_utils.py",
+   74
+  ],
+  "calls": [
+   [
+    "vllm/v1/attention/backends/fa_utils.py",
+    "flash_attn_supports_kv_cache_dtype"
+   ],
+   [
+    "vllm/v1/attention/backends/fa_utils.py",
+    "flash_attn_supports_sinks"
+   ],
+   [
+    "vllm/v1/attention/backends/flash_attn_diffkv.py",
+    "__init__"
+   ],
+   [
+    "vllm/v1/attention/backends/flash_attn_diffkv.py",
+    "is_supported_on_current_device"
+   ]
+  ],
+  "n_pairs": 4,
+  "n_calls": 4,
+  "n_files": 2
+ },
+ "xfile/vllm/128k/08-_init_reorder_batch_threshold": {
+  "corpus": "vllm",
+  "length": "128k",
+  "prompt_tokens": 126504,
+  "files_in_pack": 27,
+  "name": "_init_reorder_batch_threshold",
+  "def": [
+   "vllm/v1/attention/backend.py",
+   666
+  ],
+  "calls": [
+   [
+    "vllm/v1/attention/backends/gdn_attn.py",
+    "__init__"
+   ],
+   [
+    "vllm/v1/attention/backends/hpc_attn.py",
+    "__init__"
+   ],
+   [
+    "vllm/v1/attention/backends/linear_attn.py",
+    "__init__"
+   ],
+   [
+    "vllm/v1/attention/backends/mamba_attn.py",
+    "__init__"
+   ]
+  ],
+  "n_pairs": 4,
+  "n_calls": 4,
+  "n_files": 4
+ },
+ "xfile/vllm/128k/09-_split_kv_cache": {
+  "corpus": "vllm",
+  "length": "128k",
+  "prompt_tokens": 126496,
+  "files_in_pack": 27,
+  "name": "_split_kv_cache",
+  "def": [
+   "vllm/v1/attention/backends/rocm_aiter_unified_attn.py",
+   189
+  ],
+  "calls": [
+   [
+    "vllm/v1/attention/backends/rocm_aiter_unified_attn.py",
+    "do_kv_cache_update"
+   ],
+   [
+    "vllm/v1/attention/backends/rocm_aiter_unified_attn.py",
+    "do_qk_norm_mrope_kvcache_update"
+   ],
+   [
+    "vllm/v1/attention/backends/rocm_aiter_unified_attn.py",
+    "do_qk_norm_rope_kvcache_update"
+   ],
+   [
+    "vllm/v1/attention/backends/rocm_aiter_unified_attn.py",
+    "do_rope_and_kv_cache_update"
+   ],
+   [
+    "vllm/v1/attention/backends/rocm_aiter_unified_attn.py",
+    "forward"
+   ]
+  ],
+  "n_pairs": 5,
+  "n_calls": 5,
+  "n_files": 1
+ },
+ "xfile/vllm/192k/00-_trtllm_gen_mla_decode_supports_num_heads": {
+  "corpus": "vllm",
+  "length": "192k",
+  "prompt_tokens": 192258,
+  "files_in_pack": 42,
+  "name": "_trtllm_gen_mla_decode_supports_num_heads",
+  "def": [
+   "vllm/v1/attention/backends/mla/flashinfer_mla.py",
+   41
+  ],
+  "calls": [
+   [
+    "vllm/v1/attention/backends/mla/flashinfer_mla.py",
+    "_select_mla_decode_backend"
+   ]
+  ],
+  "n_pairs": 1,
+  "n_calls": 1,
+  "n_files": 1
+ },
+ "xfile/vllm/192k/01-tensor_data": {
+  "corpus": "vllm",
+  "length": "192k",
+  "prompt_tokens": 192216,
+  "files_in_pack": 42,
+  "name": "tensor_data",
+  "def": [
+   "vllm/v1/utils.py",
+   801
+  ],
+  "calls": [
+   [
+    "vllm/v1/serial_utils.py",
+    "_encode_tensor"
+   ]
+  ],
+  "n_pairs": 1,
+  "n_calls": 2,
+  "n_files": 1
+ },
+ "xfile/vllm/192k/02-zentorch_sdpa_attn": {
+  "corpus": "vllm",
+  "length": "192k",
+  "prompt_tokens": 192234,
+  "files_in_pack": 42,
+  "name": "zentorch_sdpa_attn",
+  "def": [
+   "vllm/v1/attention/backends/zentorch_sdpa.py",
+   45
+  ],
+  "calls": [
+   [
+    "vllm/v1/attention/backends/cpu_attn.py",
+    "forward"
+   ],
+   [
+    "vllm/v1/attention/backends/zentorch_sdpa.py",
+    "zentorch_sdpa_attn"
+   ]
+  ],
+  "n_pairs": 2,
+  "n_calls": 4,
+  "n_files": 2
+ },
+ "xfile/vllm/192k/03-get_num_attention_heads_from_layers": {
+  "corpus": "vllm",
+  "length": "192k",
+  "prompt_tokens": 192232,
+  "files_in_pack": 42,
+  "name": "get_num_attention_heads_from_layers",
+  "def": [
+   "vllm/v1/attention/backends/utils.py",
+   396
+  ],
+  "calls": [
+   [
+    "vllm/v1/attention/backends/cpu_attn.py",
+    "__init__"
+   ],
+   [
+    "vllm/v1/attention/backends/triton_attn.py",
+    "__init__"
+   ]
+  ],
+  "n_pairs": 2,
+  "n_calls": 2,
+  "n_files": 2
+ },
+ "xfile/vllm/192k/04-flash_attn_supports_mla": {
+  "corpus": "vllm",
+  "length": "192k",
+  "prompt_tokens": 192236,
+  "files_in_pack": 42,
+  "name": "flash_attn_supports_mla",
+  "def": [
+   "vllm/v1/attention/backends/fa_utils.py",
+   325
+  ],
+  "calls": [
+   [
+    "vllm/v1/attention/backends/mla/flashattn_mla.py",
+    "__init__"
+   ],
+   [
+    "vllm/v1/attention/backends/mla/flashattn_mla.py",
+    "supports_combination"
+   ],
+   [
+    "vllm/v1/attention/backends/mla/flashattn_mla_sparse.py",
+    "supports_combination"
+   ]
+  ],
+  "n_pairs": 3,
+  "n_calls": 3,
+  "n_files": 2
+ },
+ "xfile/vllm/192k/05-compute_causal_conv1d_metadata": {
+  "corpus": "vllm",
+  "length": "192k",
+  "prompt_tokens": 192236,
+  "files_in_pack": 42,
+  "name": "compute_causal_conv1d_metadata",
+  "def": [
+   "vllm/v1/attention/backends/utils.py",
+   1062
+  ],
+  "calls": [
+   [
+    "vllm/v1/attention/backends/gdn_attn.py",
+    "build"
+   ],
+   [
+    "vllm/v1/attention/backends/mamba_attn.py",
+    "_compute_common_metadata"
+   ]
+  ],
+  "n_pairs": 2,
+  "n_calls": 2,
+  "n_files": 2
+ },
+ "xfile/vllm/192k/06-is_fa_version_supported": {
+  "corpus": "vllm",
+  "length": "192k",
+  "prompt_tokens": 192224,
+  "files_in_pack": 42,
+  "name": "is_fa_version_supported",
+  "def": [
+   "vllm/v1/attention/backends/fa_utils.py",
+   271
+  ],
+  "calls": [
+   [
+    "vllm/v1/attention/backends/fa_utils.py",
+    "flash_attn_supports_mla"
+   ],
+   [
+    "vllm/v1/attention/backends/fa_utils.py",
+    "get_flash_attn_version"
+   ]
+  ],
+  "n_pairs": 2,
+  "n_calls": 7,
+  "n_files": 1
+ },
+ "xfile/vllm/192k/07-_uses_full_cudagraphs": {
+  "corpus": "vllm",
+  "length": "192k",
+  "prompt_tokens": 192234,
+  "files_in_pack": 42,
+  "name": "_uses_full_cudagraphs",
+  "def": [
+   "vllm/v1/attention/backends/flex_attention.py",
+   1010
+  ],
+  "calls": [
+   [
+    "vllm/v1/attention/backends/flex_attention.py",
+    "__init__"
+   ],
+   [
+    "vllm/v1/attention/backends/flex_attention.py",
+    "build"
+   ]
+  ],
+  "n_pairs": 2,
+  "n_calls": 2,
+  "n_files": 1
+ },
+ "xfile/vllm/192k/08-mamba_get_block_table_tensor": {
+  "corpus": "vllm",
+  "length": "192k",
+  "prompt_tokens": 192232,
+  "files_in_pack": 42,
+  "name": "mamba_get_block_table_tensor",
+  "def": [
+   "vllm/v1/attention/backends/utils.py",
+   1159
+  ],
+  "calls": [
+   [
+    "vllm/v1/attention/backends/gdn_attn.py",
+    "build"
+   ],
+   [
+    "vllm/v1/attention/backends/linear_attn.py",
+    "build"
+   ],
+   [
+    "vllm/v1/attention/backends/mamba_attn.py",
+    "_compute_common_metadata"
+   ],
+   [
+    "vllm/v1/attention/backends/mamba_attn.py",
+    "update_block_table"
+   ],
+   [
+    "vllm/v1/attention/backends/short_conv_attn.py",
+    "build"
+   ]
+  ],
+  "n_pairs": 5,
+  "n_calls": 6,
+  "n_files": 4
+ },
+ "xfile/vllm/192k/09-split_decodes_and_prefills": {
+  "corpus": "vllm",
+  "length": "192k",
+  "prompt_tokens": 192232,
+  "files_in_pack": 42,
+  "name": "split_decodes_and_prefills",
+  "def": [
+   "vllm/v1/attention/backends/utils.py",
+   799
+  ],
+  "calls": [
+   [
+    "vllm/v1/attention/backends/gdn_attn.py",
+    "build"
+   ],
+   [
+    "vllm/v1/attention/backends/hpc_attn.py",
+    "build"
+   ],
+   [
+    "vllm/v1/attention/backends/linear_attn.py",
+    "build"
+   ],
+   [
+    "vllm/v1/attention/backends/mamba_attn.py",
+    "_compute_common_metadata"
+   ],
+   [
+    "vllm/v1/attention/backends/turboquant_attn.py",
+    "build"
+   ]
+  ],
+  "n_pairs": 5,
+  "n_calls": 6,
+  "n_files": 5
+ },
+ "xfile/inductor/64k/00-_resolve_reduce_op_str": {
+  "corpus": "inductor",
+  "length": "64k",
+  "prompt_tokens": 58296,
+  "files_in_pack": 14,
+  "name": "_resolve_reduce_op_str",
+  "def": [
+   "torch/_inductor/_functionalize_collectives.py",
+   26
+  ],
+  "calls": [
+   [
+    "torch/_inductor/_functionalize_collectives.py",
+    "_rewrite_allreduce_"
+   ]
+  ],
+  "n_pairs": 1,
+  "n_calls": 1,
+  "n_files": 1
+ },
+ "xfile/inductor/64k/01-_load_kernel_wrapper": {
+  "corpus": "inductor",
+  "length": "64k",
+  "prompt_tokens": 58292,
+  "files_in_pack": 14,
+  "name": "_load_kernel_wrapper",
+  "def": [
+   "torch/_inductor/async_compile.py",
+   624
+  ],
+  "calls": [
+   [
+    "torch/_inductor/async_compile.py",
+    "get_result"
+   ]
+  ],
+  "n_pairs": 1,
+  "n_calls": 2,
+  "n_files": 1
+ },
+ "xfile/inductor/64k/02-hexdigest": {
+  "corpus": "inductor",
+  "length": "64k",
+  "prompt_tokens": 58284,
+  "files_in_pack": 14,
+  "name": "hexdigest",
+  "def": [
+   "torch/_inductor/cache_key.py",
+   17
+  ],
+  "calls": [
+   [
+    "torch/_inductor/cache.py",
+    "_fpath_from_key"
+   ],
+   [
+    "torch/_inductor/cache_key.py",
+    "digest"
+   ]
+  ],
+  "n_pairs": 2,
+  "n_calls": 2,
+  "n_files": 2
+ },
+ "xfile/inductor/64k/03-detect_interconnect": {
+  "corpus": "inductor",
+  "length": "64k",
+  "prompt_tokens": 58290,
+  "files_in_pack": 14,
+  "name": "detect_interconnect",
+  "def": [
+   "torch/_inductor/comm_analysis.py",
+   151
+  ],
+  "calls": [
+   [
+    "torch/_inductor/comm_analysis.py",
+    "_nccl_algo_time"
+   ],
+   [
+    "torch/_inductor/comm_analysis.py",
+    "compute_min_saturation_bytes"
+   ]
+  ],
+  "n_pairs": 2,
+  "n_calls": 2,
+  "n_files": 1
+ },
+ "xfile/inductor/64k/04-get_gpu_type": {
+  "corpus": "inductor",
+  "length": "64k",
+  "prompt_tokens": 58290,
+  "files_in_pack": 14,
+  "name": "get_gpu_type",
+  "def": [
+   "torch/_inductor/comm_analysis.py",
+   125
+  ],
+  "calls": [
+   [
+    "torch/_inductor/autotune_process.py",
+    "get_device_list"
+   ],
+   [
+    "torch/_inductor/comm_analysis.py",
+    "_nccl_algo_time"
+   ],
+   [
+    "torch/_inductor/comm_analysis.py",
+    "detect_interconnect"
+   ],
+   [
+    "torch/_inductor/comm_analysis.py",
+    "get_inter_node_bw"
+   ],
+   [
+    "torch/_inductor/comm_analysis.py",
+    "get_intra_node_bw"
+   ]
+  ],
+  "n_pairs": 5,
+  "n_calls": 5,
+  "n_files": 2
+ },
+ "xfile/inductor/64k/05-CacheError": {
+  "corpus": "inductor",
+  "length": "64k",
+  "prompt_tokens": 58286,
+  "files_in_pack": 14,
+  "name": "CacheError",
+  "def": [
+   "torch/_inductor/cache.py",
+   30
+  ],
+  "calls": [
+   [
+    "torch/_inductor/cache.py",
+    "_fpath_from_key"
+   ],
+   [
+    "torch/_inductor/cache.py",
+    "from_env_var"
+   ],
+   [
+    "torch/_inductor/cache.py",
+    "from_file_path"
+   ],
+   [
+    "torch/_inductor/cache.py",
+    "get"
+   ],
+   [
+    "torch/_inductor/cache.py",
+    "insert"
+   ]
+  ],
+  "n_pairs": 5,
+  "n_calls": 11,
+  "n_files": 1
+ },
+ "xfile/inductor/64k/06-use_process_pool": {
+  "corpus": "inductor",
+  "length": "64k",
+  "prompt_tokens": 58290,
+  "files_in_pack": 14,
+  "name": "use_process_pool",
+  "def": [
+   "torch/_inductor/async_compile.py",
+   364
+  ],
+  "calls": [
+   [
+    "torch/_inductor/async_compile.py",
+    "cutedsl"
+   ],
+   [
+    "torch/_inductor/async_compile.py",
+    "nv_universal_gemm"
+   ],
+   [
+    "torch/_inductor/async_compile.py",
+    "triton"
+   ],
+   [
+    "torch/_inductor/async_compile.py",
+    "wait_pool_ready"
+   ],
+   [
+    "torch/_inductor/async_compile.py",
+    "wakeup"
+   ]
+  ],
+  "n_pairs": 5,
+  "n_calls": 5,
+  "n_files": 1
+ },
+ "xfile/inductor/64k/07-_compile_start": {
+  "corpus": "inductor",
+  "length": "64k",
+  "prompt_tokens": 58288,
+  "files_in_pack": 14,
+  "name": "_compile_start",
+  "def": [
+   "torch/_inductor/async_compile.py",
+   111
+  ],
+  "calls": [
+   [
+    "torch/_inductor/async_compile.py",
+    "cutedsl"
+   ],
+   [
+    "torch/_inductor/async_compile.py",
+    "nv_universal_gemm"
+   ],
+   [
+    "torch/_inductor/async_compile.py",
+    "triton"
+   ],
+   [
+    "torch/_inductor/async_compile.py",
+    "warm_pool"
+   ]
+  ],
+  "n_pairs": 4,
+  "n_calls": 4,
+  "n_files": 1
+ },
+ "xfile/inductor/64k/08-get_config_heuristics": {
+  "corpus": "inductor",
+  "length": "64k",
+  "prompt_tokens": 58298,
+  "files_in_pack": 14,
+  "name": "get_config_heuristics",
+  "def": [
+   "torch/_inductor/choices.py",
+   131
+  ],
+  "calls": [
+   [
+    "torch/_inductor/choices.py",
+    "get_conv_configs"
+   ],
+   [
+    "torch/_inductor/choices.py",
+    "get_depthwise_conv_configs"
+   ],
+   [
+    "torch/_inductor/choices.py",
+    "get_flex_attention_bwd_configs"
+   ],
+   [
+    "torch/_inductor/choices.py",
+    "get_flex_attention_fwd_configs"
+   ],
+   [
+    "torch/_inductor/choices.py",
+    "get_flex_decode_configs"
+   ]
+  ],
+  "n_pairs": 5,
+  "n_calls": 5,
+  "n_files": 1
+ },
+ "xfile/inductor/64k/09-get_compile_threads": {
+  "corpus": "inductor",
+  "length": "64k",
+  "prompt_tokens": 58290,
+  "files_in_pack": 14,
+  "name": "get_compile_threads",
+  "def": [
+   "torch/_inductor/async_compile.py",
+   197
+  ],
+  "calls": [
+   [
+    "torch/_inductor/async_compile.py",
+    "cpp"
+   ],
+   [
+    "torch/_inductor/async_compile.py",
+    "cpp_pybinding"
+   ],
+   [
+    "torch/_inductor/async_compile.py",
+    "halide"
+   ],
+   [
+    "torch/_inductor/async_compile.py",
+    "pallas"
+   ],
+   [
+    "torch/_inductor/async_compile.py",
+    "pool"
+   ],
+   [
+    "torch/_inductor/async_compile.py",
+    "process_pool"
+   ],
+   [
+    "torch/_inductor/async_compile.py",
+    "submit"
+   ],
+   [
+    "torch/_inductor/async_compile.py",
+    "use_process_pool"
+   ],
+   [
+    "torch/_inductor/async_compile.py",
+    "wait"
+   ],
+   [
+    "torch/_inductor/async_compile.py",
+    "warm_pool"
+   ]
+  ],
+  "n_pairs": 10,
+  "n_calls": 14,
+  "n_files": 1
+ },
+ "xfile/inductor/128k/00-log_graph_execution": {
+  "corpus": "inductor",
+  "length": "128k",
+  "prompt_tokens": 125677,
+  "files_in_pack": 27,
+  "name": "log_graph_execution",
+  "def": [
+   "torch/_inductor/debug.py",
+   855
+  ],
+  "calls": [
+   [
+    "torch/_inductor/debug.py",
+    "record_and_log_graph_execution_order"
+   ]
+  ],
+  "n_pairs": 1,
+  "n_calls": 1,
+  "n_files": 1
+ },
+ "xfile/inductor/128k/01-_get_all_ancestors": {
+  "corpus": "inductor",
+  "length": "128k",
+  "prompt_tokens": 125691,
+  "files_in_pack": 27,
+  "name": "_get_all_ancestors",
+  "def": [
+   "torch/_inductor/augmented_graph_helper.py",
+   102
+  ],
+  "calls": [
+   [
+    "torch/_inductor/augmented_graph_helper.py",
+    "check_and_maybe_autofix_cyclic_extra_deps"
+   ]
+  ],
+  "n_pairs": 1,
+  "n_calls": 1,
+  "n_files": 1
+ },
+ "xfile/inductor/128k/02-serialize_compile": {
+  "corpus": "inductor",
+  "length": "128k",
+  "prompt_tokens": 125673,
+  "files_in_pack": 27,
+  "name": "serialize_compile",
+  "def": [
+   "torch/_inductor/compile_fx_ext.py",
+   459
+  ],
+  "calls": [
+   [
+    "torch/_inductor/compile_fx_async.py",
+    "codegen_and_compile"
+   ],
+   [
+    "torch/_inductor/compile_fx_ext.py",
+    "codegen_and_compile"
+   ]
+  ],
+  "n_pairs": 2,
+  "n_calls": 3,
+  "n_files": 2
+ },
+ "xfile/inductor/128k/03-_run_in_child": {
+  "corpus": "inductor",
+  "length": "128k",
+  "prompt_tokens": 125679,
+  "files_in_pack": 27,
+  "name": "_run_in_child",
+  "def": [
+   "torch/_inductor/compile_fx_ext.py",
+   544
+  ],
+  "calls": [
+   [
+    "torch/_inductor/compile_fx_ext.py",
+    "_send_to_child"
+   ],
+   [
+    "torch/_inductor/compile_fx_subproc.py",
+    "_run_in_child_subprocess"
+   ]
+  ],
+  "n_pairs": 2,
+  "n_calls": 3,
+  "n_files": 2
+ },
+ "xfile/inductor/128k/04-get_backend": {
+  "corpus": "inductor",
+  "length": "128k",
+  "prompt_tokens": 125673,
+  "files_in_pack": 27,
+  "name": "get_backend",
+  "def": [
+   "torch/_inductor/compiler_bisector.py",
+   237
+  ],
+  "calls": [
+   [
+    "torch/_inductor/comm_analysis.py",
+    "_nccl_estimate"
+   ],
+   [
+    "torch/_inductor/compiler_bisector.py",
+    "command_line_usage"
+   ],
+   [
+    "torch/_inductor/compiler_bisector.py",
+    "disable_subsystem"
+   ],
+   [
+    "torch/_inductor/compiler_bisector.py",
+    "do_bisect"
+   ],
+   [
+    "torch/_inductor/compiler_bisector.py",
+    "get_config_change"
+   ],
+   [
+    "torch/_inductor/compiler_bisector.py",
+    "get_is_bisection_enabled"
+   ],
+   [
+    "torch/_inductor/compiler_bisector.py",
+    "test_function"
+   ]
+  ],
+  "n_pairs": 7,
+  "n_calls": 8,
+  "n_files": 2
+ },
+ "xfile/inductor/128k/05-_rand_like": {
+  "corpus": "inductor",
+  "length": "128k",
+  "prompt_tokens": 125675,
+  "files_in_pack": 27,
+  "name": "_rand_like",
+  "def": [
+   "torch/_inductor/decomposition.py",
+   755
+  ],
+  "calls": [
+   [
+    "torch/_inductor/decomposition.py",
+    "rand_like"
+   ],
+   [
+    "torch/_inductor/decomposition.py",
+    "randint_like"
+   ],
+   [
+    "torch/_inductor/decomposition.py",
+    "randint_like_low"
+   ],
+   [
+    "torch/_inductor/decomposition.py",
+    "randn_like"
+   ]
+  ],
+  "n_pairs": 4,
+  "n_calls": 4,
+  "n_files": 1
+ },
+ "xfile/inductor/128k/06-_write_ir": {
+  "corpus": "inductor",
+  "length": "128k",
+  "prompt_tokens": 125675,
+  "files_in_pack": 27,
+  "name": "_write_ir",
+  "def": [
+   "torch/_inductor/debug.py",
+   628
+  ],
+  "calls": [
+   [
+    "torch/_inductor/debug.py",
+    "ir_post_fusion"
+   ],
+   [
+    "torch/_inductor/debug.py",
+    "ir_pre_fusion"
+   ],
+   [
+    "torch/_inductor/debug.py",
+    "log_ir_post_fusion"
+   ],
+   [
+    "torch/_inductor/debug.py",
+    "log_ir_pre_fusion"
+   ]
+  ],
+  "n_pairs": 4,
+  "n_calls": 4,
+  "n_files": 1
+ },
+ "xfile/inductor/128k/07-get_subsystem": {
+  "corpus": "inductor",
+  "length": "128k",
+  "prompt_tokens": 125677,
+  "files_in_pack": 27,
+  "name": "get_subsystem",
+  "def": [
+   "torch/_inductor/compiler_bisector.py",
+   252
+  ],
+  "calls": [
+   [
+    "torch/_inductor/compiler_bisector.py",
+    "disable_subsystem"
+   ],
+   [
+    "torch/_inductor/compiler_bisector.py",
+    "do_bisect"
+   ],
+   [
+    "torch/_inductor/compiler_bisector.py",
+    "get_config_change"
+   ],
+   [
+    "torch/_inductor/compiler_bisector.py",
+    "get_is_bisection_enabled"
+   ],
+   [
+    "torch/_inductor/compiler_bisector.py",
+    "test_function"
+   ]
+  ],
+  "n_pairs": 5,
+  "n_calls": 7,
+  "n_files": 1
+ },
+ "xfile/inductor/128k/08-write_lines_to_file": {
+  "corpus": "inductor",
+  "length": "128k",
+  "prompt_tokens": 125681,
+  "files_in_pack": 27,
+  "name": "write_lines_to_file",
+  "def": [
+   "torch/_inductor/compiler_bisector.py",
+   153
+  ],
+  "calls": [
+   [
+    "torch/_inductor/compiler_bisector.py",
+    "add_call_counter_debug_info"
+   ],
+   [
+    "torch/_inductor/compiler_bisector.py",
+    "clear_call_counter_debug_info"
+   ],
+   [
+    "torch/_inductor/compiler_bisector.py",
+    "set_config_values"
+   ],
+   [
+    "torch/_inductor/compiler_bisector.py",
+    "update_bisect_range"
+   ],
+   [
+    "torch/_inductor/compiler_bisector.py",
+    "update_bisect_status"
+   ],
+   [
+    "torch/_inductor/compiler_bisector.py",
+    "update_config_change"
+   ],
+   [
+    "torch/_inductor/compiler_bisector.py",
+    "update_run_state"
+   ]
+  ],
+  "n_pairs": 7,
+  "n_calls": 7,
+  "n_files": 1
+ },
+ "xfile/inductor/128k/09-_maybe_realize_symm_mem": {
+  "corpus": "inductor",
+  "length": "128k",
+  "prompt_tokens": 125691,
+  "files_in_pack": 27,
+  "name": "_maybe_realize_symm_mem",
+  "def": [
+   "torch/_inductor/comm_lowering.py",
+   520
+  ],
+  "calls": [
+   [
+    "torch/_inductor/comm_lowering.py",
+    "_symm_mem_all_to_all_vdev"
+   ],
+   [
+    "torch/_inductor/comm_lowering.py",
+    "_symm_mem_all_to_all_vdev_2d"
+   ],
+   [
+    "torch/_inductor/comm_lowering.py",
+    "_symm_mem_all_to_all_vdev_2d_offset"
+   ],
+   [
+    "torch/_inductor/comm_lowering.py",
+    "_symm_mem_multi_root_tile_reduce"
+   ],
+   [
+    "torch/_inductor/comm_lowering.py",
+    "_symm_mem_multimem_all_gather_out"
+   ],
+   [
+    "torch/_inductor/comm_lowering.py",
+    "_symm_mem_multimem_all_reduce_"
+   ],
+   [
+    "torch/_inductor/comm_lowering.py",
+    "_symm_mem_multimem_one_shot_all_reduce"
+   ],
+   [
+    "torch/_inductor/comm_lowering.py",
+    "_symm_mem_multimem_one_shot_all_reduce_out"
+   ],
+   [
+    "torch/_inductor/comm_lowering.py",
+    "_symm_mem_multimem_one_shot_reduce_out"
+   ],
+   [
+    "torch/_inductor/comm_lowering.py",
+    "_symm_mem_one_shot_all_reduce"
+   ],
+   [
+    "torch/_inductor/comm_lowering.py",
+    "_symm_mem_one_shot_all_reduce_copy"
+   ],
+   [
+    "torch/_inductor/comm_lowering.py",
+    "_symm_mem_one_shot_all_reduce_copy_out"
+   ],
+   [
+    "torch/_inductor/comm_lowering.py",
+    "_symm_mem_one_shot_all_reduce_out"
+   ],
+   [
+    "torch/_inductor/comm_lowering.py",
+    "_symm_mem_reduce_scatter_out"
+   ],
+   [
+    "torch/_inductor/comm_lowering.py",
+    "_symm_mem_tile_reduce"
+   ],
+   [
+    "torch/_inductor/comm_lowering.py",
+    "_symm_mem_two_shot_all_reduce_"
+   ],
+   [
+    "torch/_inductor/comm_lowering.py",
+    "_symm_mem_two_shot_all_reduce_out"
+   ]
+  ],
+  "n_pairs": 17,
+  "n_calls": 22,
+  "n_files": 1
+ },
+ "xfile/inductor/192k/00-_template_from_uid": {
+  "corpus": "inductor",
+  "length": "192k",
+  "prompt_tokens": 193946,
+  "files_in_pack": 45,
+  "name": "_template_from_uid",
+  "def": [
+   "torch/_inductor/distributed_autotune.py",
+   299
+  ],
+  "calls": [
+   [
+    "torch/_inductor/distributed_autotune.py",
+    "get_choice"
+   ]
+  ],
+  "n_pairs": 1,
+  "n_calls": 1,
+  "n_files": 1
+ },
+ "xfile/inductor/192k/01-node_invokes_subgraph": {
+  "corpus": "inductor",
+  "length": "192k",
+  "prompt_tokens": 193952,
+  "files_in_pack": 45,
+  "name": "node_invokes_subgraph",
+  "def": [
+   "torch/_inductor/fx_utils.py",
+   488
+  ],
+  "calls": [
+   [
+    "torch/_inductor/fx_utils.py",
+    "incremental_update"
+   ]
+  ],
+  "n_pairs": 1,
+  "n_calls": 1,
+  "n_files": 1
+ },
+ "xfile/inductor/192k/02-is_constant": {
+  "corpus": "inductor",
+  "length": "192k",
+  "prompt_tokens": 193940,
+  "files_in_pack": 45,
+  "name": "is_constant",
+  "def": [
+   "torch/_inductor/index_propagation.py",
+   61
+  ],
+  "calls": [
+   [
+    "torch/_inductor/analyze_preserves_zero_mask.py",
+    "store"
+   ],
+   [
+    "torch/_inductor/choices.py",
+    "should_use_persistent_reduction"
+   ],
+   [
+    "torch/_inductor/index_propagation.py",
+    "propagate_sympy"
+   ]
+  ],
+  "n_pairs": 3,
+  "n_calls": 3,
+  "n_files": 3
+ },
+ "xfile/inductor/192k/03-InterpreterShim": {
+  "corpus": "inductor",
+  "length": "192k",
+  "prompt_tokens": 193946,
+  "files_in_pack": 45,
+  "name": "InterpreterShim",
+  "def": [
+   "torch/_inductor/loop_body.py",
+   40
+  ],
+  "calls": [
+   [
+    "torch/_inductor/bounds.py",
+    "get_bounds"
+   ],
+   [
+    "torch/_inductor/bounds.py",
+    "masked_subblock"
+   ],
+   [
+    "torch/_inductor/loop_body.py",
+    "__call__"
+   ]
+  ],
+  "n_pairs": 3,
+  "n_calls": 3,
+  "n_files": 2
+ },
+ "xfile/inductor/192k/04-get_nodes": {
+  "corpus": "inductor",
+  "length": "192k",
+  "prompt_tokens": 193940,
+  "files_in_pack": 45,
+  "name": "get_nodes",
+  "def": [
+   "torch/_inductor/loop_body.py",
+   393
+  ],
+  "calls": [
+   [
+    "torch/_inductor/bounds.py",
+    "__init__"
+   ],
+   [
+    "torch/_inductor/choices.py",
+    "can_fuse"
+   ],
+   [
+    "torch/_inductor/debug.py",
+    "create_fx_from_snodes"
+   ],
+   [
+    "torch/_inductor/debug.py",
+    "update_orig_fx_node_name_to_buf_name"
+   ]
+  ],
+  "n_pairs": 4,
+  "n_calls": 5,
+  "n_files": 3
+ },
+ "xfile/inductor/192k/05-read_lines_from_file": {
+  "corpus": "inductor",
+  "length": "192k",
+  "prompt_tokens": 193948,
+  "files_in_pack": 45,
+  "name": "read_lines_from_file",
+  "def": [
+   "torch/_inductor/compiler_bisector.py",
+   161
+  ],
+  "calls": [
+   [
+    "torch/_inductor/compiler_bisector.py",
+    "get_backend"
+   ],
+   [
+    "torch/_inductor/compiler_bisector.py",
+    "get_bisect_range"
+   ],
+   [
+    "torch/_inductor/compiler_bisector.py",
+    "get_call_counter_debug_info"
+   ],
+   [
+    "torch/_inductor/compiler_bisector.py",
+    "get_config_change"
+   ],
+   [
+    "torch/_inductor/compiler_bisector.py",
+    "get_run_state"
+   ],
+   [
+    "torch/_inductor/compiler_bisector.py",
+    "get_subsystem"
+   ]
+  ],
+  "n_pairs": 6,
+  "n_calls": 6,
+  "n_files": 1
+ },
+ "xfile/inductor/192k/06-_create_out_of_place": {
+  "corpus": "inductor",
+  "length": "192k",
+  "prompt_tokens": 193950,
+  "files_in_pack": 45,
+  "name": "_create_out_of_place",
+  "def": [
+   "torch/_inductor/comm_lowering.py",
+   186
+  ],
+  "calls": [
+   [
+    "torch/_inductor/comm_lowering.py",
+    "_all_gather_into_tensor"
+   ],
+   [
+    "torch/_inductor/comm_lowering.py",
+    "_all_to_all_single"
+   ],
+   [
+    "torch/_inductor/comm_lowering.py",
+    "_isend"
+   ],
+   [
+    "torch/_inductor/comm_lowering.py",
+    "_reduce_scatter_tensor"
+   ],
+   [
+    "torch/_inductor/comm_lowering.py",
+    "_shard_dim_alltoall"
+   ],
+   [
+    "torch/_inductor/comm_lowering.py",
+    "_symm_mem_low_contention_all_gather"
+   ],
+   [
+    "torch/_inductor/comm_lowering.py",
+    "_symm_mem_low_contention_reduce_scatter"
+   ]
+  ],
+  "n_pairs": 7,
+  "n_calls": 7,
+  "n_files": 1
+ },
+ "xfile/inductor/192k/07-_add_index": {
+  "corpus": "inductor",
+  "length": "192k",
+  "prompt_tokens": 193942,
+  "files_in_pack": 45,
+  "name": "_add_index",
+  "def": [
+   "torch/_inductor/loop_body.py",
+   691
+  ],
+  "calls": [
+   [
+    "torch/_inductor/loop_body.py",
+    "bucketize"
+   ],
+   [
+    "torch/_inductor/loop_body.py",
+    "check_bounds"
+   ],
+   [
+    "torch/_inductor/loop_body.py",
+    "index_expr"
+   ],
+   [
+    "torch/_inductor/loop_body.py",
+    "load"
+   ],
+   [
+    "torch/_inductor/loop_body.py",
+    "store"
+   ],
+   [
+    "torch/_inductor/loop_body.py",
+    "store_reduction"
+   ],
+   [
+    "torch/_inductor/loop_body.py",
+    "value_expr"
+   ]
+  ],
+  "n_pairs": 7,
+  "n_calls": 11,
+  "n_files": 1
+ },
+ "xfile/inductor/192k/08-get_name": {
+  "corpus": "inductor",
+  "length": "192k",
+  "prompt_tokens": 193940,
+  "files_in_pack": 45,
+  "name": "get_name",
+  "def": [
+   "torch/_inductor/memory.py",
+   82
+  ],
+  "calls": [
+   [
+    "torch/_inductor/autotune_process.py",
+    "from_irnodes"
+   ],
+   [
+    "torch/_inductor/choices.py",
+    "can_fuse"
+   ],
+   [
+    "torch/_inductor/comm_lowering.py",
+    "_all_reduce"
+   ],
+   [
+    "torch/_inductor/comm_lowering.py",
+    "_batch_p2p_ops"
+   ],
+   [
+    "torch/_inductor/comm_lowering.py",
+    "mark_as_skip_wait"
+   ],
+   [
+    "torch/_inductor/comm_lowering.py",
+    "should_skip_wait"
+   ],
+   [
+    "torch/_inductor/comms_debug.py",
+    "_debug_iterative_memory_recompute"
+   ],
+   [
+    "torch/_inductor/debug.py",
+    "create_fx_from_snodes"
+   ],
+   [
+    "torch/_inductor/debug.py",
+    "log_runtime_and_tensor_meta"
+   ],
+   [
+    "torch/_inductor/debug.py",
+    "update_orig_fx_node_name_to_buf_name"
+   ],
+   [
+    "torch/_inductor/jagged_lowerings.py",
+    "inner_fn"
+   ],
+   [
+    "torch/_inductor/memory.py",
+    "_compute_and_update_buf_size"
+   ],
+   [
+    "torch/_inductor/memory.py",
+    "compute_memory_timeline"
+   ],
+   [
+    "torch/_inductor/memory.py",
+    "compute_size_for_scheduler_buffer"
+   ],
+   [
+    "torch/_inductor/memory.py",
+    "dfs_visit"
+   ],
+   [
+    "torch/_inductor/memory.py",
+    "estimate_region_peak_memory"
+   ],
+   [
+    "torch/_inductor/memory.py",
+    "export_graph_for_simulator"
+   ],
+   [
+    "torch/_inductor/memory.py",
+    "topological_sort_lpmf"
+   ],
+   [
+    "torch/_inductor/memory.py",
+    "validate_unique_buffer_names"
+   ]
+  ],
+  "n_pairs": 19,
+  "n_calls": 37,
+  "n_files": 7
+ },
+ "xfile/inductor/192k/09-promote_types": {
+  "corpus": "inductor",
+  "length": "192k",
+  "prompt_tokens": 193944,
+  "files_in_pack": 45,
+  "name": "promote_types",
+  "def": [
+   "torch/_inductor/dtype_propagation.py",
+   68
+  ],
+  "calls": [
+   [
+    "torch/_inductor/decomposition.py",
+    "add"
+   ],
+   [
+    "torch/_inductor/dtype_propagation.py",
+    "div_rn"
+   ],
+   [
+    "torch/_inductor/dtype_propagation.py",
+    "floor"
+   ],
+   [
+    "torch/_inductor/dtype_propagation.py",
+    "floordiv"
+   ],
+   [
+    "torch/_inductor/dtype_propagation.py",
+    "fmod"
+   ],
+   [
+    "torch/_inductor/dtype_propagation.py",
+    "frexp"
+   ],
+   [
+    "torch/_inductor/dtype_propagation.py",
+    "gelu"
+   ],
+   [
+    "torch/_inductor/dtype_propagation.py",
+    "identity"
+   ],
+   [
+    "torch/_inductor/dtype_propagation.py",
+    "int_truediv"
+   ],
+   [
+    "torch/_inductor/dtype_propagation.py",
+    "lshift"
+   ],
+   [
+    "torch/_inductor/dtype_propagation.py",
+    "masked"
+   ],
+   [
+    "torch/_inductor/dtype_propagation.py",
+    "mod"
+   ],
+   [
+    "torch/_inductor/dtype_propagation.py",
+    "mul"
+   ],
+   [
+    "torch/_inductor/dtype_propagation.py",
+    "op_dtype_rule"
+   ],
+   [
+    "torch/_inductor/dtype_propagation.py",
+    "pow"
+   ],
+   [
+    "torch/_inductor/dtype_propagation.py",
+    "round"
+   ],
+   [
+    "torch/_inductor/dtype_propagation.py",
+    "rshift"
+   ],
+   [
+    "torch/_inductor/dtype_propagation.py",
+    "truediv"
+   ],
+   [
+    "torch/_inductor/dtype_propagation.py",
+    "trunc"
+   ],
+   [
+    "torch/_inductor/dtype_propagation.py",
+    "truncdiv"
+   ],
+   [
+    "torch/_inductor/dtype_propagation.py",
+    "where"
+   ],
+   [
+    "torch/_inductor/index_propagation.py",
+    "add"
+   ],
+   [
+    "torch/_inductor/index_propagation.py",
+    "floordiv"
+   ],
+   [
+    "torch/_inductor/index_propagation.py",
+    "maximum"
+   ],
+   [
+    "torch/_inductor/index_propagation.py",
+    "minimum"
+   ],
+   [
+    "torch/_inductor/index_propagation.py",
+    "mod"
+   ],
+   [
+    "torch/_inductor/index_propagation.py",
+    "mul"
+   ],
+   [
+    "torch/_inductor/index_propagation.py",
+    "remainder"
+   ],
+   [
+    "torch/_inductor/index_propagation.py",
+    "sub"
+   ]
+  ],
+  "n_pairs": 29,
+  "n_calls": 29,
+  "n_files": 3
+ },
+ "xfile/transformers/64k/00-tp_broadcast_from_rank_0": {
+  "corpus": "transformers",
+  "length": "64k",
+  "prompt_tokens": 61272,
+  "files_in_pack": 12,
+  "name": "tp_broadcast_from_rank_0",
+  "def": [
+   "transformers/generation/continuous_batching/distributed.py",
+   120
+  ],
+  "calls": [
+   [
+    "transformers/generation/continuous_batching/distributed.py",
+    "set_tp_seed"
+   ]
+  ],
+  "n_pairs": 1,
+  "n_calls": 1,
+  "n_files": 1
+ },
+ "xfile/transformers/64k/01-_transfer_inputs": {
+  "corpus": "transformers",
+  "length": "64k",
+  "prompt_tokens": 61258,
+  "files_in_pack": 12,
+  "name": "_transfer_inputs",
+  "def": [
+   "transformers/generation/continuous_batching/input_outputs.py",
+   212
+  ],
+  "calls": [
+   [
+    "transformers/generation/continuous_batching/input_outputs.py",
+    "transfer_inputs_h2d"
+   ]
+  ],
+  "n_pairs": 1,
+  "n_calls": 1,
+  "n_files": 1
+ },
+ "xfile/transformers/64k/02-compute_hash": {
+  "corpus": "transformers",
+  "length": "64k",
+  "prompt_tokens": 61256,
+  "files_in_pack": 12,
+  "name": "compute_hash",
+  "def": [
+   "transformers/generation/continuous_batching/cache_manager.py",
+   279
+  ],
+  "calls": [
+   [
+    "transformers/generation/continuous_batching/cache.py",
+    "search_prefix_match"
+   ],
+   [
+    "transformers/generation/continuous_batching/cache_manager.py",
+    "mark_shareable_blocks_as_complete"
+   ]
+  ],
+  "n_pairs": 2,
+  "n_calls": 2,
+  "n_files": 2
+ },
+ "xfile/transformers/64k/03-resolve_max_memory_percent": {
+  "corpus": "transformers",
+  "length": "64k",
+  "prompt_tokens": 61264,
+  "files_in_pack": 12,
+  "name": "resolve_max_memory_percent",
+  "def": [
+   "transformers/generation/continuous_batching/initialization.py",
+   270
+  ],
+  "calls": [
+   [
+    "transformers/generation/continuous_batching/cache.py",
+    "__init__"
+   ],
+   [
+    "transformers/generation/continuous_batching/initialization.py",
+    "resolve_continuous_batching_config"
+   ]
+  ],
+  "n_pairs": 2,
+  "n_calls": 2,
+  "n_files": 2
+ },
+ "xfile/transformers/64k/04-increase_ref_count": {
+  "corpus": "transformers",
+  "length": "64k",
+  "prompt_tokens": 61262,
+  "files_in_pack": 12,
+  "name": "increase_ref_count",
+  "def": [
+   "transformers/generation/continuous_batching/cache_manager.py",
+   187
+  ],
+  "calls": [
+   [
+    "transformers/generation/continuous_batching/cache.py",
+    "search_prefix_match"
+   ],
+   [
+    "transformers/generation/continuous_batching/cache_manager.py",
+    "mark_shareable_blocks_as_complete"
+   ]
+  ],
+  "n_pairs": 2,
+  "n_calls": 2,
+  "n_files": 2
+ },
+ "xfile/transformers/64k/05-swap_io_pairs": {
+  "corpus": "transformers",
+  "length": "64k",
+  "prompt_tokens": 61260,
+  "files_in_pack": 12,
+  "name": "swap_io_pairs",
+  "def": [
+   "transformers/generation/continuous_batching/input_outputs.py",
+   805
+  ],
+  "calls": [
+   [
+    "transformers/generation/continuous_batching/input_outputs.py",
+    "retrieve_device_outputs"
+   ],
+   [
+    "transformers/generation/continuous_batching/model_runner.py",
+    "warmup"
+   ]
+  ],
+  "n_pairs": 2,
+  "n_calls": 2,
+  "n_files": 2
+ },
+ "xfile/transformers/64k/06-_equation_coefficients": {
+  "corpus": "transformers",
+  "length": "64k",
+  "prompt_tokens": 61266,
+  "files_in_pack": 12,
+  "name": "_equation_coefficients",
+  "def": [
+   "transformers/generation/continuous_batching/cache.py",
+   755
+  ],
+  "calls": [
+   [
+    "transformers/generation/continuous_batching/cache.py",
+    "_solve_for_peak"
+   ],
+   [
+    "transformers/generation/continuous_batching/cache.py",
+    "compute_memory_footprint"
+   ]
+  ],
+  "n_pairs": 2,
+  "n_calls": 2,
+  "n_files": 1
+ },
+ "xfile/transformers/64k/07-find_head_dim": {
+  "corpus": "transformers",
+  "length": "64k",
+  "prompt_tokens": 61260,
+  "files_in_pack": 12,
+  "name": "find_head_dim",
+  "def": [
+   "transformers/generation/continuous_batching/cache.py",
+   42
+  ],
+  "calls": [
+   [
+    "transformers/generation/continuous_batching/cache.py",
+    "__init__"
+   ],
+   [
+    "transformers/generation/continuous_batching/cache.py",
+    "activation_peak"
+   ]
+  ],
+  "n_pairs": 2,
+  "n_calls": 3,
+  "n_files": 1
+ },
+ "xfile/transformers/64k/08-_reset_static_tensors": {
+  "corpus": "transformers",
+  "length": "64k",
+  "prompt_tokens": 61262,
+  "files_in_pack": 12,
+  "name": "_reset_static_tensors",
+  "def": [
+   "transformers/generation/continuous_batching/input_outputs.py",
+   245
+  ],
+  "calls": [
+   [
+    "transformers/generation/continuous_batching/input_outputs.py",
+    "__init__"
+   ],
+   [
+    "transformers/generation/continuous_batching/input_outputs.py",
+    "prepare_batch_tensors"
+   ],
+   [
+    "transformers/generation/continuous_batching/input_outputs.py",
+    "reset"
+   ]
+  ],
+  "n_pairs": 3,
+  "n_calls": 3,
+  "n_files": 1
+ },
+ "xfile/transformers/64k/09-_clear_draft": {
+  "corpus": "transformers",
+  "length": "64k",
+  "prompt_tokens": 61258,
+  "files_in_pack": 12,
+  "name": "_clear_draft",
+  "def": [
+   "transformers/generation/streamers.py",
+   370
+  ],
+  "calls": [
+   [
+    "transformers/generation/streamers.py",
+    "end"
+   ],
+   [
+    "transformers/generation/streamers.py",
+    "put"
+   ],
+   [
+    "transformers/generation/streamers.py",
+    "put_draft"
+   ]
+  ],
+  "n_pairs": 3,
+  "n_calls": 3,
+  "n_files": 1
+ },
+ "xfile/transformers/128k/00-infer_carry_over_ids": {
+  "corpus": "transformers",
+  "length": "128k",
+  "prompt_tokens": 125155,
+  "files_in_pack": 27,
+  "name": "infer_carry_over_ids",
+  "def": [
+   "transformers/generation/continuous_batching/input_outputs.py",
+   714
+  ],
+  "calls": [
+   [
+    "transformers/generation/continuous_batching/input_outputs.py",
+    "prepare_batch_tensors"
+   ]
+  ],
+  "n_pairs": 1,
+  "n_calls": 1,
+  "n_files": 1
+ },
+ "xfile/transformers/128k/01-replace_quantization_scales": {
+  "corpus": "transformers",
+  "length": "128k",
+  "prompt_tokens": 125153,
+  "files_in_pack": 27,
+  "name": "replace_quantization_scales",
+  "def": [
+   "transformers/integrations/awq.py",
+   39
+  ],
+  "calls": [
+   [
+    "transformers/integrations/awq.py",
+    "replace_quantization_scales"
+   ]
+  ],
+  "n_pairs": 1,
+  "n_calls": 1,
+  "n_files": 1
+ },
+ "xfile/transformers/128k/02-tp_all_reduce_min": {
+  "corpus": "transformers",
+  "length": "128k",
+  "prompt_tokens": 125149,
+  "files_in_pack": 27,
+  "name": "tp_all_reduce_min",
+  "def": [
+   "transformers/generation/continuous_batching/distributed.py",
+   136
+  ],
+  "calls": [
+   [
+    "transformers/generation/continuous_batching/cache.py",
+    "__init__"
+   ],
+   [
+    "transformers/generation/continuous_batching/offloading_manager.py",
+    "__init__"
+   ]
+  ],
+  "n_pairs": 2,
+  "n_calls": 2,
+  "n_files": 2
+ },
+ "xfile/transformers/128k/03-pad_to_pow2": {
+  "corpus": "transformers",
+  "length": "128k",
+  "prompt_tokens": 125149,
+  "files_in_pack": 27,
+  "name": "pad_to_pow2",
+  "def": [
+   "transformers/generation/continuous_batching/utils.py",
+   67
+  ],
+  "calls": [
+   [
+    "transformers/generation/continuous_batching/input_outputs.py",
+    "get_model_kwargs"
+   ],
+   [
+    "transformers/generation/continuous_batching/model_runner.py",
+    "maybe_pad_inputs"
+   ]
+  ],
+  "n_pairs": 2,
+  "n_calls": 2,
+  "n_files": 2
+ },
+ "xfile/transformers/128k/04-is_deepspeed_zero3_enabled": {
+  "corpus": "transformers",
+  "length": "128k",
+  "prompt_tokens": 125161,
+  "files_in_pack": 27,
+  "name": "is_deepspeed_zero3_enabled",
+  "def": [
+   "transformers/integrations/deepspeed.py",
+   279
+  ],
+  "calls": [
+   [
+    "transformers/integrations/accelerate.py",
+    "accelerate_dispatch"
+   ],
+   [
+    "transformers/integrations/accelerate.py",
+    "check_and_set_device_map"
+   ],
+   [
+    "transformers/integrations/deepspeed.py",
+    "load"
+   ]
+  ],
+  "n_pairs": 3,
+  "n_calls": 4,
+  "n_files": 2
+ },
+ "xfile/transformers/128k/05-_apply_zero3": {
+  "corpus": "transformers",
+  "length": "128k",
+  "prompt_tokens": 125147,
+  "files_in_pack": 27,
+  "name": "_apply_zero3",
+  "def": [
+   "transformers/integrations/deepspeed.py",
+   308
+  ],
+  "calls": [
+   [
+    "transformers/integrations/deepspeed.py",
+    "_apply_zero3"
+   ],
+   [
+    "transformers/integrations/deepspeed.py",
+    "initialize_weights_zero3"
+   ]
+  ],
+  "n_pairs": 2,
+  "n_calls": 3,
+  "n_files": 1
+ },
+ "xfile/transformers/128k/06-compute_module_sizes": {
+  "corpus": "transformers",
+  "length": "128k",
+  "prompt_tokens": 125145,
+  "files_in_pack": 27,
+  "name": "compute_module_sizes",
+  "def": [
+   "transformers/integrations/accelerate.py",
+   142
+  ],
+  "calls": [
+   [
+    "transformers/integrations/accelerate.py",
+    "_init_infer_auto_device_map"
+   ],
+   [
+    "transformers/integrations/accelerate.py",
+    "compute_module_total_buffer_size"
+   ],
+   [
+    "transformers/integrations/accelerate.py",
+    "get_balanced_memory"
+   ]
+  ],
+  "n_pairs": 3,
+  "n_calls": 3,
+  "n_files": 1
+ },
+ "xfile/transformers/128k/07-_coerce_sf_for_kernel": {
+  "corpus": "transformers",
+  "length": "128k",
+  "prompt_tokens": 125155,
+  "files_in_pack": 27,
+  "name": "_coerce_sf_for_kernel",
+  "def": [
+   "transformers/integrations/deepgemm.py",
+   360
+  ],
+  "calls": [
+   [
+    "transformers/integrations/deepgemm.py",
+    "deepgemm_fp8_fp4_experts_forward"
+   ],
+   [
+    "transformers/integrations/deepgemm.py",
+    "deepgemm_fp8_fp4_linear"
+   ]
+  ],
+  "n_pairs": 2,
+  "n_calls": 6,
+  "n_files": 1
+ },
+ "xfile/transformers/128k/08-get_num_free_blocks": {
+  "corpus": "transformers",
+  "length": "128k",
+  "prompt_tokens": 125149,
+  "files_in_pack": 27,
+  "name": "get_num_free_blocks",
+  "def": [
+   "transformers/generation/continuous_batching/cache.py",
+   345
+  ],
+  "calls": [
+   [
+    "transformers/generation/continuous_batching/cache.py",
+    "compute_max_num_forks"
+   ],
+   [
+    "transformers/generation/continuous_batching/cache.py",
+    "will_allocation_be_successful"
+   ],
+   [
+    "transformers/generation/continuous_batching/offloading_manager.py",
+    "offload_requests"
+   ],
+   [
+    "transformers/generation/continuous_batching/scheduler.py",
+    "_process_candidates"
+   ]
+  ],
+  "n_pairs": 4,
+  "n_calls": 5,
+  "n_files": 3
+ },
+ "xfile/transformers/128k/09-load_deepgemm_kernel": {
+  "corpus": "transformers",
+  "length": "128k",
+  "prompt_tokens": 125153,
+  "files_in_pack": 27,
+  "name": "load_deepgemm_kernel",
+  "def": [
+   "transformers/integrations/deepgemm.py",
+   303
+  ],
+  "calls": [
+   [
+    "transformers/integrations/deepgemm.py",
+    "deepgemm_bf16_experts_forward"
+   ],
+   [
+    "transformers/integrations/deepgemm.py",
+    "deepgemm_fp8_fp4_experts_forward"
+   ],
+   [
+    "transformers/integrations/deepgemm.py",
+    "deepgemm_fp8_fp4_linear"
+   ],
+   [
+    "transformers/integrations/deepgemm.py",
+    "deepgemm_fp8_fp4_megamoe_experts_forward"
+   ],
+   [
+    "transformers/integrations/deepgemm.py",
+    "setup_megamoe_weights"
+   ]
+  ],
+  "n_pairs": 5,
+  "n_calls": 5,
+  "n_files": 1
+ },
+ "xfile/transformers/192k/00-_compute_z_score": {
+  "corpus": "transformers",
+  "length": "192k",
+  "prompt_tokens": 191394,
+  "files_in_pack": 40,
+  "name": "_compute_z_score",
+  "def": [
+   "transformers/generation/watermarking.py",
+   180
+  ],
+  "calls": [
+   [
+    "transformers/generation/watermarking.py",
+    "__call__"
+   ]
+  ],
+  "n_pairs": 1,
+  "n_calls": 1,
+  "n_files": 1
+ },
+ "xfile/transformers/192k/01-_gguf_parse_value": {
+  "corpus": "transformers",
+  "length": "192k",
+  "prompt_tokens": 191398,
+  "files_in_pack": 40,
+  "name": "_gguf_parse_value",
+  "def": [
+   "transformers/integrations/ggml.py",
+   382
+  ],
+  "calls": [
+   [
+    "transformers/integrations/ggml.py",
+    "_gguf_parse_value"
+   ]
+  ],
+  "n_pairs": 1,
+  "n_calls": 1,
+  "n_files": 1
+ },
+ "xfile/transformers/192k/02-QuantizedLinear": {
+  "corpus": "transformers",
+  "length": "192k",
+  "prompt_tokens": 191394,
+  "files_in_pack": 40,
+  "name": "QuantizedLinear",
+  "def": [
+   "transformers/integrations/gemma_quant.py",
+   67
+  ],
+  "calls": [
+   [
+    "transformers/integrations/aqlm.py",
+    "replace_with_aqlm_linear"
+   ],
+   [
+    "transformers/integrations/gemma_quant.py",
+    "replace_with_quant_layers"
+   ]
+  ],
+  "n_pairs": 2,
+  "n_calls": 2,
+  "n_files": 2
+ },
+ "xfile/transformers/192k/03-is_deepgemm_loadable": {
+  "corpus": "transformers",
+  "length": "192k",
+  "prompt_tokens": 191404,
+  "files_in_pack": 40,
+  "name": "is_deepgemm_loadable",
+  "def": [
+   "transformers/integrations/deepgemm.py",
+   156
+  ],
+  "calls": [
+   [
+    "transformers/integrations/deepgemm.py",
+    "_load_deepgemm_kernel"
+   ],
+   [
+    "transformers/integrations/finegrained_fp8.py",
+    "fp8_linear"
+   ]
+  ],
+  "n_pairs": 2,
+  "n_calls": 2,
+  "n_files": 2
+ },
+ "xfile/transformers/192k/04-generated_len": {
+  "corpus": "transformers",
+  "length": "192k",
+  "prompt_tokens": 191388,
+  "files_in_pack": 40,
+  "name": "generated_len",
+  "def": [
+   "transformers/generation/continuous_batching/requests.py",
+   232
+  ],
+  "calls": [
+   [
+    "transformers/generation/continuous_batching/requests.py",
+    "__repr__"
+   ],
+   [
+    "transformers/generation/continuous_batching/requests.py",
+    "log_end_of_request"
+   ],
+   [
+    "transformers/generation/continuous_batching/requests.py",
+    "update_and_check_completion"
+   ]
+  ],
+  "n_pairs": 3,
+  "n_calls": 3,
+  "n_files": 1
+ },
+ "xfile/transformers/192k/05-_assert_sm100_requirements": {
+  "corpus": "transformers",
+  "length": "192k",
+  "prompt_tokens": 191406,
+  "files_in_pack": 40,
+  "name": "_assert_sm100_requirements",
+  "def": [
+   "transformers/integrations/deepgemm.py",
+   311
+  ],
+  "calls": [
+   [
+    "transformers/integrations/deepgemm.py",
+    "deepgemm_fp8_fp4_experts_forward"
+   ],
+   [
+    "transformers/integrations/deepgemm.py",
+    "deepgemm_fp8_fp4_linear"
+   ],
+   [
+    "transformers/integrations/deepgemm.py",
+    "deepgemm_fp8_fp4_megamoe_experts_forward"
+   ]
+  ],
+  "n_pairs": 3,
+  "n_calls": 3,
+  "n_files": 1
+ },
+ "xfile/transformers/192k/06-_get_num_sequences": {
+  "corpus": "transformers",
+  "length": "192k",
+  "prompt_tokens": 191394,
+  "files_in_pack": 40,
+  "name": "_get_num_sequences",
+  "def": [
+   "transformers/generation/continuous_batching/input_outputs.py",
+   462
+  ],
+  "calls": [
+   [
+    "transformers/generation/continuous_batching/input_outputs.py",
+    "get_model_kwargs"
+   ],
+   [
+    "transformers/generation/continuous_batching/input_outputs.py",
+    "prepare_batch_tensors"
+   ]
+  ],
+  "n_pairs": 2,
+  "n_calls": 2,
+  "n_files": 1
+ },
+ "xfile/transformers/192k/07-_get_graph_key": {
+  "corpus": "transformers",
+  "length": "192k",
+  "prompt_tokens": 191394,
+  "files_in_pack": 40,
+  "name": "_get_graph_key",
+  "def": [
+   "transformers/generation/continuous_batching/input_outputs.py",
+   542
+  ],
+  "calls": [
+   [
+    "transformers/generation/continuous_batching/input_outputs.py",
+    "get_graph"
+   ],
+   [
+    "transformers/generation/continuous_batching/input_outputs.py",
+    "set_graph"
+   ]
+  ],
+  "n_pairs": 2,
+  "n_calls": 2,
+  "n_files": 1
+ },
+ "xfile/transformers/192k/08-_apply_gate": {
+  "corpus": "transformers",
+  "length": "192k",
+  "prompt_tokens": 191390,
+  "files_in_pack": 40,
+  "name": "_apply_gate",
+  "def": [
+   "transformers/integrations/finegrained_fp8.py",
+   682
+  ],
+  "calls": [
+   [
+    "transformers/integrations/deepgemm.py",
+    "deepgemm_bf16_experts_forward"
+   ],
+   [
+    "transformers/integrations/deepgemm.py",
+    "deepgemm_fp8_fp4_experts_forward"
+   ],
+   [
+    "transformers/integrations/finegrained_fp8.py",
+    "forward"
+   ],
+   [
+    "transformers/integrations/finegrained_fp8.py",
+    "fp8_batched_mm_experts_forward"
+   ],
+   [
+    "transformers/integrations/finegrained_fp8.py",
+    "fp8_grouped_mm_experts_forward"
+   ]
+  ],
+  "n_pairs": 5,
+  "n_calls": 5,
+  "n_files": 2
+ },
+ "xfile/transformers/192k/09-load_finegrained_fp8_kernel": {
+  "corpus": "transformers",
+  "length": "192k",
+  "prompt_tokens": 191412,
+  "files_in_pack": 40,
+  "name": "load_finegrained_fp8_kernel",
+  "def": [
+   "transformers/integrations/finegrained_fp8.py",
+   143
+  ],
+  "calls": [
+   [
+    "transformers/integrations/finegrained_fp8.py",
+    "finegrained_fp8_linear"
+   ],
+   [
+    "transformers/integrations/finegrained_fp8.py",
+    "forward"
+   ],
+   [
+    "transformers/integrations/finegrained_fp8.py",
+    "fp8_batched_mm_experts_forward"
+   ],
+   [
+    "transformers/integrations/finegrained_fp8.py",
+    "fp8_grouped_mm_experts_forward"
+   ]
+  ],
+  "n_pairs": 4,
+  "n_calls": 4,
+  "n_files": 1
+ },
+ "xfile/dynamo/64k/00-_get_comprehension_result_patterns": {
+  "corpus": "dynamo",
+  "length": "64k",
+  "prompt_tokens": 57828,
+  "files_in_pack": 16,
+  "name": "_get_comprehension_result_patterns",
+  "def": [
+   "torch/_dynamo/comprehension_graph_break.py",
+   57
+  ],
+  "calls": [
+   [
+    "torch/_dynamo/comprehension_graph_break.py",
+    "_analyze_comprehension"
+   ]
+  ],
+  "n_pairs": 1,
+  "n_calls": 1,
+  "n_files": 1
+ },
+ "xfile/dynamo/64k/01-_print_locals": {
+  "corpus": "dynamo",
+  "length": "64k",
+  "prompt_tokens": 57812,
+  "files_in_pack": 16,
+  "name": "_print_locals",
+  "def": [
+   "torch/_dynamo/bytecode_debugger.py",
+   348
+  ],
+  "calls": [
+   [
+    "torch/_dynamo/bytecode_debugger.py",
+    "_interactive_prompt"
+   ]
+  ],
+  "n_pairs": 1,
+  "n_calls": 1,
+  "n_files": 1
+ },
+ "xfile/dynamo/64k/02-as_proxy": {
+  "corpus": "dynamo",
+  "length": "64k",
+  "prompt_tokens": 57810,
+  "files_in_pack": 16,
+  "name": "as_proxy",
+  "def": [
+   "torch/_dynamo/comptime.py",
+   69
+  ],
+  "calls": [
+   [
+    "torch/_dynamo/codegen.py",
+    "add_graph_output"
+   ],
+   [
+    "torch/_dynamo/comptime.py",
+    "as_fake"
+   ],
+   [
+    "torch/_dynamo/comptime.py",
+    "as_proxy"
+   ]
+  ],
+  "n_pairs": 3,
+  "n_calls": 3,
+  "n_files": 2
+ },
+ "xfile/dynamo/64k/03-python_type": {
+  "corpus": "dynamo",
+  "length": "64k",
+  "prompt_tokens": 57810,
+  "files_in_pack": 16,
+  "name": "python_type",
+  "def": [
+   "torch/_dynamo/comptime.py",
+   108
+  ],
+  "calls": [
+   [
+    "torch/_dynamo/codegen.py",
+    "__call__"
+   ],
+   [
+    "torch/_dynamo/comptime.py",
+    "python_type"
+   ]
+  ],
+  "n_pairs": 2,
+  "n_calls": 2,
+  "n_files": 2
+ },
+ "xfile/dynamo/64k/04-extend_output": {
+  "corpus": "dynamo",
+  "length": "64k",
+  "prompt_tokens": 57810,
+  "files_in_pack": 16,
+  "name": "extend_output",
+  "def": [
+   "torch/_dynamo/codegen.py",
+   465
+  ],
+  "calls": [
+   [
+    "torch/_dynamo/codegen.py",
+    "call_function"
+   ],
+   [
+    "torch/_dynamo/codegen.py",
+    "call_method"
+   ],
+   [
+    "torch/_dynamo/codegen.py",
+    "make_call_generated_code"
+   ],
+   [
+    "torch/_dynamo/comprehension_graph_break.py",
+    "_handle_comprehension_graph_break"
+   ]
+  ],
+  "n_pairs": 4,
+  "n_calls": 25,
+  "n_files": 2
+ },
+ "xfile/dynamo/64k/05-create_load_const": {
+  "corpus": "dynamo",
+  "length": "64k",
+  "prompt_tokens": 57814,
+  "files_in_pack": 16,
+  "name": "create_load_const",
+  "def": [
+   "torch/_dynamo/codegen.py",
+   512
+  ],
+  "calls": [
+   [
+    "torch/_dynamo/codegen.py",
+    "__call__"
+   ],
+   [
+    "torch/_dynamo/codegen.py",
+    "create_call_function_kw"
+   ],
+   [
+    "torch/_dynamo/codegen.py",
+    "create_load_const"
+   ],
+   [
+    "torch/_dynamo/codegen.py",
+    "create_load_const_unchecked"
+   ],
+   [
+    "torch/_dynamo/codegen.py",
+    "load_graph_output"
+   ],
+   [
+    "torch/_dynamo/codegen.py",
+    "make_function_with_closure"
+   ],
+   [
+    "torch/_dynamo/comprehension_graph_break.py",
+    "_handle_comprehension_graph_break"
+   ]
+  ],
+  "n_pairs": 7,
+  "n_calls": 20,
+  "n_files": 2
+ },
+ "xfile/dynamo/64k/06-create_load_attr": {
+  "corpus": "dynamo",
+  "length": "64k",
+  "prompt_tokens": 57814,
+  "files_in_pack": 16,
+  "name": "create_load_attr",
+  "def": [
+   "torch/_dynamo/codegen.py",
+   525
+  ],
+  "calls": [
+   [
+    "torch/_dynamo/codegen.py",
+    "__call__"
+   ],
+   [
+    "torch/_dynamo/codegen.py",
+    "create_load_attrs"
+   ],
+   [
+    "torch/_dynamo/codegen.py",
+    "gen_fn"
+   ],
+   [
+    "torch/_dynamo/codegen.py",
+    "load_attr"
+   ],
+   [
+    "torch/_dynamo/codegen.py",
+    "make_call_generated_code"
+   ]
+  ],
+  "n_pairs": 5,
+  "n_calls": 6,
+  "n_files": 1
+ },
+ "xfile/dynamo/64k/07-create_load_global": {
+  "corpus": "dynamo",
+  "length": "64k",
+  "prompt_tokens": 57814,
+  "files_in_pack": 16,
+  "name": "create_load_global",
+  "def": [
+   "torch/_dynamo/codegen.py",
+   505
+  ],
+  "calls": [
+   [
+    "torch/_dynamo/codegen.py",
+    "__call__"
+   ],
+   [
+    "torch/_dynamo/codegen.py",
+    "create_load_python_module"
+   ],
+   [
+    "torch/_dynamo/codegen.py",
+    "load_function_name"
+   ],
+   [
+    "torch/_dynamo/codegen.py",
+    "setup_globally_cached"
+   ]
+  ],
+  "n_pairs": 4,
+  "n_calls": 6,
+  "n_files": 1
+ },
+ "xfile/dynamo/64k/08-as_python_constant": {
+  "corpus": "dynamo",
+  "length": "64k",
+  "prompt_tokens": 57814,
+  "files_in_pack": 16,
+  "name": "as_python_constant",
+  "def": [
+   "torch/_dynamo/comptime.py",
+   115
+  ],
+  "calls": [
+   [
+    "torch/_dynamo/codegen.py",
+    "__call__"
+   ],
+   [
+    "torch/_dynamo/comptime.py",
+    "as_python_constant"
+   ],
+   [
+    "torch/_dynamo/comptime.py",
+    "print_bt"
+   ],
+   [
+    "torch/_dynamo/comptime.py",
+    "print_disas"
+   ],
+   [
+    "torch/_dynamo/comptime.py",
+    "print_locals"
+   ],
+   [
+    "torch/_dynamo/comptime.py",
+    "print_value_stack"
+   ],
+   [
+    "torch/_dynamo/comptime.py",
+    "print_value_stack_and_return"
+   ],
+   [
+    "torch/_dynamo/comptime.py",
+    "sleep"
+   ]
+  ],
+  "n_pairs": 8,
+  "n_calls": 9,
+  "n_files": 2
+ },
+ "xfile/dynamo/64k/09-get_local": {
+  "corpus": "dynamo",
+  "length": "64k",
+  "prompt_tokens": 57810,
+  "files_in_pack": 16,
+  "name": "get_local",
+  "def": [
+   "torch/_dynamo/comptime.py",
+   178
+  ],
+  "calls": [
+   [
+    "torch/_dynamo/comptime.py",
+    "assert_static"
+   ],
+   [
+    "torch/_dynamo/comptime.py",
+    "force_static"
+   ],
+   [
+    "torch/_dynamo/comptime.py",
+    "print"
+   ],
+   [
+    "torch/_dynamo/comptime.py",
+    "print_bt"
+   ],
+   [
+    "torch/_dynamo/comptime.py",
+    "print_disas"
+   ],
+   [
+    "torch/_dynamo/comptime.py",
+    "print_locals"
+   ],
+   [
+    "torch/_dynamo/comptime.py",
+    "print_value_stack"
+   ],
+   [
+    "torch/_dynamo/comptime.py",
+    "print_value_stack_and_return"
+   ],
+   [
+    "torch/_dynamo/comptime.py",
+    "sleep"
+   ]
+  ],
+  "n_pairs": 9,
+  "n_calls": 9,
+  "n_files": 1
+ },
+ "xfile/dynamo/128k/00-get_identical_regions": {
+  "corpus": "dynamo",
+  "length": "128k",
+  "prompt_tokens": 119291,
+  "files_in_pack": 34,
+  "name": "get_identical_regions",
+  "def": [
+   "torch/_dynamo/graph_region_tracker.py",
+   309
+  ],
+  "calls": [
+   [
+    "torch/_dynamo/graph_deduplication.py",
+    "apply_graph_deduplication"
+   ]
+  ],
+  "n_pairs": 1,
+  "n_calls": 1,
+  "n_files": 1
+ },
+ "xfile/dynamo/128k/01-populate_line_num": {
+  "corpus": "dynamo",
+  "length": "128k",
+  "prompt_tokens": 119287,
+  "files_in_pack": 34,
+  "name": "populate_line_num",
+  "def": [
+   "torch/_dynamo/bytecode_analysis.py",
+   142
+  ],
+  "calls": [
+   [
+    "torch/_dynamo/bytecode_analysis.py",
+    "propagate_line_nums"
+   ]
+  ],
+  "n_pairs": 1,
+  "n_calls": 1,
+  "n_files": 1
+ },
+ "xfile/dynamo/128k/02-create_binary_subscr": {
+  "corpus": "dynamo",
+  "length": "128k",
+  "prompt_tokens": 119291,
+  "files_in_pack": 34,
+  "name": "create_binary_subscr",
+  "def": [
+   "torch/_dynamo/codegen.py",
+   440
+  ],
+  "calls": [
+   [
+    "torch/_dynamo/codegen.py",
+    "create_binary_subscr"
+   ],
+   [
+    "torch/_dynamo/codegen.py",
+    "load_graph_output"
+   ],
+   [
+    "torch/_dynamo/comprehension_graph_break.py",
+    "_handle_comprehension_graph_break"
+   ]
+  ],
+  "n_pairs": 3,
+  "n_calls": 10,
+  "n_files": 2
+ },
+ "xfile/dynamo/128k/03-dump_stats": {
+  "corpus": "dynamo",
+  "length": "128k",
+  "prompt_tokens": 119283,
+  "files_in_pack": 34,
+  "name": "dump_stats",
+  "def": [
+   "torch/_dynamo/dynamo_profiler.py",
+   401
+  ],
+  "calls": [
+   [
+    "torch/_dynamo/debug_utils.py",
+    "save_it"
+   ],
+   [
+    "torch/_dynamo/dynamo_profiler.py",
+    "generate_pstats"
+   ]
+  ],
+  "n_pairs": 2,
+  "n_calls": 2,
+  "n_files": 2
+ },
+ "xfile/dynamo/128k/04-is_python_constant": {
+  "corpus": "dynamo",
+  "length": "128k",
+  "prompt_tokens": 119287,
+  "files_in_pack": 34,
+  "name": "is_python_constant",
+  "def": [
+   "torch/_dynamo/comptime.py",
+   127
+  ],
+  "calls": [
+   [
+    "torch/_dynamo/codegen.py",
+    "__call__"
+   ],
+   [
+    "torch/_dynamo/comptime.py",
+    "force_static"
+   ],
+   [
+    "torch/_dynamo/comptime.py",
+    "is_python_constant"
+   ]
+  ],
+  "n_pairs": 3,
+  "n_calls": 3,
+  "n_files": 2
+ },
+ "xfile/dynamo/128k/05-_get_flat_args_unique": {
+  "corpus": "dynamo",
+  "length": "128k",
+  "prompt_tokens": 119293,
+  "files_in_pack": 34,
+  "name": "_get_flat_args_unique",
+  "def": [
+   "torch/_dynamo/graph_utils.py",
+   24
+  ],
+  "calls": [
+   [
+    "torch/_dynamo/graph_deduplication.py",
+    "_add_global_state_dependencies"
+   ],
+   [
+    "torch/_dynamo/graph_deduplication.py",
+    "_stable_topological_sort_impl"
+   ],
+   [
+    "torch/_dynamo/graph_region_tracker.py",
+    "_populate_recursive_ancestor_map"
+   ],
+   [
+    "torch/_dynamo/graph_region_tracker.py",
+    "add_children"
+   ],
+   [
+    "torch/_dynamo/graph_utils.py",
+    "_detect_cycles"
+   ]
+  ],
+  "n_pairs": 5,
+  "n_calls": 6,
+  "n_files": 3
+ },
+ "xfile/dynamo/128k/06-clear_tos": {
+  "corpus": "dynamo",
+  "length": "128k",
+  "prompt_tokens": 119287,
+  "files_in_pack": 34,
+  "name": "clear_tos",
+  "def": [
+   "torch/_dynamo/codegen.py",
+   456
+  ],
+  "calls": [
+   [
+    "torch/_dynamo/codegen.py",
+    "add_push_null"
+   ],
+   [
+    "torch/_dynamo/codegen.py",
+    "append_output"
+   ],
+   [
+    "torch/_dynamo/codegen.py",
+    "extend_output"
+   ],
+   [
+    "torch/_dynamo/codegen.py",
+    "make_function_with_closure"
+   ]
+  ],
+  "n_pairs": 4,
+  "n_calls": 5,
+  "n_files": 1
+ },
+ "xfile/dynamo/128k/07-append_output": {
+  "corpus": "dynamo",
+  "length": "128k",
+  "prompt_tokens": 119283,
+  "files_in_pack": 34,
+  "name": "append_output",
+  "def": [
+   "torch/_dynamo/codegen.py",
+   459
+  ],
+  "calls": [
+   [
+    "torch/_dynamo/codegen.py",
+    "dup_top"
+   ],
+   [
+    "torch/_dynamo/codegen.py",
+    "load_attr"
+   ],
+   [
+    "torch/_dynamo/codegen.py",
+    "load_deref"
+   ],
+   [
+    "torch/_dynamo/codegen.py",
+    "load_method"
+   ],
+   [
+    "torch/_dynamo/codegen.py",
+    "pop_top"
+   ],
+   [
+    "torch/_dynamo/codegen.py",
+    "store"
+   ],
+   [
+    "torch/_dynamo/codegen.py",
+    "store_attr"
+   ]
+  ],
+  "n_pairs": 7,
+  "n_calls": 7,
+  "n_files": 1
+ },
+ "xfile/dynamo/128k/08-clean_export_root_string": {
+  "corpus": "dynamo",
+  "length": "128k",
+  "prompt_tokens": 119291,
+  "files_in_pack": 34,
+  "name": "clean_export_root_string",
+  "def": [
+   "torch/_dynamo/functional_export.py",
+   73
+  ],
+  "calls": [
+   [
+    "torch/_dynamo/functional_export.py",
+    "_process_nn_module_stack"
+   ],
+   [
+    "torch/_dynamo/functional_export.py",
+    "_process_source_fn"
+   ],
+   [
+    "torch/_dynamo/functional_export.py",
+    "clean_export_root"
+   ],
+   [
+    "torch/_dynamo/functional_export.py",
+    "clean_nn_module_stack_and_source_fn"
+   ]
+  ],
+  "n_pairs": 4,
+  "n_calls": 8,
+  "n_files": 1
+ },
+ "xfile/dynamo/128k/09-add_push_null": {
+  "corpus": "dynamo",
+  "length": "128k",
+  "prompt_tokens": 119287,
+  "files_in_pack": 34,
+  "name": "add_push_null",
+  "def": [
+   "torch/_dynamo/codegen.py",
+   141
+  ],
+  "calls": [
+   [
+    "torch/_dynamo/codegen.py",
+    "__call__"
+   ],
+   [
+    "torch/_dynamo/codegen.py",
+    "add_push_null"
+   ],
+   [
+    "torch/_dynamo/codegen.py",
+    "load_function_name"
+   ],
+   [
+    "torch/_dynamo/codegen.py",
+    "make_call_generated_code"
+   ]
+  ],
+  "n_pairs": 4,
+  "n_calls": 9,
+  "n_files": 1
+ },
+ "xfile/dynamo/192k/00-dump_debug_info": {
+  "corpus": "dynamo",
+  "length": "192k",
+  "prompt_tokens": 193651,
+  "files_in_pack": 53,
+  "name": "dump_debug_info",
+  "def": [
+   "torch/_dynamo/precompile_context.py",
+   145
+  ],
+  "calls": [
+   [
+    "torch/_dynamo/precompile_context.py",
+    "create_cache_entries"
+   ]
+  ],
+  "n_pairs": 1,
+  "n_calls": 1,
+  "n_files": 1
+ },
+ "xfile/dynamo/192k/01-create_import_name": {
+  "corpus": "dynamo",
+  "length": "192k",
+  "prompt_tokens": 193651,
+  "files_in_pack": 53,
+  "name": "create_import_name",
+  "def": [
+   "torch/_dynamo/codegen.py",
+   750
+  ],
+  "calls": [
+   [
+    "torch/_dynamo/source.py",
+    "reconstruct"
+   ]
+  ],
+  "n_pairs": 1,
+  "n_calls": 1,
+  "n_files": 1
+ },
+ "xfile/dynamo/192k/02-load_guards_state": {
+  "corpus": "dynamo",
+  "length": "192k",
+  "prompt_tokens": 193655,
+  "files_in_pack": 53,
+  "name": "load_guards_state",
+  "def": [
+   "torch/_dynamo/package.py",
+   123
+  ],
+  "calls": [
+   [
+    "torch/_dynamo/aot_compile.py",
+    "__post_init__"
+   ],
+   [
+    "torch/_dynamo/package.py",
+    "install"
+   ]
+  ],
+  "n_pairs": 2,
+  "n_calls": 2,
+  "n_files": 2
+ },
+ "xfile/dynamo/192k/03-add_code": {
+  "corpus": "dynamo",
+  "length": "192k",
+  "prompt_tokens": 193647,
+  "files_in_pack": 53,
+  "name": "add_code",
+  "def": [
+   "torch/_dynamo/package.py",
+   171
+  ],
+  "calls": [
+   [
+    "torch/_dynamo/aot_compile.py",
+    "aot_compile_fullgraph"
+   ],
+   [
+    "torch/_dynamo/package.py",
+    "add_inlined_source"
+   ]
+  ],
+  "n_pairs": 2,
+  "n_calls": 2,
+  "n_files": 2
+ },
+ "xfile/dynamo/192k/04-create_load": {
+  "corpus": "dynamo",
+  "length": "192k",
+  "prompt_tokens": 193647,
+  "files_in_pack": 53,
+  "name": "create_load",
+  "def": [
+   "torch/_dynamo/codegen.py",
+   479
+  ],
+  "calls": [
+   [
+    "torch/_dynamo/codegen.py",
+    "__call__"
+   ],
+   [
+    "torch/_dynamo/codegen.py",
+    "load_graph_output"
+   ],
+   [
+    "torch/_dynamo/codegen.py",
+    "make_call_generated_code"
+   ],
+   [
+    "torch/_dynamo/source.py",
+    "reconstruct"
+   ]
+  ],
+  "n_pairs": 4,
+  "n_calls": 9,
+  "n_files": 2
+ },
+ "xfile/dynamo/192k/05-from_code_object": {
+  "corpus": "dynamo",
+  "length": "192k",
+  "prompt_tokens": 193651,
+  "files_in_pack": 53,
+  "name": "from_code_object",
+  "def": [
+   "torch/_dynamo/package.py",
+   89
+  ],
+  "calls": [
+   [
+    "torch/_dynamo/aot_compile.py",
+    "reducer_override"
+   ],
+   [
+    "torch/_dynamo/aot_compile.py",
+    "serialize"
+   ],
+   [
+    "torch/_dynamo/package.py",
+    "_add_function"
+   ],
+   [
+    "torch/_dynamo/package.py",
+    "add_guarded_code"
+   ],
+   [
+    "torch/_dynamo/package.py",
+    "from_code_object"
+   ]
+  ],
+  "n_pairs": 5,
+  "n_calls": 6,
+  "n_files": 2
+ },
+ "xfile/dynamo/192k/06-to_code_object": {
+  "corpus": "dynamo",
+  "length": "192k",
+  "prompt_tokens": 193651,
+  "files_in_pack": 53,
+  "name": "to_code_object",
+  "def": [
+   "torch/_dynamo/package.py",
+   99
+  ],
+  "calls": [
+   [
+    "torch/_dynamo/aot_compile.py",
+    "_unpickle_code"
+   ],
+   [
+    "torch/_dynamo/aot_compile.py",
+    "deserialize"
+   ],
+   [
+    "torch/_dynamo/package.py",
+    "initialize"
+   ],
+   [
+    "torch/_dynamo/package.py",
+    "install"
+   ],
+   [
+    "torch/_dynamo/package.py",
+    "to_code_object"
+   ]
+  ],
+  "n_pairs": 5,
+  "n_calls": 6,
+  "n_files": 2
+ },
+ "xfile/dynamo/192k/07-PackageError": {
+  "corpus": "dynamo",
+  "length": "192k",
+  "prompt_tokens": 193647,
+  "files_in_pack": 53,
+  "name": "PackageError",
+  "def": [
+   "torch/_dynamo/exc.py",
+   396
+  ],
+  "calls": [
+   [
+    "torch/_dynamo/package.py",
+    "_add_user_function"
+   ],
+   [
+    "torch/_dynamo/package.py",
+    "_get_code_source"
+   ],
+   [
+    "torch/_dynamo/package.py",
+    "_lookup_code"
+   ],
+   [
+    "torch/_dynamo/package.py",
+    "_raise_resolution_error"
+   ]
+  ],
+  "n_pairs": 4,
+  "n_calls": 5,
+  "n_files": 1
+ },
+ "xfile/dynamo/192k/08-render_code_state": {
+  "corpus": "dynamo",
+  "length": "192k",
+  "prompt_tokens": 193651,
+  "files_in_pack": 53,
+  "name": "render_code_state",
+  "def": [
+   "torch/_dynamo/pgo.py",
+   745
+  ],
+  "calls": [
+   [
+    "torch/_dynamo/pgo.py",
+    "get_extra_remote_code_state"
+   ],
+   [
+    "torch/_dynamo/pgo.py",
+    "hit"
+   ],
+   [
+    "torch/_dynamo/pgo.py",
+    "put_local_code_state"
+   ],
+   [
+    "torch/_dynamo/pgo.py",
+    "put_remote_code_state"
+   ]
+  ],
+  "n_pairs": 4,
+  "n_calls": 4,
+  "n_files": 1
+ },
+ "xfile/dynamo/192k/09-_esc_str": {
+  "corpus": "dynamo",
+  "length": "192k",
+  "prompt_tokens": 193649,
+  "files_in_pack": 53,
+  "name": "_esc_str",
+  "def": [
+   "torch/_dynamo/source.py",
+   131
+  ],
+  "calls": [
+   [
+    "torch/_dynamo/source.py",
+    "__post_init__"
+   ],
+   [
+    "torch/_dynamo/source.py",
+    "_name_template"
+   ],
+   [
+    "torch/_dynamo/source.py",
+    "method_name"
+   ],
+   [
+    "torch/_dynamo/source.py",
+    "reconstruct"
+   ]
+  ],
+  "n_pairs": 4,
+  "n_calls": 33,
+  "n_files": 1
+ }
+}

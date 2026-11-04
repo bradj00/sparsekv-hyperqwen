@@ -1,0 +1,106 @@
+gpu,gpu_model,job,suite,config_dir,variant,server_cfg,shard,conc,items_done,items_err,items_skipped,server_died,wall_secs,start_utc,end_utc,server_start_utc,server_boot_secs,results_file,source,note
+0,RTX 3090 Ti,kld-toggle,kld,kld/toggle,sparse-gpu toggle (dense+sparse),toggle,all,1,60,0,,False,3046.0,2026-11-02T04:45:03Z,2026-11-02T05:35:49Z,2026-11-02T04:42:03Z,180,results/kld/,kld-log,"dense+sparse per sample, same server; + 6-sample dense repeat; client restarted 04:53 (attached to running server)"
+1,RTX 3090,kld-ref,kld,kld/ref,dense (KLD reference),ref,all,1,60,0,,False,1990.0,2026-11-02T04:45:23Z,2026-11-02T05:18:33Z,2026-11-02T04:42:03Z,200,results/kld/,kld-log,dense reference generation; client restarted 04:53 (attached to running server)
+1,RTX 3090,kld-tier4,kld,kld/tier4,release-int4,tier4,all,1,60,0,,False,1588.0,2026-11-02T05:23:58Z,2026-11-02T05:50:26Z,2026-11-02T05:18:33Z,325,results/kld/,kld-log,"forced, int4 RAM tier (release config)"
+0,RTX 3090 Ti,kld-tier8,kld,kld/tier8,release-int8,tier8,all,1,36,0,,False,1067.0,2026-11-02T05:39:25Z,2026-11-02T05:57:12Z,2026-11-02T05:35:49Z,216,results/kld/,kld-log,"forced, int8 RAM tier (release config); 3 documents"
+1,RTX 3090,010-tier4-xfile,xfile,tier4,release-int4,tier4,1,1,,,,,147.0,2026-11-02T14:25:58Z,2026-11-02T14:28:25Z,2026-11-02T14:23:58Z,120,(none),runner-log,aborted start: runner restarted at 14:28Z before any record was written
+0,RTX 3090 Ti,010-dense-xfile,xfile,dense,dense,dense,0,1,60,0,0,False,720.6,2026-11-02T14:29:30Z,2026-11-02T14:41:30Z,2026-11-02T14:28:25Z,65,results/dense/xfile.g0.jsonl,stats,
+1,RTX 3090,010-tier4-xfile,xfile,tier4,release-int4,tier4,1,1,60,0,0,False,582.3,2026-11-02T14:29:40Z,2026-11-02T14:39:22Z,2026-11-02T14:28:25Z,75,results/tier4/xfile.g1.jsonl,stats,
+1,RTX 3090,011-tier4-ruler,ruler,tier4,release-int4,tier4,1,1,107,0,0,False,8073.5,2026-11-02T14:39:23Z,2026-11-02T16:53:56Z,,,results/tier4/ruler.g1.jsonl,stats,
+0,RTX 3090 Ti,011-dense-ruler,ruler,dense,dense,dense,0,1,114,0,0,False,10575.2,2026-11-02T14:41:31Z,2026-11-02T17:37:46Z,,,results/dense/ruler.g0.jsonl,stats,
+1,RTX 3090,012-tier4-lbv2,lbv2,tier4,release-int4,tier4,1,1,24,0,0,False,1750.1,2026-11-02T16:53:56Z,2026-11-02T17:23:06Z,,,results/tier4/lbv2.g1.jsonl,stats,
+1,RTX 3090,030-sparse-xfile (boot failure),xfile,sparse,sparse-gpu,sparse,1,1,0,0,,,335.0,2026-11-02T17:23:16Z,2026-11-02T17:28:51Z,2026-11-02T17:23:16Z,,,runner-log,server failed to boot twice (KV budget 7.34 > 7.2 GiB); re-queued with GPU_UTIL=0.945
+1,RTX 3090,031-sparse-ruler (boot failure),ruler,sparse,sparse-gpu,sparse,1,1,0,0,,,110.0,2026-11-02T17:28:51Z,2026-11-02T17:30:41Z,2026-11-02T17:28:51Z,,,runner-log,server failed to boot twice (KV budget 7.34 > 7.2 GiB); re-queued with GPU_UTIL=0.945
+1,RTX 3090,032-sparse-lbv2 (boot failure),lbv2,sparse,sparse-gpu,sparse,1,1,0,0,,,105.0,2026-11-02T17:30:41Z,2026-11-02T17:32:26Z,2026-11-02T17:30:41Z,,,runner-log,server failed to boot twice (KV budget 7.34 > 7.2 GiB); re-queued with GPU_UTIL=0.945
+1,RTX 3090,040-dense-xfile,xfile,dense,dense,dense,1,1,60,0,0,False,627.4,2026-11-02T17:33:41Z,2026-11-02T17:44:08Z,2026-11-02T17:32:26Z,75,results/dense/xfile.g1.jsonl,stats,
+0,RTX 3090 Ti,012-dense-lbv2,lbv2,dense,dense,dense,0,1,24,0,0,False,2103.1,2026-11-02T17:37:46Z,2026-11-02T18:12:49Z,,,results/dense/lbv2.g0.jsonl,stats,
+1,RTX 3090,041-dense-ruler,ruler,dense,dense,dense,1,1,107,0,0,False,7999.4,2026-11-02T17:44:09Z,2026-11-02T19:57:28Z,,,results/dense/ruler.g1.jsonl,stats,
+0,RTX 3090 Ti,020-sparse-xfile,xfile,sparse,sparse-gpu,sparse,0,1,60,0,0,False,719.1,2026-11-02T18:14:09Z,2026-11-02T18:26:08Z,2026-11-02T18:12:59Z,70,results/sparse/xfile.g0.jsonl,stats,
+0,RTX 3090 Ti,021-sparse-ruler,ruler,sparse,sparse-gpu,sparse,0,1,114,0,0,False,10466.6,2026-11-02T18:26:08Z,2026-11-02T21:20:34Z,,,results/sparse/ruler.g0.jsonl,stats,
+1,RTX 3090,030-sparse-xfile,xfile,sparse,sparse-gpu,sparse,1,1,60,0,0,False,628.4,2026-11-02T19:58:33Z,2026-11-02T20:09:01Z,2026-11-02T19:57:38Z,55,results/sparse/xfile.g1.jsonl,stats,
+1,RTX 3090,031-sparse-ruler,ruler,sparse,sparse-gpu,sparse,1,1,107,0,0,False,8006.1,2026-11-02T20:09:01Z,2026-11-02T22:22:27Z,,,results/sparse/ruler.g1.jsonl,stats,
+0,RTX 3090 Ti,022-sparse-lbv2,lbv2,sparse,sparse-gpu,sparse,0,1,24,0,0,False,2083.5,2026-11-02T21:20:35Z,2026-11-02T21:55:18Z,,,results/sparse/lbv2.g0.jsonl,stats,
+0,RTX 3090 Ti,040-tier4-xfile,xfile,tier4,release-int4,tier4,0,1,60,0,0,False,645.0,2026-11-02T21:56:38Z,2026-11-02T22:07:23Z,2026-11-02T21:55:28Z,70,results/tier4/xfile.g0.jsonl,stats,
+0,RTX 3090 Ti,041-tier4-ruler,ruler,tier4,release-int4,tier4,0,1,114,0,0,False,10371.7,2026-11-02T22:07:23Z,2026-11-03T01:00:14Z,,,results/tier4/ruler.g0.jsonl,stats,
+1,RTX 3090,0311-abl-knobs-xfile,xfile,abl_knobs,abl-knobsoff-int4,tier4,1,1,60,0,0,False,632.7,2026-11-02T22:24:03Z,2026-11-02T22:34:35Z,2026-11-02T22:22:38Z,85,results/abl_knobs/xfile.g1.jsonl,stats,
+1,RTX 3090,0312-abl-knobs-sk8-xfile,xfile,abl_knobs_sk8,abl-knobsoff-sketch8-int4,tier4,1,1,60,0,0,False,630.7,2026-11-02T22:36:10Z,2026-11-02T22:46:40Z,2026-11-02T22:34:45Z,85,results/abl_knobs_sk8/xfile.g1.jsonl,stats,
+1,RTX 3090,032-sparse-lbv2,lbv2,sparse,sparse-gpu,sparse,1,1,24,0,0,False,1720.0,2026-11-02T22:47:48Z,2026-11-02T23:16:28Z,2026-11-02T22:46:53Z,55,results/sparse/lbv2.g1.jsonl,stats,
+1,RTX 3090,0313-abl-knobs-tier8-xfile,xfile,abl_knobs_tier8,abl-knobsoff-int8,tier8,1,1,60,0,0,False,645.1,2026-11-02T23:17:58Z,2026-11-02T23:28:43Z,2026-11-02T23:16:38Z,80,results/abl_knobs_tier8/xfile.g1.jsonl,stats,
+1,RTX 3090,0314-tier8-xfile,xfile,tier8,release-int8,tier8,1,1,60,0,0,False,635.9,2026-11-02T23:30:13Z,2026-11-02T23:40:48Z,2026-11-02T23:28:53Z,80,results/tier8/xfile.g1.jsonl,stats,
+1,RTX 3090,03150-dense-hs,mmlupro_hs,dense_hs,dense,dense,1,1,24,0,0,False,1081.2,2026-11-02T23:41:54Z,2026-11-02T23:59:55Z,2026-11-02T23:40:59Z,55,results/dense_hs/mmlupro.g1.jsonl,stats,
+1,RTX 3090,03145-abl-sfx16k-xfile,xfile,abl_sfx16k,abl-knobsoff-ksel16k-int4,tier4,1,1,2,58,0,False,41.3,2026-11-03T00:01:20Z,2026-11-03T00:02:01Z,2026-11-03T00:00:05Z,75,results/abl_sfx16k/xfile.g1.jsonl,stats,
+1,RTX 3090,03146-abl-sfxoff-xfile,xfile,abl_sfxoff,fixed-int4,tier4,1,1,60,0,0,False,646.8,2026-11-03T00:03:27Z,2026-11-03T00:14:13Z,2026-11-03T00:02:12Z,75,results/abl_sfxoff/xfile.g1.jsonl,stats,
+1,RTX 3090,03151-sparse-hs,mmlupro_hs,sparse_hs,sparse-gpu,sparse,1,1,24,0,0,False,574.2,2026-11-03T00:15:24Z,2026-11-03T00:24:58Z,2026-11-03T00:14:24Z,60,results/sparse_hs/mmlupro.g1.jsonl,stats,
+1,RTX 3090,03147-fix-knobson-xfile,xfile,fix_knobson,fixed-knobson-int4,tier4,1,1,60,0,0,False,636.6,2026-11-03T00:26:13Z,2026-11-03T00:36:49Z,2026-11-03T00:25:08Z,65,results/fix_knobson/xfile.g1.jsonl,stats,
+1,RTX 3090,031475-fix8-xfile,xfile,fix8,fixed-int8,tier8,1,1,60,0,0,False,709.0,2026-11-03T00:38:19Z,2026-11-03T00:50:08Z,2026-11-03T00:36:59Z,80,results/fix8/xfile.g1.jsonl,stats,
+1,RTX 3090,03148-fix-ruler,ruler,fix,fixed-int4,tier4,1,1,241,0,0,False,24128.2,2026-11-03T00:51:38Z,2026-11-03T07:33:46Z,2026-11-03T00:50:18Z,80,results/fix/ruler.g1.jsonl,stats,
+0,RTX 3090 Ti,0230-dense-hs,mmlupro_hs,dense_hs,dense,dense,0,1,24,0,0,False,644.6,2026-11-03T01:01:25Z,2026-11-03T01:12:09Z,2026-11-03T01:00:25Z,60,results/dense_hs/mmlupro.g0.jsonl,stats,
+0,RTX 3090 Ti,0231-sparse-hs,mmlupro_hs,sparse_hs,sparse-gpu,sparse,0,1,24,0,0,False,833.8,2026-11-03T01:13:15Z,2026-11-03T01:27:08Z,2026-11-03T01:12:20Z,55,results/sparse_hs/mmlupro.g0.jsonl,stats,
+0,RTX 3090 Ti,0232-tier4-hs,mmlupro_hs,tier4_hs,fixed-int4,tier4,0,1,4,20,,,363.0,2026-11-03T01:28:33Z,2026-11-03T01:34:36Z,2026-11-03T01:27:18Z,75,(discarded),runner-log+event-log,"crashed run (server OOM 2026-11-03 01:34Z); outputs discarded, re-run as *-rq"
+0,RTX 3090 Ti,042-tier4-lbv2,lbv2,tier4,fixed-int4,tier4,0,1,0,24,,,0.0,2026-11-03T01:34:36Z,2026-11-03T01:34:36Z,,,(discarded),runner-log+event-log,"crashed run (server OOM 2026-11-03 01:34Z); outputs discarded, re-run as *-rq"
+0,RTX 3090 Ti,510-tier4-gpqa,gpqa,tier4,fixed-int4,tier4,0,4,0,99,,,0.0,2026-11-03T01:34:36Z,2026-11-03T01:34:36Z,,,(discarded),runner-log+event-log,"crashed run (server OOM 2026-11-03 01:34Z); outputs discarded, re-run as *-rq"
+0,RTX 3090 Ti,511-tier4-lcb,lcb,tier4,fixed-int4,tier4,0,4,0,40,,,0.0,2026-11-03T01:34:36Z,2026-11-03T01:34:36Z,,,(discarded),runner-log+event-log,"crashed run (server OOM 2026-11-03 01:34Z); outputs discarded, re-run as *-rq"
+0,RTX 3090 Ti,512-tier4-ifbench,ifbench,tier4,fixed-int4,tier4,0,4,0,150,,,0.0,2026-11-03T01:34:36Z,2026-11-03T01:34:36Z,,,(discarded),runner-log+event-log,"crashed run (server OOM 2026-11-03 01:34Z); outputs discarded, re-run as *-rq"
+0,RTX 3090 Ti,513-tier4-mmlupro,mmlupro,tier4,fixed-int4,tier4,0,4,0,140,,,10.0,2026-11-03T01:34:36Z,2026-11-03T01:34:46Z,,,(discarded),runner-log+event-log,"crashed run (server OOM 2026-11-03 01:34Z); outputs discarded, re-run as *-rq"
+0,RTX 3090 Ti,520-dense-gpqa,gpqa,dense,dense,dense,0,4,99,0,0,False,5235.9,2026-11-03T01:37:56Z,2026-11-03T03:05:11Z,2026-11-03T01:34:46Z,190,results/dense/gpqa.g0.jsonl,stats,
+0,RTX 3090 Ti,0200-0601-s5-a1-serial-hs-c4,mmlupro_hs,s5_serial_hs,s5-serial,tier4,0,4,24,0,0,False,635.6,2026-11-03T03:10:17Z,2026-11-03T03:20:52Z,2026-11-03T03:05:22Z,295,results/s5_serial_hs/mmlupro.g0c4.jsonl,stats,
+0,RTX 3090 Ti,0200-0601-s5-a2-exact-hs-c4,mmlupro_hs,s5_exact_hs,s5-exact,tier4,0,4,24,0,0,False,560.9,2026-11-03T03:22:32Z,2026-11-03T03:31:52Z,2026-11-03T03:21:02Z,90,results/s5_exact_hs/mmlupro.g0c4.jsonl,stats,
+0,RTX 3090 Ti,0200-0621-s5-c1-s4ref-xfile-c4,xfile,s5t_s4ref,s5-release+serial,tier4,1,4,60,0,0,False,1202.3,2026-11-03T03:33:43Z,2026-11-03T03:53:45Z,2026-11-03T03:32:03Z,100,results/s5t_s4ref/xfile.g1c4.jsonl,stats,
+0,RTX 3090 Ti,0200-0621-s5-c2-serial-xfile-c4,xfile,s5t_serial,s5-serial,tier4,1,4,60,0,0,False,1273.7,2026-11-03T03:55:06Z,2026-11-03T04:16:19Z,2026-11-03T03:53:56Z,70,results/s5t_serial/xfile.g1c4.jsonl,stats,
+0,RTX 3090 Ti,0200-0621-s5-c3-exact-xfile-c4,xfile,s5t_exact,s5-exact,tier4,1,4,60,0,0,False,1245.1,2026-11-03T04:17:39Z,2026-11-03T04:38:24Z,2026-11-03T04:16:29Z,70,results/s5t_exact/xfile.g1c4.jsonl,stats,
+0,RTX 3090 Ti,0200-0621-s5-c4-hyb128-xfile-c4,xfile,s5t_hyb128,s5-hyb128,tier4,1,4,60,0,0,False,1222.6,2026-11-03T04:39:40Z,2026-11-03T05:00:02Z,2026-11-03T04:38:35Z,65,results/s5t_hyb128/xfile.g1c4.jsonl,stats,
+0,RTX 3090 Ti,0232-tier4-hs-rq,mmlupro_hs,tier4_hs,fixed-int4,tier4,0,1,24,0,0,False,715.5,2026-11-03T05:01:22Z,2026-11-03T05:13:17Z,2026-11-03T05:00:12Z,70,(discarded),stats,re-run of a crashed job
+0,RTX 3090 Ti,042-tier4-lbv2-rq,lbv2,tier4,fixed-int4,tier4,0,1,24,0,0,False,2074.9,2026-11-03T05:13:18Z,2026-11-03T05:47:52Z,,,(discarded),stats,re-run of a crashed job
+0,RTX 3090 Ti,510-tier4-gpqa-rq,gpqa,tier4,fixed-int4,tier4,0,4,99,0,0,False,5461.7,2026-11-03T05:47:53Z,2026-11-03T07:18:54Z,,,(discarded),stats,re-run of a crashed job
+0,RTX 3090 Ti,511-tier4-lcb-rq,lcb,tier4,fixed-int4,tier4,0,4,40,0,0,False,2984.5,2026-11-03T07:18:54Z,2026-11-03T08:08:38Z,,,(discarded),stats,re-run of a crashed job
+1,RTX 3090,031476-0611-s5-b1-serial-xfile,xfile,s5_serial,s5-serial,tier4,1,1,60,0,0,False,657.2,2026-11-03T07:39:29Z,2026-11-03T07:50:26Z,2026-11-03T07:33:59Z,330,results/s5_serial/xfile.g1.jsonl,stats,
+1,RTX 3090,031476-0611-s5-b2-exact-xfile,xfile,s5_exact,s5-exact,tier4,1,1,60,0,0,False,616.7,2026-11-03T07:51:53Z,2026-11-03T08:02:09Z,2026-11-03T07:50:38Z,75,results/s5_exact/xfile.g1.jsonl,stats,
+1,RTX 3090,031476-0611-s5-b3-hyb128-xfile,xfile,s5_hyb128,s5-hyb128,tier4,1,1,60,0,0,False,602.2,2026-11-03T08:03:30Z,2026-11-03T08:13:32Z,2026-11-03T08:02:20Z,70,results/s5_hyb128/xfile.g1.jsonl,stats,
+0,RTX 3090 Ti,512-tier4-ifbench-rq,ifbench,tier4,fixed-int4,tier4,0,4,150,0,0,False,4648.0,2026-11-03T08:08:39Z,2026-11-03T09:26:07Z,,,(discarded),stats,re-run of a crashed job
+1,RTX 3090,031477a-dense_q4-xfile,xfile,dense_q4,dense-fakeq4,dense,1,1,60,0,0,False,637.9,2026-11-03T08:18:17Z,2026-11-03T08:28:54Z,2026-11-03T08:13:42Z,275,results/dense_q4/xfile.g1.jsonl,stats,
+1,RTX 3090,031477b-sparse_q4-xfile,xfile,sparse_q4,sparse-fakeq4,sparse,1,1,60,0,0,False,617.5,2026-11-03T08:30:15Z,2026-11-03T08:40:32Z,2026-11-03T08:29:05Z,70,results/sparse_q4/xfile.g1.jsonl,stats,
+1,RTX 3090,03152-tier4-hs,mmlupro_hs,tier4_hs,fixed-int4,tier4,1,1,24,0,0,False,732.7,2026-11-03T08:41:43Z,2026-11-03T08:53:55Z,2026-11-03T08:40:43Z,60,results/tier4_hs/mmlupro.g1.jsonl,stats,
+1,RTX 3090,042-dense-lbv2,lbv2,dense,dense,dense,1,1,24,0,0,False,1727.7,2026-11-03T08:55:00Z,2026-11-03T09:23:47Z,2026-11-03T08:54:05Z,55,results/dense/lbv2.g1.jsonl,stats,
+0,RTX 3090 Ti,513-tier4-mmlupro-rq,mmlupro,tier4,fixed-int4,tier4,0,4,140,0,0,False,1923.6,2026-11-03T09:26:07Z,2026-11-03T09:58:10Z,,,(discarded),stats,re-run of a crashed job
+1,RTX 3090,510-dense-gpqa,gpqa,dense,dense,dense,1,4,99,0,0,False,4448.2,2026-11-03T09:27:03Z,2026-11-03T10:41:11Z,2026-11-03T09:23:58Z,185,results/dense/gpqa.g1.jsonl,stats,
+0,RTX 3090 Ti,521-dense-lcb,lcb,dense,dense,dense,0,4,40,0,0,False,3197.7,2026-11-03T09:59:16Z,2026-11-03T10:52:33Z,2026-11-03T09:58:21Z,55,results/dense/lcb.g0.jsonl,stats,
+1,RTX 3090,511-dense-lcb,lcb,dense,dense,dense,1,4,40,0,0,False,2797.4,2026-11-03T10:41:11Z,2026-11-03T11:27:48Z,,,results/dense/lcb.g1.jsonl,stats,
+0,RTX 3090 Ti,522-dense-ifbench,ifbench,dense,dense,dense,0,4,150,0,0,False,4627.6,2026-11-03T10:52:33Z,2026-11-03T12:09:40Z,,,results/dense/ifbench.g0.jsonl,stats,
+1,RTX 3090,512-dense-ifbench,ifbench,dense,dense,dense,1,4,150,0,0,False,3624.8,2026-11-03T11:27:49Z,2026-11-03T12:28:13Z,,,results/dense/ifbench.g1.jsonl,stats,
+0,RTX 3090 Ti,523-dense-mmlupro,mmlupro,dense,dense,dense,0,4,140,0,0,False,1653.9,2026-11-03T12:09:41Z,2026-11-03T12:37:14Z,,,results/dense/mmlupro.g0.jsonl,stats,
+1,RTX 3090,513-dense-mmlupro,mmlupro,dense,dense,dense,1,4,140,0,0,False,2197.6,2026-11-03T12:28:13Z,2026-11-03T13:04:50Z,,,results/dense/mmlupro.g1.jsonl,stats,
+0,RTX 3090 Ti,610-dense-scbench,scbench,dense,dense,dense,0,1,16,0,0,False,2515.8,2026-11-03T12:38:15Z,2026-11-03T13:20:10Z,2026-11-03T12:37:25Z,50,results/dense/scbench.g0.jsonl,stats,
+1,RTX 3090,520-tier4-gpqa,gpqa,tier4,fixed-int4,tier4,1,4,99,0,0,False,4389.2,2026-11-03T13:06:11Z,2026-11-03T14:19:20Z,2026-11-03T13:05:01Z,70,results/tier4/gpqa.g1.jsonl,stats,
+0,RTX 3090 Ti,620-sparse-scbench,scbench,sparse,sparse-gpu,sparse,0,1,16,0,0,False,2505.4,2026-11-03T13:21:16Z,2026-11-03T14:03:01Z,2026-11-03T13:20:21Z,55,results/sparse/scbench.g0.jsonl,stats,
+0,RTX 3090 Ti,630-tier4-scbench,scbench,tier4,fixed-int4,tier4,0,1,16,0,0,False,2479.6,2026-11-03T14:04:16Z,2026-11-03T14:45:35Z,2026-11-03T14:03:11Z,65,results/tier4/scbench.g0.jsonl,stats,
+1,RTX 3090,521-tier4-lcb,lcb,tier4,fixed-int4,tier4,1,4,40,0,0,False,2958.8,2026-11-03T14:19:20Z,2026-11-03T15:08:38Z,,,results/tier4/lcb.g1.jsonl,stats,
+0,RTX 3090 Ti,710-dense-mtp,mtp,dense,dense,dense,0,1,8,0,0,False,638.1,2026-11-03T14:47:13Z,2026-11-03T14:57:51Z,2026-11-03T14:45:48Z,85,results/dense/mtp.g0.jsonl,stats,
+0,RTX 3090 Ti,720-sparse-mtp,mtp,sparse,sparse-gpu,sparse,0,1,8,0,0,False,629.3,2026-11-03T14:59:01Z,2026-11-03T15:09:30Z,2026-11-03T14:58:01Z,60,results/sparse/mtp.g0.jsonl,stats,
+1,RTX 3090,522-tier4-ifbench,ifbench,tier4,fixed-int4,tier4,1,4,150,0,0,False,3611.5,2026-11-03T15:08:39Z,2026-11-03T16:08:50Z,,,results/tier4/ifbench.g1.jsonl,stats,
+0,RTX 3090 Ti,730-tier4-mtp,mtp,tier4,fixed-int4,tier4,0,1,10,0,0,False,840.0,2026-11-03T15:10:55Z,2026-11-03T15:24:55Z,2026-11-03T15:09:40Z,75,results/tier4/mtp.g0.jsonl,stats,
+0,RTX 3090 Ti,930-tier8-xfile,xfile,tier8,fixed-int8,tier8,0,1,60,0,0,False,718.8,2026-11-03T15:26:42Z,2026-11-03T15:38:40Z,2026-11-03T15:25:07Z,95,results/tier8/xfile.g0.jsonl,stats,
+0,RTX 3090 Ti,931-tier8-ruler,ruler,tier8,fixed-int8,tier8,0,1,114,0,0,False,10647.6,2026-11-03T15:38:41Z,2026-11-03T18:36:08Z,,,results/tier8/ruler.g0.jsonl,stats,
+1,RTX 3090,523-tier4-mmlupro,mmlupro,tier4,fixed-int4,tier4,1,4,140,0,0,False,2252.3,2026-11-03T16:08:51Z,2026-11-03T16:46:23Z,,,results/tier4/mmlupro.g1.jsonl,stats,
+1,RTX 3090,610-tier4-scbench,scbench,tier4,fixed-int4,tier4,1,1,16,0,0,False,1892.9,2026-11-03T16:46:23Z,2026-11-03T17:17:55Z,,,results/tier4/scbench.g1.jsonl,stats,
+1,RTX 3090,620-sparse-scbench,scbench,sparse,sparse-gpu,sparse,1,1,16,0,0,False,1849.7,2026-11-03T17:19:38Z,2026-11-03T17:50:27Z,2026-11-03T17:18:08Z,90,results/sparse/scbench.g1.jsonl,stats,
+1,RTX 3090,630-dense-scbench,scbench,dense,dense,dense,1,1,16,0,0,False,1848.6,2026-11-03T17:51:38Z,2026-11-03T18:22:26Z,2026-11-03T17:50:38Z,60,results/dense/scbench.g1.jsonl,stats,
+1,RTX 3090,710-tier4-mtp,mtp,tier4,fixed-int4,tier4,1,1,5,0,0,False,357.6,2026-11-03T18:23:51Z,2026-11-03T18:29:48Z,2026-11-03T18:22:36Z,75,results/tier4/mtp.g1.jsonl,stats,
+1,RTX 3090,720-sparse-mtp,mtp,sparse,sparse-gpu,sparse,1,1,4,0,0,False,251.7,2026-11-03T18:31:16Z,2026-11-03T18:35:27Z,2026-11-03T18:30:01Z,75,results/sparse/mtp.g1.jsonl,stats,
+0,RTX 3090 Ti,932-tier8-lbv2,lbv2,tier8,fixed-int8,tier8,0,1,24,0,0,False,2113.0,2026-11-03T18:36:09Z,2026-11-03T19:11:22Z,,,results/tier8/lbv2.g0.jsonl,stats,
+1,RTX 3090,730-dense-mtp,mtp,dense,dense,dense,1,1,4,0,0,False,256.3,2026-11-03T18:36:38Z,2026-11-03T18:40:54Z,2026-11-03T18:35:38Z,60,results/dense/mtp.g1.jsonl,stats,
+1,RTX 3090,921-tier8-ruler,ruler,tier8,fixed-int8,tier8,1,1,107,0,0,False,8185.8,2026-11-03T18:42:19Z,2026-11-03T20:58:44Z,2026-11-03T18:41:04Z,75,results/tier8/ruler.g1.jsonl,stats,
+0,RTX 3090 Ti,940-tier8-scbench,scbench,tier8,fixed-int8,tier8,0,1,16,0,0,False,2523.3,2026-11-03T19:11:22Z,2026-11-03T19:53:25Z,,,results/tier8/scbench.g0.jsonl,stats,
+0,RTX 3090 Ti,kld-toggle_ctl,kld,kld/toggle_ctl,q4 control (knob off),toggle_ctl,all,1,4,0,,False,505.0,2026-11-03T20:17:05Z,2026-11-03T20:25:30Z,2026-11-03T20:12:20Z,285,results/kld/,kld-log,"q4 control: knob off, 4 samples"
+0,RTX 3090 Ti,kld-toggle_q4,kld,kld/toggle_q4,"sparse-gpu toggle, fake-int4 KV",toggle_q4,all,1,60,0,,False,2224.0,2026-11-03T20:26:26Z,2026-11-03T21:03:30Z,2026-11-03T20:25:30Z,56,results/kld/,kld-log,"q4: fake-int4 KV, dense+sparse per sample"
+1,RTX 3090,922-tier8-lbv2,lbv2,tier8,fixed-int8,tier8,1,1,24,0,0,False,1774.9,2026-11-03T20:58:45Z,2026-11-03T21:28:19Z,,,results/tier8/lbv2.g1.jsonl,stats,
+0,RTX 3090 Ti,kld-dense_q4,kld,kld/dense_q4,dense-fakeq4,dense_q4,all,1,60,0,,False,1817.0,2026-11-03T21:04:20Z,2026-11-03T21:34:37Z,2026-11-03T21:03:30Z,50,results/kld/,kld-log,"q4: fake-int4 KV, server without SPARSE_*"
+1,RTX 3090,940-tier8-scbench,scbench,tier8,fixed-int8,tier8,1,1,16,0,0,False,1927.3,2026-11-03T21:28:20Z,2026-11-03T22:00:27Z,,,results/tier8/scbench.g1.jsonl,stats,
+0,RTX 3090 Ti,940-tier8-scbench,scbench,tier8,fixed-int8,tier8,1,1,,,,,144.0,2026-11-03T21:35:47Z,2026-11-03T21:38:11Z,2026-11-03T21:34:37Z,70,(none),runner-log,"duplicate start after a queue move; killed after 2 min, no records kept"
+0,RTX 3090 Ti,961-sparse_q4-ruler,ruler,sparse_q4,sparse-fakeq4,sparse,1,1,107,0,0,False,9828.7,2026-11-03T21:43:21Z,2026-11-04T00:27:09Z,2026-11-03T21:38:11Z,310,results/sparse_q4/ruler.g1.jsonl,stats,
+1,RTX 3090,951-dense_q4-ruler,ruler,dense_q4,dense-fakeq4,dense,1,1,107,0,0,False,7906.8,2026-11-03T22:01:37Z,2026-11-04T00:13:23Z,2026-11-03T22:00:37Z,60,results/dense_q4/ruler.g1.jsonl,stats,
+1,RTX 3090,0721-s6-b0-oldbasis-xfile,xfile,s6_basis,s6-basis-release,tier4,1,1,60,0,0,False,645.2,2026-11-04T00:30:13Z,2026-11-04T00:40:58Z,2026-11-04T00:24:48Z,325,results/s6_basis/old.g1.jsonl,stats,
+1,RTX 3090,0722-s6-b1-lmse-xfile,xfile,s6_basis,s6-basis-lmse,tier4,1,1,60,0,0,False,646.4,2026-11-04T00:42:24Z,2026-11-04T00:53:10Z,2026-11-04T00:41:09Z,75,results/s6_basis/lmse.g1.jsonl,stats,
+0,RTX 3090 Ti,0701-s6-r1-disk-prime,s6_resume,s6_resume,s6-disk-resume,tier4,all,1,2,0,,,417.0,2026-11-04T00:44:30Z,2026-11-04T00:51:27Z,2026-11-04T00:39:20Z,310,results/s6_resume/disk_prime.jsonl,runner-log+event-log,first run (persisted 2 prompts to disk)
+0,RTX 3090 Ti,0702-s6-r2-disk-resume,s6_resume,s6_resume,s6-disk-resume,tier4,all,1,,,,,368.0,2026-11-04T00:52:52Z,2026-11-04T00:59:00Z,2026-11-04T00:51:27Z,85,results/s6_resume/disk_resume.jsonl,runner-log,interrupted by host maintenance stop (1 item written)
+0,RTX 3090 Ti,0701-s6-r1-disk-prime,s6_resume,s6_resume,s6-disk-resume,tier4,all,1,2,0,2,False,0.1,2026-11-04T01:18:28Z,2026-11-04T01:18:28Z,2026-11-04T01:17:08Z,80,results/s6_resume/disk_prime.jsonl,stats,"re-run after host reboot: both items already done, skipped"
+0,RTX 3090 Ti,0702-s6-r2-disk-resume,s6_resume,s6_resume,s6-disk-resume,tier4,all,1,2,0,1,False,267.8,2026-11-04T01:19:48Z,2026-11-04T01:24:15Z,2026-11-04T01:18:38Z,70,results/s6_resume/disk_resume.jsonl,stats,"re-run after reboot (1 item skipped, 1 run)"

@@ -1,0 +1,1 @@
+{"block_size": 864, "num_gpu_blocks": 286, "speculative": false, "sparse_kv": true, "toggle": true, "max_model_len": 199000}

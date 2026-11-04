@@ -1,0 +1,1553 @@
+{
+ "_meta": {
+  "source": "microsoft/SCBench",
+  "revision": "283310bb8c5ba6909dd9a6b1be087d2937f76f6d",
+  "official_code": "MInference@29ef1974fcb5a1440ccf92d7d7996900230fddcf scbench/",
+  "selection": "first 8 samples per task in dataset order whose estimated final prompt <= 190000 tokens (truncate earliest non-fitting only if too few fit)",
+  "mode": "multi-turn, disable_golden_context (own answers), chat template enable_thinking=False"
+ },
+ "scbench/kv/0": {
+  "task": "scbench_kv",
+  "idx": 0,
+  "prompt_tokens_turn1": 169089,
+  "approx_final_tokens": 170083,
+  "truncated": false,
+  "n_turns": 5,
+  "max_tokens_per_turn": 150,
+  "turns": [
+   {
+    "query": "Key: \"6ab6ea3e-f288-4f33-ba46-7f42bb75b03f\"\nThe value associated with the specified key is:",
+    "ground_truth": "cb59052b-9128-4979-9c0e-e1de4adcf73b"
+   },
+   {
+    "query": "Key: \"3ebf05c3-35af-483b-b46e-1bf3c67f3682\"\nThe value associated with the specified key is:",
+    "ground_truth": "a9ee6345-2331-4914-b32b-25a780931d45"
+   },
+   {
+    "query": "Key: \"798c2306-5ad1-42a9-a8de-f2a118b33744\"\nThe value associated with the specified key is:",
+    "ground_truth": "5e6b7b90-710d-4953-9b18-3e96b2cadbf2"
+   },
+   {
+    "query": "Key: \"7f8461f4-93c2-4536-9cfa-5ce11560fa07\"\nThe value associated with the specified key is:",
+    "ground_truth": "3b2dd49b-7437-4432-ac24-06fb8f7f862e"
+   },
+   {
+    "query": "Key: \"8d339f3b-260c-4360-9849-af3c72317a78\"\nThe value associated with the specified key is:",
+    "ground_truth": "96945afe-fded-413c-aa0e-f8bb3e5fd45e"
+   }
+  ]
+ },
+ "scbench/kv/1": {
+  "task": "scbench_kv",
+  "idx": 1,
+  "prompt_tokens_turn1": 169316,
+  "approx_final_tokens": 170300,
+  "truncated": false,
+  "n_turns": 5,
+  "max_tokens_per_turn": 150,
+  "turns": [
+   {
+    "query": "Key: \"887a5ada-f277-459d-be15-2960ef13fecb\"\nThe value associated with the specified key is:",
+    "ground_truth": "0ed60ced-6a69-433a-bcfe-866961b5ec56"
+   },
+   {
+    "query": "Key: \"e31db3bf-f7f9-4e64-88c6-3f328cf100a2\"\nThe value associated with the specified key is:",
+    "ground_truth": "f30e9d8c-2c54-411c-be68-3797f744b894"
+   },
+   {
+    "query": "Key: \"8ab31076-37cb-4425-bbec-84bed2df3e47\"\nThe value associated with the specified key is:",
+    "ground_truth": "b0825e78-9c71-49fe-a098-943ca5717468"
+   },
+   {
+    "query": "Key: \"d93f1b7d-c095-4066-bace-ce6a09c90fdf\"\nThe value associated with the specified key is:",
+    "ground_truth": "013def22-9d39-4a05-aadf-fee440544640"
+   },
+   {
+    "query": "Key: \"98c17468-ae59-4bc3-96a0-210359b3558b\"\nThe value associated with the specified key is:",
+    "ground_truth": "787a1d95-562b-4f1f-8568-08c4e4a9f519"
+   }
+  ]
+ },
+ "scbench/kv/2": {
+  "task": "scbench_kv",
+  "idx": 2,
+  "prompt_tokens_turn1": 169074,
+  "approx_final_tokens": 170064,
+  "truncated": false,
+  "n_turns": 5,
+  "max_tokens_per_turn": 150,
+  "turns": [
+   {
+    "query": "Key: \"f4aa2537-3dd8-4d6f-8962-c8467b972929\"\nThe value associated with the specified key is:",
+    "ground_truth": "585377b2-b0ca-41bc-8c88-28c9d1c070d1"
+   },
+   {
+    "query": "Key: \"de8e567c-4403-4fbb-8537-576d067363f2\"\nThe value associated with the specified key is:",
+    "ground_truth": "6f6687eb-fc98-469d-8255-a3e3c00e2478"
+   },
+   {
+    "query": "Key: \"70d1b207-d1e8-4591-95b8-9c85aceb8956\"\nThe value associated with the specified key is:",
+    "ground_truth": "fdb85cea-f0d6-4a71-a3eb-9fe18225b29e"
+   },
+   {
+    "query": "Key: \"f735fdd4-899d-49a2-a1cc-77a473d10180\"\nThe value associated with the specified key is:",
+    "ground_truth": "80fe18a9-a7a3-4a16-bc38-8c1918c919e1"
+   },
+   {
+    "query": "Key: \"1bad9c84-2cad-4b8c-acc0-452e1cb5bd46\"\nThe value associated with the specified key is:",
+    "ground_truth": "e60f2296-28ce-4975-b278-b47a5efca236"
+   }
+  ]
+ },
+ "scbench/kv/3": {
+  "task": "scbench_kv",
+  "idx": 3,
+  "prompt_tokens_turn1": 169291,
+  "approx_final_tokens": 170281,
+  "truncated": false,
+  "n_turns": 5,
+  "max_tokens_per_turn": 150,
+  "turns": [
+   {
+    "query": "Key: \"d1b6c52f-b33a-46c3-825f-97271c920fbe\"\nThe value associated with the specified key is:",
+    "ground_truth": "a88e1610-dc9c-4198-9f4b-e58034b762e0"
+   },
+   {
+    "query": "Key: \"7f31b45e-585c-4b0b-a982-6d45ed8e5001\"\nThe value associated with the specified key is:",
+    "ground_truth": "de97beb4-683e-4e0a-bf3d-ca7263232d0d"
+   },
+   {
+    "query": "Key: \"eb53b100-9a4e-4af6-b356-c808de36eb89\"\nThe value associated with the specified key is:",
+    "ground_truth": "cf9b468a-6c15-4d2b-a25e-a37e6ad78412"
+   },
+   {
+    "query": "Key: \"df4cbcd4-8d5f-47a8-8c86-58737f6bb6e8\"\nThe value associated with the specified key is:",
+    "ground_truth": "b0cca966-d62c-4279-a85e-2358fb2eda55"
+   },
+   {
+    "query": "Key: \"f1123b6a-f860-4b45-9aab-956f535836ed\"\nThe value associated with the specified key is:",
+    "ground_truth": "927d0b70-5935-46d5-aacc-cb3b51bd5680"
+   }
+  ]
+ },
+ "scbench/kv/4": {
+  "task": "scbench_kv",
+  "idx": 4,
+  "prompt_tokens_turn1": 169148,
+  "approx_final_tokens": 170140,
+  "truncated": false,
+  "n_turns": 5,
+  "max_tokens_per_turn": 150,
+  "turns": [
+   {
+    "query": "Key: \"7417448a-4068-4d28-94ef-771e02c0146d\"\nThe value associated with the specified key is:",
+    "ground_truth": "1d042ac4-2e84-4df9-b08b-f3d58ad0ef60"
+   },
+   {
+    "query": "Key: \"76180bc5-9b06-4ef7-b7af-1127732a4780\"\nThe value associated with the specified key is:",
+    "ground_truth": "bcf7df24-480c-4a94-9fae-8d21ca049bdb"
+   },
+   {
+    "query": "Key: \"f5ed6a68-3b3d-4e99-bfe7-297413c5a321\"\nThe value associated with the specified key is:",
+    "ground_truth": "398d3b4c-8aca-4719-927a-b7aa995e662c"
+   },
+   {
+    "query": "Key: \"27b7b1e7-926d-470f-ab08-8b34eed64184\"\nThe value associated with the specified key is:",
+    "ground_truth": "aaaa9457-6cfb-442a-b053-8cb1e8ce02ef"
+   },
+   {
+    "query": "Key: \"78562678-39d4-4cb4-9d03-0cc974a2c9ab\"\nThe value associated with the specified key is:",
+    "ground_truth": "7673761a-b81f-4b9e-a806-b92430c0d187"
+   }
+  ]
+ },
+ "scbench/kv/5": {
+  "task": "scbench_kv",
+  "idx": 5,
+  "prompt_tokens_turn1": 169137,
+  "approx_final_tokens": 170122,
+  "truncated": false,
+  "n_turns": 5,
+  "max_tokens_per_turn": 150,
+  "turns": [
+   {
+    "query": "Key: \"222e6b5f-d5ff-467c-9df5-1b4dce33ab6d\"\nThe value associated with the specified key is:",
+    "ground_truth": "b1f768af-4793-466a-9ebb-6a6becdde93e"
+   },
+   {
+    "query": "Key: \"0a5bc2e9-31c8-49fc-bf5a-aab64bd77860\"\nThe value associated with the specified key is:",
+    "ground_truth": "4204a3f3-3618-4173-acff-ed0ce5886bd5"
+   },
+   {
+    "query": "Key: \"c6752365-b7aa-4aae-b980-ed886dc1176f\"\nThe value associated with the specified key is:",
+    "ground_truth": "ccc6d6ff-e9ef-43a2-817a-6defd3026665"
+   },
+   {
+    "query": "Key: \"674eaf60-e025-42bd-97ab-0c7c0d8468ca\"\nThe value associated with the specified key is:",
+    "ground_truth": "dfcab065-c85a-483f-9d7e-ec224ac1ccd6"
+   },
+   {
+    "query": "Key: \"8c8eeb4a-0d3f-4514-9ab8-7ce22476e956\"\nThe value associated with the specified key is:",
+    "ground_truth": "3c23ac38-7bc9-4533-896b-3e06ff4203ff"
+   }
+  ]
+ },
+ "scbench/kv/6": {
+  "task": "scbench_kv",
+  "idx": 6,
+  "prompt_tokens_turn1": 169229,
+  "approx_final_tokens": 170215,
+  "truncated": false,
+  "n_turns": 5,
+  "max_tokens_per_turn": 150,
+  "turns": [
+   {
+    "query": "Key: \"17fa887f-16fc-4cb5-bd97-186984e0c86f\"\nThe value associated with the specified key is:",
+    "ground_truth": "200ddf0c-49fd-469d-ba84-6f5eb804fb34"
+   },
+   {
+    "query": "Key: \"56f69012-2463-47a1-bb68-3ff8c95eaa81\"\nThe value associated with the specified key is:",
+    "ground_truth": "eb8f628a-b727-4fdd-b344-7b568ee167f1"
+   },
+   {
+    "query": "Key: \"6da9c735-89fd-43ad-a265-e04ddb6db2cb\"\nThe value associated with the specified key is:",
+    "ground_truth": "4aad53bf-5811-40f4-865f-17f85ff0902b"
+   },
+   {
+    "query": "Key: \"71ddd2d7-bcc2-49c1-bf69-e82b679be406\"\nThe value associated with the specified key is:",
+    "ground_truth": "d71460c2-4672-429b-bd64-33aca22780eb"
+   },
+   {
+    "query": "Key: \"82d9a287-46af-43c5-847b-54e1f9175c9c\"\nThe value associated with the specified key is:",
+    "ground_truth": "26d23cd4-5162-4557-8360-d94042e13ffb"
+   }
+  ]
+ },
+ "scbench/kv/7": {
+  "task": "scbench_kv",
+  "idx": 7,
+  "prompt_tokens_turn1": 169216,
+  "approx_final_tokens": 170206,
+  "truncated": false,
+  "n_turns": 5,
+  "max_tokens_per_turn": 150,
+  "turns": [
+   {
+    "query": "Key: \"87f704b3-66ea-45b3-ba04-1c5d3549e5ec\"\nThe value associated with the specified key is:",
+    "ground_truth": "1e2449c9-a619-4fad-9876-9870639ceac0"
+   },
+   {
+    "query": "Key: \"9046ad2b-6e32-4e4b-bb14-bae4bb0686a6\"\nThe value associated with the specified key is:",
+    "ground_truth": "487d4331-9b1c-4117-b5c9-5550268b9dfc"
+   },
+   {
+    "query": "Key: \"bd66a656-3d65-441d-a3f1-fa35c7307770\"\nThe value associated with the specified key is:",
+    "ground_truth": "dbff500c-c853-4cff-a41b-303badbd1fdd"
+   },
+   {
+    "query": "Key: \"a04acdbf-89ee-4ca1-bff8-70a7d4a49f3b\"\nThe value associated with the specified key is:",
+    "ground_truth": "d453be0b-ac52-4c5a-b0ab-7cece28f3dcd"
+   },
+   {
+    "query": "Key: \"4c9f6089-81a5-4eae-b987-8b225d741b24\"\nThe value associated with the specified key is:",
+    "ground_truth": "34d25e3a-a073-46f4-a7b4-d0f57bb1d745"
+   }
+  ]
+ },
+ "scbench/repoqa/0": {
+  "task": "scbench_repoqa",
+  "idx": 0,
+  "prompt_tokens_turn1": 73465,
+  "approx_final_tokens": 79355,
+  "truncated": false,
+  "n_turns": 5,
+  "max_tokens_per_turn": 1024,
+  "turns": [
+   {
+    "query": "Function Description: \n1. **Purpose**: The function determines whether it is permissible to omit a closing parenthesis in a given line of code, ensuring the code remains readable and correctly formatt",
+    "ground_truth": {
+     "answer": "def _can_omit_closing_paren(line: Line, *, last: Leaf, line_length: int) -> bool:\n    \"\"\"See `can_omit_invisible_parens`.\"\"\"\n    length = 4 * line.depth\n    seen_other_brackets = False\n    for _index, leaf, leaf_length in line.enumerate_with_length():\n        length += leaf_length\n        if leaf is last.opening_bracket:\n            if seen_other_brackets or length <= line_length:\n                return True\n\n        elif leaf.type in OPENING_BRACKETS:\n            # There are brackets we can further split on.\n            seen_other_brackets = True\n\n    return False",
+     "func_name": "_can_omit_closing_paren"
+    }
+   },
+   {
+    "query": "Function Description: \n1. **Purpose**: To determine if a given formatted string contains any embedded expressions.\n2. **Input**: A single string that is expected to be a formatted string.\n3. **Output*",
+    "ground_truth": {
+     "answer": "def fstring_contains_expr(s: str) -> bool:\n    return any(iter_fexpr_spans(s))",
+     "func_name": "fstring_contains_expr"
+    }
+   },
+   {
+    "query": "Function Description: \n1. **Purpose**: To determine if a specific feature is supported by any of the given target versions of Python.\n2. **Input**: A set of target Python versions and a specific featu",
+    "ground_truth": {
+     "answer": "def supports_feature(target_versions: Set[TargetVersion], feature: Feature) -> bool:\n    return all(feature in VERSION_TO_FEATURES[version] for version in target_versions)",
+     "func_name": "supports_feature"
+    }
+   },
+   {
+    "query": "Function Description: \n1. **Purpose**: The function aims to merge strings that have been split across multiple lines using backslash line-continuation characters.\n2. **Input**: It takes a line object ",
+    "ground_truth": {
+     "answer": "    def _remove_backslash_line_continuation_chars(\n        line: Line, string_indices: List[int]\n    ) -> TResult[Line]:\n        \"\"\"\n        Merge strings that were split across multiple lines using\n        line-continuation backslashes.\n\n        Returns:\n            Ok(new_line), if @line contains backslash line-continuation\n            characters.\n                OR\n            Err(CannotTransform), otherwise.\n        \"\"\"\n        LL = line.leaves\n\n        indices_to_transform = []\n        for string_idx in string_indices:\n            string_leaf = LL[string_idx]\n            if (\n                string_leaf.type == token.STRING\n                and \"\\\\\\n\" in string_leaf.value\n                and not has_triple_quotes(string_leaf.value)\n            ):\n                indices_to_transform.append(string_idx)\n\n        if not indices_to_transform:\n            return TErr(\n                \"Found no string leaves that contain backslash line continuation\"\n                \" characters.\"\n            )\n\n        new_line = line.clone()\n        new_line.comments = line.comments.copy()\n        append_leaves(new_line, line, LL)\n\n        for string_idx in indices_to_transform:\n            new_string_leaf = new_line.leaves[string_idx]\n            new_string_leaf.value = new_string_leaf.value.replace(\"\\\\\\n\", \"\")\n\n        return Ok(new_line)",
+     "func_name": "_remove_backslash_line_continuation_chars"
+    }
+   },
+   {
+    "query": "Function Description: \n1. **Purpose**: The function identifies positions within a string where splitting is not allowed due to specific syntactic constructs, ensuring that these constructs remain inta",
+    "ground_truth": {
+     "answer": "    def _get_illegal_split_indices(self, string: str) -> Set[Index]:\n        illegal_indices: Set[Index] = set()\n        iterators = [\n            self._iter_fexpr_slices(string),\n            self._iter_nameescape_slices(string),\n        ]\n        for it in iterators:\n            for begin, end in it:\n                illegal_indices.update(range(begin, end + 1))\n        return illegal_indices",
+     "func_name": "_get_illegal_split_indices"
+    }
+   }
+  ],
+  "lang": "python",
+  "repo": "psf/black",
+  "needles": [
+   {
+    "needle": "def _can_omit_closing_paren(line: Line, *, last: Leaf, line_length: int) -> bool:\n    \"\"\"See `can_omit_invisible_parens`.\"\"\"\n    length = 4 * line.depth\n    seen_other_brackets = False\n    for _index, leaf, leaf_length in line.enumerate_with_length():\n        length += leaf_length\n        if leaf is last.opening_bracket:\n            if seen_other_brackets or length <= line_length:\n                return True\n\n        elif leaf.type in OPENING_BRACKETS:\n            # There are brackets we can further split on.\n            seen_other_brackets = True\n\n    return False",
+    "name": "_can_omit_closing_paren"
+   },
+   {
+    "needle": "def fstring_contains_expr(s: str) -> bool:\n    return any(iter_fexpr_spans(s))",
+    "name": "fstring_contains_expr"
+   },
+   {
+    "needle": "def supports_feature(target_versions: Set[TargetVersion], feature: Feature) -> bool:\n    return all(feature in VERSION_TO_FEATURES[version] for version in target_versions)",
+    "name": "supports_feature"
+   },
+   {
+    "needle": "    def _remove_backslash_line_continuation_chars(\n        line: Line, string_indices: List[int]\n    ) -> TResult[Line]:\n        \"\"\"\n        Merge strings that were split across multiple lines using\n        line-continuation backslashes.\n\n        Returns:\n            Ok(new_line), if @line contains backslash line-continuation\n            characters.\n                OR\n            Err(CannotTransform), otherwise.\n        \"\"\"\n        LL = line.leaves\n\n        indices_to_transform = []\n        for string_idx in string_indices:\n            string_leaf = LL[string_idx]\n            if (\n                string_leaf.type == token.STRING\n                and \"\\\\\\n\" in string_leaf.value\n                and not has_triple_quotes(string_leaf.value)\n            ):\n                indices_to_transform.append(string_idx)\n\n        if not indices_to_transform:\n            return TErr(\n                \"Found no string leaves that contain backslash line continuation\"\n                \" characters.\"\n            )\n\n        new_line = line.clone()\n        new_line.comments = line.comments.copy()\n        append_leaves(new_line, line, LL)\n\n        for string_idx in indices_to_transform:\n            new_string_leaf = new_line.leaves[string_idx]\n            new_string_leaf.value = new_string_leaf.value.replace(\"\\\\\\n\", \"\")\n\n        return Ok(new_line)",
+    "name": "_remove_backslash_line_continuation_chars"
+   },
+   {
+    "needle": "    def _get_illegal_split_indices(self, string: str) -> Set[Index]:\n        illegal_indices: Set[Index] = set()\n        iterators = [\n            self._iter_fexpr_slices(string),\n            self._iter_nameescape_slices(string),\n        ]\n        for it in iterators:\n            for begin, end in it:\n                illegal_indices.update(range(begin, end + 1))\n        return illegal_indices",
+    "name": "_get_illegal_split_indices"
+   },
+   {
+    "needle": "def enumerate_reversed(sequence: Sequence[T]) -> Iterator[Tuple[Index, T]]:\n    \"\"\"Like `reversed(enumerate(sequence))` if that were possible.\"\"\"\n    index = len(sequence) - 1\n    for element in reversed(sequence):\n        yield (index, element)\n        index -= 1",
+    "name": "enumerate_reversed"
+   },
+   {
+    "needle": "        def more_splits_should_be_made() -> bool:\n            \"\"\"\n            Returns:\n                True iff `rest_value` (the remaining string value from the last\n                split), should be split again.\n            \"\"\"\n            if use_custom_breakpoints:\n                return len(custom_splits) > 1\n            else:\n                return str_width(rest_value) > max_last_string_column()",
+    "name": "more_splits_should_be_made"
+   },
+   {
+    "needle": "def max_delimiter_priority_in_atom(node: LN) -> Priority:\n    \"\"\"Return maximum delimiter priority inside `node`.\n\n    This is specific to atoms with contents contained in a pair of parentheses.\n    If `node` isn't an atom or there are no enclosing parentheses, returns 0.\n    \"\"\"\n    if node.type != syms.atom:\n        return 0\n\n    first = node.children[0]\n    last = node.children[-1]\n    if not (first.type == token.LPAR and last.type == token.RPAR):\n        return 0\n\n    bt = BracketTracker()\n    for c in node.children[1:-1]:\n        if isinstance(c, Leaf):\n            bt.mark(c)\n        else:\n            for leaf in c.leaves():\n                bt.mark(leaf)\n    try:\n        return bt.max_delimiter_priority()\n\n    except ValueError:\n        return 0",
+    "name": "max_delimiter_priority_in_atom"
+   },
+   {
+    "needle": "    def _return_match(LL: List[Leaf]) -> Optional[int]:\n        \"\"\"\n        Returns:\n            string_idx such that @LL[string_idx] is equal to our target (i.e.\n            matched) string, if this line matches the return/yield statement\n            requirements listed in the 'Requirements' section of this classes'\n            docstring.\n                OR\n            None, otherwise.\n        \"\"\"\n        # If this line is a part of a return/yield statement and the first leaf\n        # contains either the \"return\" or \"yield\" keywords...\n        if parent_type(LL[0]) in [syms.return_stmt, syms.yield_expr] and LL[\n            0\n        ].value in [\"return\", \"yield\"]:\n            is_valid_index = is_valid_index_factory(LL)\n\n            idx = 2 if is_valid_index(1) and is_empty_par(LL[1]) else 1\n            # The next visible leaf MUST contain a string...\n            if is_valid_index(idx) and LL[idx].type == token.STRING:\n                return idx\n\n        return None",
+    "name": "_return_match"
+   },
+   {
+    "needle": "def _out(message: Optional[str] = None, nl: bool = True, **styles: Any) -> None:\n    if message is not None:\n        if \"bold\" not in styles:\n            styles[\"bold\"] = True\n        message = style(message, **styles)\n    echo(message, nl=nl, err=True)",
+    "name": "_out"
+   }
+  ]
+ },
+ "scbench/repoqa/1": {
+  "task": "scbench_repoqa",
+  "idx": 1,
+  "prompt_tokens_turn1": 73432,
+  "approx_final_tokens": 79444,
+  "truncated": false,
+  "n_turns": 5,
+  "max_tokens_per_turn": 1024,
+  "turns": [
+   {
+    "query": "Function Description: \n1. **Purpose**: The function provides a way to iterate over a sequence in reverse order while also keeping track of the indices, similar to combining the functionalities of reve",
+    "ground_truth": {
+     "answer": "def enumerate_reversed(sequence: Sequence[T]) -> Iterator[Tuple[Index, T]]:\n    \"\"\"Like `reversed(enumerate(sequence))` if that were possible.\"\"\"\n    index = len(sequence) - 1\n    for element in reversed(sequence):\n        yield (index, element)\n        index -= 1",
+     "func_name": "enumerate_reversed"
+    }
+   },
+   {
+    "query": "Function Description: \n1. **Purpose**: The function determines whether a line of code, starting with a string, should be split into multiple lines based on specific formatting rules and constraints.\n2",
+    "ground_truth": {
+     "answer": "        def more_splits_should_be_made() -> bool:\n            \"\"\"\n            Returns:\n                True iff `rest_value` (the remaining string value from the last\n                split), should be split again.\n            \"\"\"\n            if use_custom_breakpoints:\n                return len(custom_splits) > 1\n            else:\n                return str_width(rest_value) > max_last_string_column()",
+     "func_name": "more_splits_should_be_made"
+    }
+   },
+   {
+    "query": "Function Description: \n1. **Purpose**: The function determines the highest priority of delimiters within a specific syntactic structure, particularly focusing on elements enclosed in parentheses.\n2. *",
+    "ground_truth": {
+     "answer": "def max_delimiter_priority_in_atom(node: LN) -> Priority:\n    \"\"\"Return maximum delimiter priority inside `node`.\n\n    This is specific to atoms with contents contained in a pair of parentheses.\n    If `node` isn't an atom or there are no enclosing parentheses, returns 0.\n    \"\"\"\n    if node.type != syms.atom:\n        return 0\n\n    first = node.children[0]\n    last = node.children[-1]\n    if not (first.type == token.LPAR and last.type == token.RPAR):\n        return 0\n\n    bt = BracketTracker()\n    for c in node.children[1:-1]:\n        if isinstance(c, Leaf):\n            bt.mark(c)\n        else:\n            for leaf in c.leaves():\n                bt.mark(leaf)\n    try:\n        return bt.max_delimiter_priority()\n\n    except ValueError:\n        return 0",
+     "func_name": "max_delimiter_priority_in_atom"
+    }
+   },
+   {
+    "query": "Function Description: \n1. **Purpose**: The purpose of this function is to identify if a line of code is a return or yield statement that returns or yields a string, which is necessary for further proc",
+    "ground_truth": {
+     "answer": "    def _return_match(LL: List[Leaf]) -> Optional[int]:\n        \"\"\"\n        Returns:\n            string_idx such that @LL[string_idx] is equal to our target (i.e.\n            matched) string, if this line matches the return/yield statement\n            requirements listed in the 'Requirements' section of this classes'\n            docstring.\n                OR\n            None, otherwise.\n        \"\"\"\n        # If this line is a part of a return/yield statement and the first leaf\n        # contains either the \"return\" or \"yield\" keywords...\n        if parent_type(LL[0]) in [syms.return_stmt, syms.yield_expr] and LL[\n            0\n        ].value in [\"return\", \"yield\"]:\n            is_valid_index = is_valid_index_factory(LL)\n\n            idx = 2 if is_valid_index(1) and is_empty_par(LL[1]) else 1\n            # The next visible leaf MUST contain a string...\n            if is_valid_index(idx) and LL[idx].type == token.STRING:\n                return idx\n\n        return None",
+     "func_name": "_return_match"
+    }
+   },
+   {
+    "query": "Function Description: \n1. **Purpose**: The function is designed to output a styled message to the standard error stream, with optional newline control and customizable text styles.\n2. **Input**: The f",
+    "ground_truth": {
+     "answer": "def _out(message: Optional[str] = None, nl: bool = True, **styles: Any) -> None:\n    if message is not None:\n        if \"bold\" not in styles:\n            styles[\"bold\"] = True\n        message = style(message, **styles)\n    echo(message, nl=nl, err=True)",
+     "func_name": "_out"
+    }
+   }
+  ],
+  "lang": "python",
+  "repo": "psf/black",
+  "needles": [
+   {
+    "needle": "def _can_omit_closing_paren(line: Line, *, last: Leaf, line_length: int) -> bool:\n    \"\"\"See `can_omit_invisible_parens`.\"\"\"\n    length = 4 * line.depth\n    seen_other_brackets = False\n    for _index, leaf, leaf_length in line.enumerate_with_length():\n        length += leaf_length\n        if leaf is last.opening_bracket:\n            if seen_other_brackets or length <= line_length:\n                return True\n\n        elif leaf.type in OPENING_BRACKETS:\n            # There are brackets we can further split on.\n            seen_other_brackets = True\n\n    return False",
+    "name": "_can_omit_closing_paren"
+   },
+   {
+    "needle": "def fstring_contains_expr(s: str) -> bool:\n    return any(iter_fexpr_spans(s))",
+    "name": "fstring_contains_expr"
+   },
+   {
+    "needle": "def supports_feature(target_versions: Set[TargetVersion], feature: Feature) -> bool:\n    return all(feature in VERSION_TO_FEATURES[version] for version in target_versions)",
+    "name": "supports_feature"
+   },
+   {
+    "needle": "    def _remove_backslash_line_continuation_chars(\n        line: Line, string_indices: List[int]\n    ) -> TResult[Line]:\n        \"\"\"\n        Merge strings that were split across multiple lines using\n        line-continuation backslashes.\n\n        Returns:\n            Ok(new_line), if @line contains backslash line-continuation\n            characters.\n                OR\n            Err(CannotTransform), otherwise.\n        \"\"\"\n        LL = line.leaves\n\n        indices_to_transform = []\n        for string_idx in string_indices:\n            string_leaf = LL[string_idx]\n            if (\n                string_leaf.type == token.STRING\n                and \"\\\\\\n\" in string_leaf.value\n                and not has_triple_quotes(string_leaf.value)\n            ):\n                indices_to_transform.append(string_idx)\n\n        if not indices_to_transform:\n            return TErr(\n                \"Found no string leaves that contain backslash line continuation\"\n                \" characters.\"\n            )\n\n        new_line = line.clone()\n        new_line.comments = line.comments.copy()\n        append_leaves(new_line, line, LL)\n\n        for string_idx in indices_to_transform:\n            new_string_leaf = new_line.leaves[string_idx]\n            new_string_leaf.value = new_string_leaf.value.replace(\"\\\\\\n\", \"\")\n\n        return Ok(new_line)",
+    "name": "_remove_backslash_line_continuation_chars"
+   },
+   {
+    "needle": "    def _get_illegal_split_indices(self, string: str) -> Set[Index]:\n        illegal_indices: Set[Index] = set()\n        iterators = [\n            self._iter_fexpr_slices(string),\n            self._iter_nameescape_slices(string),\n        ]\n        for it in iterators:\n            for begin, end in it:\n                illegal_indices.update(range(begin, end + 1))\n        return illegal_indices",
+    "name": "_get_illegal_split_indices"
+   },
+   {
+    "needle": "def enumerate_reversed(sequence: Sequence[T]) -> Iterator[Tuple[Index, T]]:\n    \"\"\"Like `reversed(enumerate(sequence))` if that were possible.\"\"\"\n    index = len(sequence) - 1\n    for element in reversed(sequence):\n        yield (index, element)\n        index -= 1",
+    "name": "enumerate_reversed"
+   },
+   {
+    "needle": "        def more_splits_should_be_made() -> bool:\n            \"\"\"\n            Returns:\n                True iff `rest_value` (the remaining string value from the last\n                split), should be split again.\n            \"\"\"\n            if use_custom_breakpoints:\n                return len(custom_splits) > 1\n            else:\n                return str_width(rest_value) > max_last_string_column()",
+    "name": "more_splits_should_be_made"
+   },
+   {
+    "needle": "def max_delimiter_priority_in_atom(node: LN) -> Priority:\n    \"\"\"Return maximum delimiter priority inside `node`.\n\n    This is specific to atoms with contents contained in a pair of parentheses.\n    If `node` isn't an atom or there are no enclosing parentheses, returns 0.\n    \"\"\"\n    if node.type != syms.atom:\n        return 0\n\n    first = node.children[0]\n    last = node.children[-1]\n    if not (first.type == token.LPAR and last.type == token.RPAR):\n        return 0\n\n    bt = BracketTracker()\n    for c in node.children[1:-1]:\n        if isinstance(c, Leaf):\n            bt.mark(c)\n        else:\n            for leaf in c.leaves():\n                bt.mark(leaf)\n    try:\n        return bt.max_delimiter_priority()\n\n    except ValueError:\n        return 0",
+    "name": "max_delimiter_priority_in_atom"
+   },
+   {
+    "needle": "    def _return_match(LL: List[Leaf]) -> Optional[int]:\n        \"\"\"\n        Returns:\n            string_idx such that @LL[string_idx] is equal to our target (i.e.\n            matched) string, if this line matches the return/yield statement\n            requirements listed in the 'Requirements' section of this classes'\n            docstring.\n                OR\n            None, otherwise.\n        \"\"\"\n        # If this line is a part of a return/yield statement and the first leaf\n        # contains either the \"return\" or \"yield\" keywords...\n        if parent_type(LL[0]) in [syms.return_stmt, syms.yield_expr] and LL[\n            0\n        ].value in [\"return\", \"yield\"]:\n            is_valid_index = is_valid_index_factory(LL)\n\n            idx = 2 if is_valid_index(1) and is_empty_par(LL[1]) else 1\n            # The next visible leaf MUST contain a string...\n            if is_valid_index(idx) and LL[idx].type == token.STRING:\n                return idx\n\n        return None",
+    "name": "_return_match"
+   },
+   {
+    "needle": "def _out(message: Optional[str] = None, nl: bool = True, **styles: Any) -> None:\n    if message is not None:\n        if \"bold\" not in styles:\n            styles[\"bold\"] = True\n        message = style(message, **styles)\n    echo(message, nl=nl, err=True)",
+    "name": "_out"
+   }
+  ]
+ },
+ "scbench/repoqa/2": {
+  "task": "scbench_repoqa",
+  "idx": 2,
+  "prompt_tokens_turn1": 71077,
+  "approx_final_tokens": 76889,
+  "truncated": false,
+  "n_turns": 5,
+  "max_tokens_per_turn": 1024,
+  "turns": [
+   {
+    "query": "Function Description: \n1. **Purpose**: The purpose of this function is to select the most appropriate version of a required package during the dependency resolution process.\n2. **Input**: The function",
+    "ground_truth": {
+     "answer": "    def _result(self) -> SolverResult:\n        \"\"\"\n        Creates a #SolverResult from the decisions in _solution\n        \"\"\"\n        decisions = self._solution.decisions\n\n        return SolverResult(\n            self._root,\n            [p for p in decisions if not p.is_root()],\n            self._solution.attempted_solutions,\n        )",
+     "func_name": "_result"
+    }
+   },
+   {
+    "query": "Function Description: \n1. **Purpose**: The function is designed to extract a source distribution (sdist) archive into a temporary directory for further processing.\n2. **Input**: It takes an archive fi",
+    "ground_truth": {
+     "answer": "    def _prepare_sdist(self, archive: Path, destination: Path | None = None) -> Path:\n        from poetry.core.packages.utils.link import Link\n\n        suffix = archive.suffix\n        zip = suffix == \".zip\"\n\n        with temporary_directory() as tmp_dir:\n            archive_dir = Path(tmp_dir)\n            extractall(source=archive, dest=archive_dir, zip=zip)\n\n            elements = list(archive_dir.glob(\"*\"))\n\n            if len(elements) == 1 and elements[0].is_dir():\n                sdist_dir = elements[0]\n            else:\n                sdist_dir = archive_dir / archive.name.rstrip(suffix)\n                if not sdist_dir.is_dir():\n                    sdist_dir = archive_dir\n\n            if destination is None:\n                destination = self._artifact_cache.get_cache_directory_for_link(\n                    Link(archive.as_uri())\n                )\n\n            destination.mkdir(parents=True, exist_ok=True)\n\n            return self._prepare(\n                sdist_dir,\n                destination,\n            )",
+     "func_name": "_prepare_sdist"
+    }
+   },
+   {
+    "query": "Function Description: \n1. **Purpose**: The function is designed to convert a list of terms into a human-readable string format, specifically joining them with the word \"and\".\n2. **Input**: The functio",
+    "ground_truth": {
+     "answer": "    def and_to_string(\n        self,\n        other: Incompatibility,\n        this_line: int | None,\n        other_line: int | None,\n    ) -> str:\n        requires_both = self._try_requires_both(other, this_line, other_line)\n        if requires_both is not None:\n            return requires_both\n\n        requires_through = self._try_requires_through(other, this_line, other_line)\n        if requires_through is not None:\n            return requires_through\n\n        requires_forbidden = self._try_requires_forbidden(other, this_line, other_line)\n        if requires_forbidden is not None:\n            return requires_forbidden\n\n        buffer = [str(self)]\n        if this_line is not None:\n            buffer.append(f\" {this_line!s}\")\n\n        buffer.append(f\" and {other!s}\")\n\n        if other_line is not None:\n            buffer.append(f\" {other_line!s}\")\n\n        return \"\\n\".join(buffer)",
+     "func_name": "and_to_string"
+    }
+   },
+   {
+    "query": "Function Description: \n1. **Purpose**: To retrieve the current state of installed packages in the environment.\n2. **Input**: The function takes no direct input parameters but relies on the environment",
+    "ground_truth": {
+     "answer": "    def _get_installed(self) -> InstalledRepository:\n        return InstalledRepository.load(self._env)",
+     "func_name": "_get_installed"
+    }
+   },
+   {
+    "query": "Function Description: \n1. **Purpose**: The function determines whether a given element can be simplified or merged into a more concise form based on its internal structure.\n2. **Input**: The function ",
+    "ground_truth": {
+     "answer": "    def _is_collapsible(self, incompatibility: Incompatibility) -> bool:\n        if self._derivations[incompatibility] > 1:\n            return False\n\n        cause = incompatibility.cause\n        assert isinstance(cause, ConflictCause)\n        if isinstance(cause.conflict.cause, ConflictCause) and isinstance(\n            cause.other.cause, ConflictCause\n        ):\n            return False\n\n        if not isinstance(cause.conflict.cause, ConflictCause) and not isinstance(\n            cause.other.cause, ConflictCause\n        ):\n            return False\n\n        complex = (\n            cause.conflict\n            if isinstance(cause.conflict.cause, ConflictCause)\n            else cause.other\n        )\n\n        return complex not in self._line_numbers",
+     "func_name": "_is_collapsible"
+    }
+   }
+  ],
+  "lang": "python",
+  "repo": "python-poetry/poetry",
+  "needles": [
+   {
+    "needle": "    def _result(self) -> SolverResult:\n        \"\"\"\n        Creates a #SolverResult from the decisions in _solution\n        \"\"\"\n        decisions = self._solution.decisions\n\n        return SolverResult(\n            self._root,\n            [p for p in decisions if not p.is_root()],\n            self._solution.attempted_solutions,\n        )",
+    "name": "_result"
+   },
+   {
+    "needle": "    def _prepare_sdist(self, archive: Path, destination: Path | None = None) -> Path:\n        from poetry.core.packages.utils.link import Link\n\n        suffix = archive.suffix\n        zip = suffix == \".zip\"\n\n        with temporary_directory() as tmp_dir:\n            archive_dir = Path(tmp_dir)\n            extractall(source=archive, dest=archive_dir, zip=zip)\n\n            elements = list(archive_dir.glob(\"*\"))\n\n            if len(elements) == 1 and elements[0].is_dir():\n                sdist_dir = elements[0]\n            else:\n                sdist_dir = archive_dir / archive.name.rstrip(suffix)\n                if not sdist_dir.is_dir():\n                    sdist_dir = archive_dir\n\n            if destination is None:\n                destination = self._artifact_cache.get_cache_directory_for_link(\n                    Link(archive.as_uri())\n                )\n\n            destination.mkdir(parents=True, exist_ok=True)\n\n            return self._prepare(\n                sdist_dir,\n                destination,\n            )",
+    "name": "_prepare_sdist"
+   },
+   {
+    "needle": "    def and_to_string(\n        self,\n        other: Incompatibility,\n        this_line: int | None,\n        other_line: int | None,\n    ) -> str:\n        requires_both = self._try_requires_both(other, this_line, other_line)\n        if requires_both is not None:\n            return requires_both\n\n        requires_through = self._try_requires_through(other, this_line, other_line)\n        if requires_through is not None:\n            return requires_through\n\n        requires_forbidden = self._try_requires_forbidden(other, this_line, other_line)\n        if requires_forbidden is not None:\n            return requires_forbidden\n\n        buffer = [str(self)]\n        if this_line is not None:\n            buffer.append(f\" {this_line!s}\")\n\n        buffer.append(f\" and {other!s}\")\n\n        if other_line is not None:\n            buffer.append(f\" {other_line!s}\")\n\n        return \"\\n\".join(buffer)",
+    "name": "and_to_string"
+   },
+   {
+    "needle": "    def _get_installed(self) -> InstalledRepository:\n        return InstalledRepository.load(self._env)",
+    "name": "_get_installed"
+   },
+   {
+    "needle": "    def _is_collapsible(self, incompatibility: Incompatibility) -> bool:\n        if self._derivations[incompatibility] > 1:\n            return False\n\n        cause = incompatibility.cause\n        assert isinstance(cause, ConflictCause)\n        if isinstance(cause.conflict.cause, ConflictCause) and isinstance(\n            cause.other.cause, ConflictCause\n        ):\n            return False\n\n        if not isinstance(cause.conflict.cause, ConflictCause) and not isinstance(\n            cause.other.cause, ConflictCause\n        ):\n            return False\n\n        complex = (\n            cause.conflict\n            if isinstance(cause.conflict.cause, ConflictCause)\n            else cause.other\n        )\n\n        return complex not in self._line_numbers",
+    "name": "_is_collapsible"
+   },
+   {
+    "needle": "    def _stream_response(self, start: int, end: int) -> Response:\n        \"\"\"Return streaming HTTP response to a range request from start to end.\"\"\"\n        headers = self._uncached_headers()\n        headers[\"Range\"] = f\"bytes={start}-{end}\"\n        logger.debug(\"streamed bytes request: %s\", headers[\"Range\"])\n        self._request_count += 1\n        response = self._session.get(self._url, headers=headers, stream=True)\n        response.raise_for_status()\n        if int(response.headers[\"Content-Length\"]) != (end - start + 1):\n            raise HTTPRangeRequestNotRespected(\n                f\"server did not respect byte range request: \"\n                f\"requested {end - start + 1} bytes, got \"\n                f\"{response.headers['Content-Length']} bytes\"\n            )\n        return response",
+    "name": "_stream_response"
+   },
+   {
+    "needle": "    def validate(\n        cls, config: dict[str, Any], strict: bool = False\n    ) -> dict[str, list[str]]:\n        results = super().validate(config, strict)\n\n        results[\"errors\"].extend(validate_object(config))\n\n        # A project should not depend on itself.\n        dependencies = set(config.get(\"dependencies\", {}).keys())\n        dependencies.update(config.get(\"dev-dependencies\", {}).keys())\n        groups = config.get(\"group\", {}).values()\n        for group in groups:\n            dependencies.update(group.get(\"dependencies\", {}).keys())\n\n        dependencies = {canonicalize_name(d) for d in dependencies}\n\n        project_name = config.get(\"name\")\n        if project_name is not None and canonicalize_name(project_name) in dependencies:\n            results[\"errors\"].append(\n                f\"Project name ({project_name}) is same as one of its dependencies\"\n            )\n\n        return results",
+    "name": "validate"
+   },
+   {
+    "needle": "    def secure(self) -> Iterator[TOMLDocument]:\n        if self.file.exists():\n            initial_config = self.file.read()\n            config = self.file.read()\n        else:\n            initial_config = document()\n            config = document()\n\n        new_file = not self.file.exists()\n\n        yield config\n\n        try:\n            # Ensuring the file is only readable and writable\n            # by the current user\n            mode = 0o600\n\n            if new_file:\n                self.file.path.touch(mode=mode)\n\n            self.file.write(config)\n        except Exception:\n            self.file.write(initial_config)\n\n            raise",
+    "name": "secure"
+   },
+   {
+    "needle": "    def config_source(self) -> ConfigSource:\n        return self._config_source",
+    "name": "config_source"
+   },
+   {
+    "needle": "    def set_lock_data(self, root: Package, packages: list[Package]) -> bool:\n        \"\"\"Store lock data and eventually persist to the lock file\"\"\"\n        lock = self._compute_lock_data(root, packages)\n\n        if self._should_write(lock):\n            self._write_lock_data(lock)\n            return True\n\n        return False",
+    "name": "set_lock_data"
+   }
+  ]
+ },
+ "scbench/repoqa/3": {
+  "task": "scbench_repoqa",
+  "idx": 3,
+  "prompt_tokens_turn1": 71044,
+  "approx_final_tokens": 77010,
+  "truncated": false,
+  "n_turns": 5,
+  "max_tokens_per_turn": 1024,
+  "turns": [
+   {
+    "query": "Function Description: \n1. **Purpose**: The purpose of this function is to manage the setup and teardown of content for streaming data from a remote source, ensuring that the content length and other n",
+    "ground_truth": {
+     "answer": "    def _stream_response(self, start: int, end: int) -> Response:\n        \"\"\"Return streaming HTTP response to a range request from start to end.\"\"\"\n        headers = self._uncached_headers()\n        headers[\"Range\"] = f\"bytes={start}-{end}\"\n        logger.debug(\"streamed bytes request: %s\", headers[\"Range\"])\n        self._request_count += 1\n        response = self._session.get(self._url, headers=headers, stream=True)\n        response.raise_for_status()\n        if int(response.headers[\"Content-Length\"]) != (end - start + 1):\n            raise HTTPRangeRequestNotRespected(\n                f\"server did not respect byte range request: \"\n                f\"requested {end - start + 1} bytes, got \"\n                f\"{response.headers['Content-Length']} bytes\"\n            )\n        return response",
+     "func_name": "_stream_response"
+    }
+   },
+   {
+    "query": "Function Description: \n1. **Purpose**: The function ensures that a given configuration adheres to specific rules and constraints, identifying any errors or inconsistencies.\n2. **Input**: It takes a co",
+    "ground_truth": {
+     "answer": "    def validate(\n        cls, config: dict[str, Any], strict: bool = False\n    ) -> dict[str, list[str]]:\n        results = super().validate(config, strict)\n\n        results[\"errors\"].extend(validate_object(config))\n\n        # A project should not depend on itself.\n        dependencies = set(config.get(\"dependencies\", {}).keys())\n        dependencies.update(config.get(\"dev-dependencies\", {}).keys())\n        groups = config.get(\"group\", {}).values()\n        for group in groups:\n            dependencies.update(group.get(\"dependencies\", {}).keys())\n\n        dependencies = {canonicalize_name(d) for d in dependencies}\n\n        project_name = config.get(\"name\")\n        if project_name is not None and canonicalize_name(project_name) in dependencies:\n            results[\"errors\"].append(\n                f\"Project name ({project_name}) is same as one of its dependencies\"\n            )\n\n        return results",
+     "func_name": "validate"
+    }
+   },
+   {
+    "query": "Function Description: \n1. **Purpose**: The purpose of this context manager is to provide a secure environment for reading and writing configuration data, ensuring that the file is handled safely and i",
+    "ground_truth": {
+     "answer": "    def secure(self) -> Iterator[TOMLDocument]:\n        if self.file.exists():\n            initial_config = self.file.read()\n            config = self.file.read()\n        else:\n            initial_config = document()\n            config = document()\n\n        new_file = not self.file.exists()\n\n        yield config\n\n        try:\n            # Ensuring the file is only readable and writable\n            # by the current user\n            mode = 0o600\n\n            if new_file:\n                self.file.path.touch(mode=mode)\n\n            self.file.write(config)\n        except Exception:\n            self.file.write(initial_config)\n\n            raise",
+     "func_name": "secure"
+    }
+   },
+   {
+    "query": "Function Description: \n1. **Purpose**: The purpose of this component is to manage and normalize configuration settings for an application, ensuring that they are valid and standardized.\n\n2. **Input**:",
+    "ground_truth": {
+     "answer": "    def config_source(self) -> ConfigSource:\n        return self._config_source",
+     "func_name": "config_source"
+    }
+   },
+   {
+    "query": "Function Description: \n1. **Purpose**: The function is designed to store and potentially persist lock data for a given root package and its dependencies, ensuring that the lock file is updated if nece",
+    "ground_truth": {
+     "answer": "    def set_lock_data(self, root: Package, packages: list[Package]) -> bool:\n        \"\"\"Store lock data and eventually persist to the lock file\"\"\"\n        lock = self._compute_lock_data(root, packages)\n\n        if self._should_write(lock):\n            self._write_lock_data(lock)\n            return True\n\n        return False",
+     "func_name": "set_lock_data"
+    }
+   }
+  ],
+  "lang": "python",
+  "repo": "python-poetry/poetry",
+  "needles": [
+   {
+    "needle": "    def _result(self) -> SolverResult:\n        \"\"\"\n        Creates a #SolverResult from the decisions in _solution\n        \"\"\"\n        decisions = self._solution.decisions\n\n        return SolverResult(\n            self._root,\n            [p for p in decisions if not p.is_root()],\n            self._solution.attempted_solutions,\n        )",
+    "name": "_result"
+   },
+   {
+    "needle": "    def _prepare_sdist(self, archive: Path, destination: Path | None = None) -> Path:\n        from poetry.core.packages.utils.link import Link\n\n        suffix = archive.suffix\n        zip = suffix == \".zip\"\n\n        with temporary_directory() as tmp_dir:\n            archive_dir = Path(tmp_dir)\n            extractall(source=archive, dest=archive_dir, zip=zip)\n\n            elements = list(archive_dir.glob(\"*\"))\n\n            if len(elements) == 1 and elements[0].is_dir():\n                sdist_dir = elements[0]\n            else:\n                sdist_dir = archive_dir / archive.name.rstrip(suffix)\n                if not sdist_dir.is_dir():\n                    sdist_dir = archive_dir\n\n            if destination is None:\n                destination = self._artifact_cache.get_cache_directory_for_link(\n                    Link(archive.as_uri())\n                )\n\n            destination.mkdir(parents=True, exist_ok=True)\n\n            return self._prepare(\n                sdist_dir,\n                destination,\n            )",
+    "name": "_prepare_sdist"
+   },
+   {
+    "needle": "    def and_to_string(\n        self,\n        other: Incompatibility,\n        this_line: int | None,\n        other_line: int | None,\n    ) -> str:\n        requires_both = self._try_requires_both(other, this_line, other_line)\n        if requires_both is not None:\n            return requires_both\n\n        requires_through = self._try_requires_through(other, this_line, other_line)\n        if requires_through is not None:\n            return requires_through\n\n        requires_forbidden = self._try_requires_forbidden(other, this_line, other_line)\n        if requires_forbidden is not None:\n            return requires_forbidden\n\n        buffer = [str(self)]\n        if this_line is not None:\n            buffer.append(f\" {this_line!s}\")\n\n        buffer.append(f\" and {other!s}\")\n\n        if other_line is not None:\n            buffer.append(f\" {other_line!s}\")\n\n        return \"\\n\".join(buffer)",
+    "name": "and_to_string"
+   },
+   {
+    "needle": "    def _get_installed(self) -> InstalledRepository:\n        return InstalledRepository.load(self._env)",
+    "name": "_get_installed"
+   },
+   {
+    "needle": "    def _is_collapsible(self, incompatibility: Incompatibility) -> bool:\n        if self._derivations[incompatibility] > 1:\n            return False\n\n        cause = incompatibility.cause\n        assert isinstance(cause, ConflictCause)\n        if isinstance(cause.conflict.cause, ConflictCause) and isinstance(\n            cause.other.cause, ConflictCause\n        ):\n            return False\n\n        if not isinstance(cause.conflict.cause, ConflictCause) and not isinstance(\n            cause.other.cause, ConflictCause\n        ):\n            return False\n\n        complex = (\n            cause.conflict\n            if isinstance(cause.conflict.cause, ConflictCause)\n            else cause.other\n        )\n\n        return complex not in self._line_numbers",
+    "name": "_is_collapsible"
+   },
+   {
+    "needle": "    def _stream_response(self, start: int, end: int) -> Response:\n        \"\"\"Return streaming HTTP response to a range request from start to end.\"\"\"\n        headers = self._uncached_headers()\n        headers[\"Range\"] = f\"bytes={start}-{end}\"\n        logger.debug(\"streamed bytes request: %s\", headers[\"Range\"])\n        self._request_count += 1\n        response = self._session.get(self._url, headers=headers, stream=True)\n        response.raise_for_status()\n        if int(response.headers[\"Content-Length\"]) != (end - start + 1):\n            raise HTTPRangeRequestNotRespected(\n                f\"server did not respect byte range request: \"\n                f\"requested {end - start + 1} bytes, got \"\n                f\"{response.headers['Content-Length']} bytes\"\n            )\n        return response",
+    "name": "_stream_response"
+   },
+   {
+    "needle": "    def validate(\n        cls, config: dict[str, Any], strict: bool = False\n    ) -> dict[str, list[str]]:\n        results = super().validate(config, strict)\n\n        results[\"errors\"].extend(validate_object(config))\n\n        # A project should not depend on itself.\n        dependencies = set(config.get(\"dependencies\", {}).keys())\n        dependencies.update(config.get(\"dev-dependencies\", {}).keys())\n        groups = config.get(\"group\", {}).values()\n        for group in groups:\n            dependencies.update(group.get(\"dependencies\", {}).keys())\n\n        dependencies = {canonicalize_name(d) for d in dependencies}\n\n        project_name = config.get(\"name\")\n        if project_name is not None and canonicalize_name(project_name) in dependencies:\n            results[\"errors\"].append(\n                f\"Project name ({project_name}) is same as one of its dependencies\"\n            )\n\n        return results",
+    "name": "validate"
+   },
+   {
+    "needle": "    def secure(self) -> Iterator[TOMLDocument]:\n        if self.file.exists():\n            initial_config = self.file.read()\n            config = self.file.read()\n        else:\n            initial_config = document()\n            config = document()\n\n        new_file = not self.file.exists()\n\n        yield config\n\n        try:\n            # Ensuring the file is only readable and writable\n            # by the current user\n            mode = 0o600\n\n            if new_file:\n                self.file.path.touch(mode=mode)\n\n            self.file.write(config)\n        except Exception:\n            self.file.write(initial_config)\n\n            raise",
+    "name": "secure"
+   },
+   {
+    "needle": "    def config_source(self) -> ConfigSource:\n        return self._config_source",
+    "name": "config_source"
+   },
+   {
+    "needle": "    def set_lock_data(self, root: Package, packages: list[Package]) -> bool:\n        \"\"\"Store lock data and eventually persist to the lock file\"\"\"\n        lock = self._compute_lock_data(root, packages)\n\n        if self._should_write(lock):\n            self._write_lock_data(lock)\n            return True\n\n        return False",
+    "name": "set_lock_data"
+   }
+  ]
+ },
+ "scbench/repoqa/4": {
+  "task": "scbench_repoqa",
+  "idx": 4,
+  "prompt_tokens_turn1": 71024,
+  "approx_final_tokens": 76987,
+  "truncated": false,
+  "n_turns": 5,
+  "max_tokens_per_turn": 1024,
+  "turns": [
+   {
+    "query": "Function Description: \n1. **Purpose**: The function is designed to execute the main logic of a user instance within a concurrent environment, ensuring that the user performs its tasks and handles life",
+    "ground_truth": {
+     "answer": "        def run_user(user):\n            \"\"\"\n            Main function for User greenlet. It's important that this function takes the user\n            instance as an argument, since we use greenlet_instance.args[0] to retrieve a reference to the\n            User instance.\n            \"\"\"\n            user.run()",
+     "func_name": "run_user"
+    }
+   },
+   {
+    "query": "Function Description: \n1. **Purpose**: The function is designed to convert specific serialized objects back into their original Python types, such as datetime objects and ObjectId instances.\n2. **Inpu",
+    "ground_truth": {
+     "answer": "def decode(obj):\n    if \"__datetime__\" in obj:\n        obj = datetime.datetime.strptime(obj[\"as_str\"], \"%Y%m%dT%H:%M:%S.%f\")\n    elif \"__ObjectId__\" in obj:\n        obj = ObjectId(obj[\"as_str\"])\n    return obj",
+     "func_name": "decode"
+    }
+   },
+   {
+    "query": "Function Description: \n1. **Purpose**: The function is designed to round a numerical value to a specified number of decimal places in a way that avoids common pitfalls of floating-point arithmetic.\n2.",
+    "ground_truth": {
+     "answer": "def proper_round(val, digits=0):\n    return round(val + 10 ** (-len(str(val)) - 1), digits)",
+     "func_name": "proper_round"
+    }
+   },
+   {
+    "query": "Function Description: \n1. **Purpose**: To reinitialize the statistical data of an entry, effectively clearing all accumulated metrics and starting fresh.\n2. **Input**: No external input parameters.\n3.",
+    "ground_truth": {
+     "answer": "    def reset(self):\n        self.start_time = time.time()\n        self.num_requests = 0\n        self.num_none_requests = 0\n        self.num_failures = 0\n        self.total_response_time = 0\n        self.response_times = defaultdict(int)\n        self.min_response_time = None\n        self.max_response_time = 0\n        self.last_request_timestamp = None\n        self.num_reqs_per_sec = defaultdict(int)\n        self.num_fail_per_sec = defaultdict(int)\n        self.total_content_length = 0\n        if self.use_response_times_cache:\n            self.response_times_cache = OrderedDict()\n            self._cache_response_times(int(time.time()))",
+     "func_name": "reset"
+    }
+   },
+   {
+    "query": "Function Description: \n1. **Purpose**: The function is designed to generate a list of relative file paths for specific Python files, either from a given directory or a list of file paths, while ignori",
+    "ground_truth": {
+     "answer": "def find_locustfiles(locustfiles: list[str], is_directory: bool) -> list[str]:\n    \"\"\"\n    Returns a list of relative file paths for the Locustfile Picker. If is_directory is True,\n    locustfiles is expected to have a single index which is a directory that will be searched for\n    locustfiles.\n\n    Ignores files that start with _\n    \"\"\"\n    file_paths = []\n\n    if is_directory:\n        locustdir = locustfiles[0]\n\n        if len(locustfiles) != 1:\n            sys.stderr.write(f\"Multiple values passed in for directory: {locustfiles}\\n\")\n            sys.exit(1)\n\n        if not os.path.exists(locustdir):\n            sys.stderr.write(f\"Could not find directory '{locustdir}'\\n\")\n            sys.exit(1)\n\n        if not os.path.isdir(locustdir):\n            sys.stderr.write(f\"'{locustdir} is not a directory\\n\")\n            sys.exit(1)\n\n        for root, dirs, files in os.walk(locustdir):\n            for file in files:\n                if not file.startswith(\"_\") and file.endswith(\".py\"):\n                    file_path = os.path.join(root, file)\n                    file_paths.append(file_path)\n    else:\n        for file_path in locustfiles:\n            if not file_path.endswith(\".py\"):\n                sys.stderr.write(f\"Invalid file '{file_path}'. File should have '.py' extension\\n\")\n                sys.exit(1)\n\n            file_paths.append(file_path)\n\n    return file_paths",
+     "func_name": "find_locustfiles"
+    }
+   }
+  ],
+  "lang": "python",
+  "repo": "locustio/locust",
+  "needles": [
+   {
+    "needle": "        def run_user(user):\n            \"\"\"\n            Main function for User greenlet. It's important that this function takes the user\n            instance as an argument, since we use greenlet_instance.args[0] to retrieve a reference to the\n            User instance.\n            \"\"\"\n            user.run()",
+    "name": "run_user"
+   },
+   {
+    "needle": "def decode(obj):\n    if \"__datetime__\" in obj:\n        obj = datetime.datetime.strptime(obj[\"as_str\"], \"%Y%m%dT%H:%M:%S.%f\")\n    elif \"__ObjectId__\" in obj:\n        obj = ObjectId(obj[\"as_str\"])\n    return obj",
+    "name": "decode"
+   },
+   {
+    "needle": "def proper_round(val, digits=0):\n    return round(val + 10 ** (-len(str(val)) - 1), digits)",
+    "name": "proper_round"
+   },
+   {
+    "needle": "    def reset(self):\n        self.start_time = time.time()\n        self.num_requests = 0\n        self.num_none_requests = 0\n        self.num_failures = 0\n        self.total_response_time = 0\n        self.response_times = defaultdict(int)\n        self.min_response_time = None\n        self.max_response_time = 0\n        self.last_request_timestamp = None\n        self.num_reqs_per_sec = defaultdict(int)\n        self.num_fail_per_sec = defaultdict(int)\n        self.total_content_length = 0\n        if self.use_response_times_cache:\n            self.response_times_cache = OrderedDict()\n            self._cache_response_times(int(time.time()))",
+    "name": "reset"
+   },
+   {
+    "needle": "def find_locustfiles(locustfiles: list[str], is_directory: bool) -> list[str]:\n    \"\"\"\n    Returns a list of relative file paths for the Locustfile Picker. If is_directory is True,\n    locustfiles is expected to have a single index which is a directory that will be searched for\n    locustfiles.\n\n    Ignores files that start with _\n    \"\"\"\n    file_paths = []\n\n    if is_directory:\n        locustdir = locustfiles[0]\n\n        if len(locustfiles) != 1:\n            sys.stderr.write(f\"Multiple values passed in for directory: {locustfiles}\\n\")\n            sys.exit(1)\n\n        if not os.path.exists(locustdir):\n            sys.stderr.write(f\"Could not find directory '{locustdir}'\\n\")\n            sys.exit(1)\n\n        if not os.path.isdir(locustdir):\n            sys.stderr.write(f\"'{locustdir} is not a directory\\n\")\n            sys.exit(1)\n\n        for root, dirs, files in os.walk(locustdir):\n            for file in files:\n                if not file.startswith(\"_\") and file.endswith(\".py\"):\n                    file_path = os.path.join(root, file)\n                    file_paths.append(file_path)\n    else:\n        for file_path in locustfiles:\n            if not file_path.endswith(\".py\"):\n                sys.stderr.write(f\"Invalid file '{file_path}'. File should have '.py' extension\\n\")\n                sys.exit(1)\n\n            file_paths.append(file_path)\n\n    return file_paths",
+    "name": "find_locustfiles"
+   },
+   {
+    "needle": "    def failures_csv(self, csv_writer: CSVWriter) -> None:\n        csv_writer.writerow(self.failures_columns)\n        self._failures_data_rows(csv_writer)",
+    "name": "failures_csv"
+   },
+   {
+    "needle": "    def set_static_modern_ui(self):\n        self.app.template_folder = self.webui_build_path\n        self.app.static_folder = os.path.join(self.webui_build_path, \"assets\")\n        self.app.static_url_path = \"/assets/\"",
+    "name": "set_static_modern_ui"
+   },
+   {
+    "needle": "def tag(*tags: str) -> Callable[[TaskT], TaskT]:\n    \"\"\"\n    Decorator for tagging tasks and TaskSets with the given tag name. You can\n    then limit the test to only execute tasks that are tagged with any of the\n    tags provided by the :code:`--tags` command-line argument. Example::\n\n        class ForumPage(TaskSet):\n            @tag('thread')\n            @task(100)\n            def read_thread(self):\n                pass\n\n            @tag('thread')\n            @tag('post')\n            @task(7)\n            def create_thread(self):\n                pass\n\n            @tag('post')\n            @task(11)\n            def comment(self):\n                pass\n    \"\"\"\n\n    def decorator_func(decorated):\n        if hasattr(decorated, \"tasks\"):\n            decorated.tasks = list(map(tag(*tags), decorated.tasks))\n        else:\n            if \"locust_tag_set\" not in decorated.__dict__:\n                decorated.locust_tag_set = set()\n            decorated.locust_tag_set |= set(tags)\n        return decorated\n\n    if len(tags) == 0 or callable(tags[0]):\n        raise ValueError(\"No tag name was supplied\")\n\n    return decorator_func",
+    "name": "tag"
+   },
+   {
+    "needle": "    def execute_next_task(self):\n        self.execute_task(self._task_queue.pop(0))",
+    "name": "execute_next_task"
+   },
+   {
+    "needle": "        def request_stats_csv() -> Response:\n            data = StringIO()\n            writer = csv.writer(data)\n            self.stats_csv_writer.requests_csv(writer)\n            return _download_csv_response(data.getvalue(), \"requests\")",
+    "name": "request_stats_csv"
+   }
+  ]
+ },
+ "scbench/repoqa/5": {
+  "task": "scbench_repoqa",
+  "idx": 5,
+  "prompt_tokens_turn1": 70993,
+  "approx_final_tokens": 76917,
+  "truncated": false,
+  "n_turns": 5,
+  "max_tokens_per_turn": 1024,
+  "turns": [
+   {
+    "query": "Function Description: \n1. **Purpose**: The function is designed to log failure statistics to a CSV file, providing a structured record of errors encountered during execution.\n2. **Input**: The functio",
+    "ground_truth": {
+     "answer": "    def failures_csv(self, csv_writer: CSVWriter) -> None:\n        csv_writer.writerow(self.failures_columns)\n        self._failures_data_rows(csv_writer)",
+     "func_name": "failures_csv"
+    }
+   },
+   {
+    "query": "Function Description: \n1. **Purpose**: The function is designed to configure and enable a modern user interface for the web application.\n2. **Input**: The function does not take any direct input param",
+    "ground_truth": {
+     "answer": "    def set_static_modern_ui(self):\n        self.app.template_folder = self.webui_build_path\n        self.app.static_folder = os.path.join(self.webui_build_path, \"assets\")\n        self.app.static_url_path = \"/assets/\"",
+     "func_name": "set_static_modern_ui"
+    }
+   },
+   {
+    "query": "Function Description: \n1. **Purpose**: The purpose of this decorator is to assign specific tags to tasks and task sets, enabling selective execution based on provided tags during test runs.\n2. **Input",
+    "ground_truth": {
+     "answer": "def tag(*tags: str) -> Callable[[TaskT], TaskT]:\n    \"\"\"\n    Decorator for tagging tasks and TaskSets with the given tag name. You can\n    then limit the test to only execute tasks that are tagged with any of the\n    tags provided by the :code:`--tags` command-line argument. Example::\n\n        class ForumPage(TaskSet):\n            @tag('thread')\n            @task(100)\n            def read_thread(self):\n                pass\n\n            @tag('thread')\n            @tag('post')\n            @task(7)\n            def create_thread(self):\n                pass\n\n            @tag('post')\n            @task(11)\n            def comment(self):\n                pass\n    \"\"\"\n\n    def decorator_func(decorated):\n        if hasattr(decorated, \"tasks\"):\n            decorated.tasks = list(map(tag(*tags), decorated.tasks))\n        else:\n            if \"locust_tag_set\" not in decorated.__dict__:\n                decorated.locust_tag_set = set()\n            decorated.locust_tag_set |= set(tags)\n        return decorated\n\n    if len(tags) == 0 or callable(tags[0]):\n        raise ValueError(\"No tag name was supplied\")\n\n    return decorator_func",
+     "func_name": "tag"
+    }
+   },
+   {
+    "query": "Function Description: \n1. **Purpose**: The function is designed to execute the next scheduled task in a sequence of user-defined tasks within a task set.\n2. **Input**: It implicitly takes the current ",
+    "ground_truth": {
+     "answer": "    def execute_next_task(self):\n        self.execute_task(self._task_queue.pop(0))",
+     "func_name": "execute_next_task"
+    }
+   },
+   {
+    "query": "Function Description: \n1. **Purpose**: The function is designed to generate and provide a CSV file containing statistical data related to the performance and execution of a specific process or test.\n\n",
+    "ground_truth": {
+     "answer": "        def request_stats_csv() -> Response:\n            data = StringIO()\n            writer = csv.writer(data)\n            self.stats_csv_writer.requests_csv(writer)\n            return _download_csv_response(data.getvalue(), \"requests\")",
+     "func_name": "request_stats_csv"
+    }
+   }
+  ],
+  "lang": "python",
+  "repo": "locustio/locust",
+  "needles": [
+   {
+    "needle": "        def run_user(user):\n            \"\"\"\n            Main function for User greenlet. It's important that this function takes the user\n            instance as an argument, since we use greenlet_instance.args[0] to retrieve a reference to the\n            User instance.\n            \"\"\"\n            user.run()",
+    "name": "run_user"
+   },
+   {
+    "needle": "def decode(obj):\n    if \"__datetime__\" in obj:\n        obj = datetime.datetime.strptime(obj[\"as_str\"], \"%Y%m%dT%H:%M:%S.%f\")\n    elif \"__ObjectId__\" in obj:\n        obj = ObjectId(obj[\"as_str\"])\n    return obj",
+    "name": "decode"
+   },
+   {
+    "needle": "def proper_round(val, digits=0):\n    return round(val + 10 ** (-len(str(val)) - 1), digits)",
+    "name": "proper_round"
+   },
+   {
+    "needle": "    def reset(self):\n        self.start_time = time.time()\n        self.num_requests = 0\n        self.num_none_requests = 0\n        self.num_failures = 0\n        self.total_response_time = 0\n        self.response_times = defaultdict(int)\n        self.min_response_time = None\n        self.max_response_time = 0\n        self.last_request_timestamp = None\n        self.num_reqs_per_sec = defaultdict(int)\n        self.num_fail_per_sec = defaultdict(int)\n        self.total_content_length = 0\n        if self.use_response_times_cache:\n            self.response_times_cache = OrderedDict()\n            self._cache_response_times(int(time.time()))",
+    "name": "reset"
+   },
+   {
+    "needle": "def find_locustfiles(locustfiles: list[str], is_directory: bool) -> list[str]:\n    \"\"\"\n    Returns a list of relative file paths for the Locustfile Picker. If is_directory is True,\n    locustfiles is expected to have a single index which is a directory that will be searched for\n    locustfiles.\n\n    Ignores files that start with _\n    \"\"\"\n    file_paths = []\n\n    if is_directory:\n        locustdir = locustfiles[0]\n\n        if len(locustfiles) != 1:\n            sys.stderr.write(f\"Multiple values passed in for directory: {locustfiles}\\n\")\n            sys.exit(1)\n\n        if not os.path.exists(locustdir):\n            sys.stderr.write(f\"Could not find directory '{locustdir}'\\n\")\n            sys.exit(1)\n\n        if not os.path.isdir(locustdir):\n            sys.stderr.write(f\"'{locustdir} is not a directory\\n\")\n            sys.exit(1)\n\n        for root, dirs, files in os.walk(locustdir):\n            for file in files:\n                if not file.startswith(\"_\") and file.endswith(\".py\"):\n                    file_path = os.path.join(root, file)\n                    file_paths.append(file_path)\n    else:\n        for file_path in locustfiles:\n            if not file_path.endswith(\".py\"):\n                sys.stderr.write(f\"Invalid file '{file_path}'. File should have '.py' extension\\n\")\n                sys.exit(1)\n\n            file_paths.append(file_path)\n\n    return file_paths",
+    "name": "find_locustfiles"
+   },
+   {
+    "needle": "    def failures_csv(self, csv_writer: CSVWriter) -> None:\n        csv_writer.writerow(self.failures_columns)\n        self._failures_data_rows(csv_writer)",
+    "name": "failures_csv"
+   },
+   {
+    "needle": "    def set_static_modern_ui(self):\n        self.app.template_folder = self.webui_build_path\n        self.app.static_folder = os.path.join(self.webui_build_path, \"assets\")\n        self.app.static_url_path = \"/assets/\"",
+    "name": "set_static_modern_ui"
+   },
+   {
+    "needle": "def tag(*tags: str) -> Callable[[TaskT], TaskT]:\n    \"\"\"\n    Decorator for tagging tasks and TaskSets with the given tag name. You can\n    then limit the test to only execute tasks that are tagged with any of the\n    tags provided by the :code:`--tags` command-line argument. Example::\n\n        class ForumPage(TaskSet):\n            @tag('thread')\n            @task(100)\n            def read_thread(self):\n                pass\n\n            @tag('thread')\n            @tag('post')\n            @task(7)\n            def create_thread(self):\n                pass\n\n            @tag('post')\n            @task(11)\n            def comment(self):\n                pass\n    \"\"\"\n\n    def decorator_func(decorated):\n        if hasattr(decorated, \"tasks\"):\n            decorated.tasks = list(map(tag(*tags), decorated.tasks))\n        else:\n            if \"locust_tag_set\" not in decorated.__dict__:\n                decorated.locust_tag_set = set()\n            decorated.locust_tag_set |= set(tags)\n        return decorated\n\n    if len(tags) == 0 or callable(tags[0]):\n        raise ValueError(\"No tag name was supplied\")\n\n    return decorator_func",
+    "name": "tag"
+   },
+   {
+    "needle": "    def execute_next_task(self):\n        self.execute_task(self._task_queue.pop(0))",
+    "name": "execute_next_task"
+   },
+   {
+    "needle": "        def request_stats_csv() -> Response:\n            data = StringIO()\n            writer = csv.writer(data)\n            self.stats_csv_writer.requests_csv(writer)\n            return _download_csv_response(data.getvalue(), \"requests\")",
+    "name": "request_stats_csv"
+   }
+  ]
+ },
+ "scbench/repoqa/6": {
+  "task": "scbench_repoqa",
+  "idx": 6,
+  "prompt_tokens_turn1": 70702,
+  "approx_final_tokens": 76705,
+  "truncated": false,
+  "n_turns": 5,
+  "max_tokens_per_turn": 1024,
+  "turns": [
+   {
+    "query": "Function Description: \n1. **Purpose**: The function is designed to extract specific elements from an input tensor or list based on a provided index or mask vector, along a specified dimension.\n2. **In",
+    "ground_truth": {
+     "answer": "def select(\n    src: Union[Tensor, List[Any], TensorFrame],\n    index_or_mask: Tensor,\n    dim: int,\n) -> Union[Tensor, List[Any]]:\n    r\"\"\"Selects the input tensor or input list according to a given index or\n    mask vector.\n\n    Args:\n        src (torch.Tensor or list): The input tensor or list.\n        index_or_mask (torch.Tensor): The index or mask vector.\n        dim (int): The dimension along which to select.\n    \"\"\"\n    if isinstance(src, Tensor):\n        if index_or_mask.dtype == torch.bool:\n            return mask_select(src, dim, index_or_mask)\n        return src.index_select(dim, index_or_mask)\n\n    if isinstance(src, (tuple, list)):\n        if dim != 0:\n            raise ValueError(\"Cannot select along dimension other than 0\")\n        if index_or_mask.dtype == torch.bool:\n            return [src[i] for i, m in enumerate(index_or_mask) if m]\n        return [src[i] for i in index_or_mask]\n\n    if isinstance(src, TensorFrame):\n        assert dim == 0\n        if index_or_mask.dtype == torch.bool:\n            return mask_select(src, dim, index_or_mask)\n        return src[index_or_mask]\n\n    raise ValueError(f\"Encountered invalid input type (got '{type(src)}')\")",
+     "func_name": "select"
+    }
+   },
+   {
+    "query": "Function Description: \n1. **Purpose**: The function is designed to register a custom implementation of a specific PyTorch function, allowing it to override the default behavior with a user-defined one",
+    "ground_truth": {
+     "answer": "def implements(torch_function: Callable) -> Callable:\n    r\"\"\"Registers a :pytorch:`PyTorch` function override.\"\"\"\n    @functools.wraps(torch_function)\n    def decorator(my_function: Callable) -> Callable:\n        HANDLED_FUNCTIONS[torch_function] = my_function\n        return my_function\n\n    return decorator",
+     "func_name": "implements"
+    }
+   },
+   {
+    "query": "Function Description: \n1. **Purpose**: The function ensures that a given tensor's data type is among the supported data types, preventing potential issues with unsupported types.\n2. **Input**: The fun",
+    "ground_truth": {
+     "answer": "def assert_valid_dtype(tensor: Tensor) -> None:\n    if tensor.dtype not in SUPPORTED_DTYPES:\n        raise ValueError(f\"'EdgeIndex' holds an unsupported data type \"\n                         f\"(got '{tensor.dtype}', but expected one of \"\n                         f\"{SUPPORTED_DTYPES})\")",
+     "func_name": "assert_valid_dtype"
+    }
+   },
+   {
+    "query": "Function Description: \n1. **Purpose**: To prepare an object for serialization by extracting its essential attributes.\n2. **Input**: No explicit input parameters; operates on the instance it is called ",
+    "ground_truth": {
+     "answer": "    def __tensor_flatten__(self) -> Tuple[List[str], Tuple[Any, ...]]:\n        if not torch_geometric.typing.WITH_PT22:  # pragma: no cover\n            raise RuntimeError(\"'torch.compile' with 'EdgeIndex' only \"\n                               \"supported from PyTorch 2.2 onwards\")\n        assert self._data is not None\n        # TODO Add `_T_index`.\n        attrs = ['_data', '_indptr', '_T_perm', '_T_indptr']\n        return attrs, ()",
+     "func_name": "__tensor_flatten__"
+    }
+   },
+   {
+    "query": "Function Description: \n1. **Purpose**: The purpose of this function is to generate negative samples for each positive edge in a graph, ensuring that the negative samples do not overlap with the positi",
+    "ground_truth": {
+     "answer": "def structured_negative_sampling(\n    edge_index: Tensor,\n    num_nodes: Optional[int] = None,\n    contains_neg_self_loops: bool = True,\n) -> Tuple[Tensor, Tensor, Tensor]:\n    r\"\"\"Samples a negative edge :obj:`(i,k)` for every positive edge\n    :obj:`(i,j)` in the graph given by :attr:`edge_index`, and returns it as a\n    tuple of the form :obj:`(i,j,k)`.\n\n    Args:\n        edge_index (LongTensor): The edge indices.\n        num_nodes (int, optional): The number of nodes, *i.e.*\n            :obj:`max_val + 1` of :attr:`edge_index`. (default: :obj:`None`)\n        contains_neg_self_loops (bool, optional): If set to\n            :obj:`False`, sampled negative edges will not contain self loops.\n            (default: :obj:`True`)\n\n    :rtype: (LongTensor, LongTensor, LongTensor)\n\n    Example:\n        >>> edge_index = torch.as_tensor([[0, 0, 1, 2],\n        ...                               [0, 1, 2, 3]])\n        >>> structured_negative_sampling(edge_index)\n        (tensor([0, 0, 1, 2]), tensor([0, 1, 2, 3]), tensor([2, 3, 0, 2]))\n\n    \"\"\"\n    num_nodes = maybe_num_nodes(edge_index, num_nodes)\n\n    row, col = edge_index.cpu()\n    pos_idx = row * num_nodes + col\n    if not contains_neg_self_loops:\n        loop_idx = torch.arange(num_nodes) * (num_nodes + 1)\n        pos_idx = torch.cat([pos_idx, loop_idx], dim=0)\n\n    rand = torch.randint(num_nodes, (row.size(0), ), dtype=torch.long)\n    neg_idx = row * num_nodes + rand\n\n    mask = torch.from_numpy(np.isin(neg_idx, pos_idx)).to(torch.bool)\n    rest = mask.nonzero(as_tuple=False).view(-1)\n    while rest.numel() > 0:  # pragma: no cover\n        tmp = torch.randint(num_nodes, (rest.size(0), ), dtype=torch.long)\n        rand[rest] = tmp\n        neg_idx = row[rest] * num_nodes + tmp\n\n        mask = torch.from_numpy(np.isin(neg_idx, pos_idx)).to(torch.bool)\n        rest = rest[mask]\n\n    return edge_index[0], edge_index[1], rand.to(edge_index.device)",
+     "func_name": "structured_negative_sampling"
+    }
+   }
+  ],
+  "lang": "python",
+  "repo": "pyg-team/pytorch_geometric",
+  "needles": [
+   {
+    "needle": "def select(\n    src: Union[Tensor, List[Any], TensorFrame],\n    index_or_mask: Tensor,\n    dim: int,\n) -> Union[Tensor, List[Any]]:\n    r\"\"\"Selects the input tensor or input list according to a given index or\n    mask vector.\n\n    Args:\n        src (torch.Tensor or list): The input tensor or list.\n        index_or_mask (torch.Tensor): The index or mask vector.\n        dim (int): The dimension along which to select.\n    \"\"\"\n    if isinstance(src, Tensor):\n        if index_or_mask.dtype == torch.bool:\n            return mask_select(src, dim, index_or_mask)\n        return src.index_select(dim, index_or_mask)\n\n    if isinstance(src, (tuple, list)):\n        if dim != 0:\n            raise ValueError(\"Cannot select along dimension other than 0\")\n        if index_or_mask.dtype == torch.bool:\n            return [src[i] for i, m in enumerate(index_or_mask) if m]\n        return [src[i] for i in index_or_mask]\n\n    if isinstance(src, TensorFrame):\n        assert dim == 0\n        if index_or_mask.dtype == torch.bool:\n            return mask_select(src, dim, index_or_mask)\n        return src[index_or_mask]\n\n    raise ValueError(f\"Encountered invalid input type (got '{type(src)}')\")",
+    "name": "select"
+   },
+   {
+    "needle": "def implements(torch_function: Callable) -> Callable:\n    r\"\"\"Registers a :pytorch:`PyTorch` function override.\"\"\"\n    @functools.wraps(torch_function)\n    def decorator(my_function: Callable) -> Callable:\n        HANDLED_FUNCTIONS[torch_function] = my_function\n        return my_function\n\n    return decorator",
+    "name": "implements"
+   },
+   {
+    "needle": "def assert_valid_dtype(tensor: Tensor) -> None:\n    if tensor.dtype not in SUPPORTED_DTYPES:\n        raise ValueError(f\"'EdgeIndex' holds an unsupported data type \"\n                         f\"(got '{tensor.dtype}', but expected one of \"\n                         f\"{SUPPORTED_DTYPES})\")",
+    "name": "assert_valid_dtype"
+   },
+   {
+    "needle": "    def __tensor_flatten__(self) -> Tuple[List[str], Tuple[Any, ...]]:\n        if not torch_geometric.typing.WITH_PT22:  # pragma: no cover\n            raise RuntimeError(\"'torch.compile' with 'EdgeIndex' only \"\n                               \"supported from PyTorch 2.2 onwards\")\n        assert self._data is not None\n        # TODO Add `_T_index`.\n        attrs = ['_data', '_indptr', '_T_perm', '_T_indptr']\n        return attrs, ()",
+    "name": "__tensor_flatten__"
+   },
+   {
+    "needle": "def structured_negative_sampling(\n    edge_index: Tensor,\n    num_nodes: Optional[int] = None,\n    contains_neg_self_loops: bool = True,\n) -> Tuple[Tensor, Tensor, Tensor]:\n    r\"\"\"Samples a negative edge :obj:`(i,k)` for every positive edge\n    :obj:`(i,j)` in the graph given by :attr:`edge_index`, and returns it as a\n    tuple of the form :obj:`(i,j,k)`.\n\n    Args:\n        edge_index (LongTensor): The edge indices.\n        num_nodes (int, optional): The number of nodes, *i.e.*\n            :obj:`max_val + 1` of :attr:`edge_index`. (default: :obj:`None`)\n        contains_neg_self_loops (bool, optional): If set to\n            :obj:`False`, sampled negative edges will not contain self loops.\n            (default: :obj:`True`)\n\n    :rtype: (LongTensor, LongTensor, LongTensor)\n\n    Example:\n        >>> edge_index = torch.as_tensor([[0, 0, 1, 2],\n        ...                               [0, 1, 2, 3]])\n        >>> structured_negative_sampling(edge_index)\n        (tensor([0, 0, 1, 2]), tensor([0, 1, 2, 3]), tensor([2, 3, 0, 2]))\n\n    \"\"\"\n    num_nodes = maybe_num_nodes(edge_index, num_nodes)\n\n    row, col = edge_index.cpu()\n    pos_idx = row * num_nodes + col\n    if not contains_neg_self_loops:\n        loop_idx = torch.arange(num_nodes) * (num_nodes + 1)\n        pos_idx = torch.cat([pos_idx, loop_idx], dim=0)\n\n    rand = torch.randint(num_nodes, (row.size(0), ), dtype=torch.long)\n    neg_idx = row * num_nodes + rand\n\n    mask = torch.from_numpy(np.isin(neg_idx, pos_idx)).to(torch.bool)\n    rest = mask.nonzero(as_tuple=False).view(-1)\n    while rest.numel() > 0:  # pragma: no cover\n        tmp = torch.randint(num_nodes, (rest.size(0), ), dtype=torch.long)\n        rand[rest] = tmp\n        neg_idx = row[rest] * num_nodes + tmp\n\n        mask = torch.from_numpy(np.isin(neg_idx, pos_idx)).to(torch.bool)\n        rest = rest[mask]\n\n    return edge_index[0], edge_index[1], rand.to(edge_index.device)",
+    "name": "structured_negative_sampling"
+   },
+   {
+    "needle": "def uniform(size: int, value: Any):\n    if isinstance(value, Tensor):\n        bound = 1.0 / math.sqrt(size)\n        value.data.uniform_(-bound, bound)\n    else:\n        for v in value.parameters() if hasattr(value, 'parameters') else []:\n            uniform(size, v)\n        for v in value.buffers() if hasattr(value, 'buffers') else []:\n            uniform(size, v)",
+    "name": "uniform"
+   },
+   {
+    "needle": "def postprocess_sub_(\n    input: EdgeIndex,\n    other: Union[int, Tensor],\n    out: Tensor,\n    alpha: int = 1,\n) -> Union[EdgeIndex, Tensor]:\n\n    if out.dtype not in SUPPORTED_DTYPES:\n        return out\n    if out.dim() != 2 or out.size(0) != 2:\n        return out\n\n    output: EdgeIndex = out.as_subclass(EdgeIndex)\n\n    if isinstance(other, int):\n        size = maybe_sub(input._sparse_size, other, alpha)\n        assert len(size) == 2\n        output._sparse_size = size\n        output._sort_order = input._sort_order\n        output._is_undirected = input.is_undirected\n        output._T_perm = input._T_perm\n\n    elif isinstance(other, Tensor) and other.numel() <= 1:\n        size = maybe_sub(input._sparse_size, int(other), alpha)\n        assert len(size) == 2\n        output._sparse_size = size\n        output._sort_order = input._sort_order\n        output._is_undirected = input.is_undirected\n        output._T_perm = input._T_perm\n\n    elif isinstance(other, Tensor) and other.size() == (2, 1):\n        size = maybe_sub(input._sparse_size, other.view(-1).tolist(), alpha)\n        assert len(size) == 2\n        output._sparse_size = size\n        output._sort_order = input._sort_order\n        output._T_perm = input._T_perm\n        if torch.equal(other[0], other[1]):\n            output._is_undirected = input.is_undirected\n\n    return output",
+    "name": "postprocess_sub_"
+   },
+   {
+    "needle": "def is_torch_sparse_tensor(src: Any) -> bool:\n    r\"\"\"Returns :obj:`True` if the input :obj:`src` is a\n    :class:`torch.sparse.Tensor` (in any sparse layout).\n\n    Args:\n        src (Any): The input object to be checked.\n    \"\"\"\n    if isinstance(src, Tensor):\n        if src.layout == torch.sparse_coo:\n            return True\n        if src.layout == torch.sparse_csr:\n            return True\n        if (torch_geometric.typing.WITH_PT112\n                and src.layout == torch.sparse_csc):\n            return True\n    return False",
+    "name": "is_torch_sparse_tensor"
+   },
+   {
+    "needle": "    def learning_rate(self):\n        return self.softplus(self._lr)",
+    "name": "learning_rate"
+   },
+   {
+    "needle": "    def to_dense_batch(\n        self,\n        x: Tensor,\n        index: Optional[Tensor] = None,\n        ptr: Optional[Tensor] = None,\n        dim_size: Optional[int] = None,\n        dim: int = -2,\n        fill_value: float = 0.0,\n        max_num_elements: Optional[int] = None,\n    ) -> Tuple[Tensor, Tensor]:\n\n        # TODO Currently, `to_dense_batch` can only operate on `index`:\n        self.assert_index_present(index)\n        self.assert_sorted_index(index)\n        self.assert_two_dimensional_input(x, dim)\n\n        return to_dense_batch(\n            x,\n            index,\n            batch_size=dim_size,\n            fill_value=fill_value,\n            max_num_nodes=max_num_elements,\n        )",
+    "name": "to_dense_batch"
+   }
+  ]
+ },
+ "scbench/repoqa/7": {
+  "task": "scbench_repoqa",
+  "idx": 7,
+  "prompt_tokens_turn1": 70697,
+  "approx_final_tokens": 76757,
+  "truncated": false,
+  "n_turns": 5,
+  "max_tokens_per_turn": 1024,
+  "turns": [
+   {
+    "query": "Function Description: \n1. **Purpose**: The purpose of this function is to initialize the values of a tensor or the parameters and buffers of a module uniformly within a specific range.\n2. **Input**: T",
+    "ground_truth": {
+     "answer": "def uniform(size: int, value: Any):\n    if isinstance(value, Tensor):\n        bound = 1.0 / math.sqrt(size)\n        value.data.uniform_(-bound, bound)\n    else:\n        for v in value.parameters() if hasattr(value, 'parameters') else []:\n            uniform(size, v)\n        for v in value.buffers() if hasattr(value, 'buffers') else []:\n            uniform(size, v)",
+     "func_name": "uniform"
+    }
+   },
+   {
+    "query": "Function Description: \n1. **Purpose**: The function adjusts the properties of a tensor after a subtraction operation, ensuring it retains specific attributes related to its structure and metadata.\n2. ",
+    "ground_truth": {
+     "answer": "def postprocess_sub_(\n    input: EdgeIndex,\n    other: Union[int, Tensor],\n    out: Tensor,\n    alpha: int = 1,\n) -> Union[EdgeIndex, Tensor]:\n\n    if out.dtype not in SUPPORTED_DTYPES:\n        return out\n    if out.dim() != 2 or out.size(0) != 2:\n        return out\n\n    output: EdgeIndex = out.as_subclass(EdgeIndex)\n\n    if isinstance(other, int):\n        size = maybe_sub(input._sparse_size, other, alpha)\n        assert len(size) == 2\n        output._sparse_size = size\n        output._sort_order = input._sort_order\n        output._is_undirected = input.is_undirected\n        output._T_perm = input._T_perm\n\n    elif isinstance(other, Tensor) and other.numel() <= 1:\n        size = maybe_sub(input._sparse_size, int(other), alpha)\n        assert len(size) == 2\n        output._sparse_size = size\n        output._sort_order = input._sort_order\n        output._is_undirected = input.is_undirected\n        output._T_perm = input._T_perm\n\n    elif isinstance(other, Tensor) and other.size() == (2, 1):\n        size = maybe_sub(input._sparse_size, other.view(-1).tolist(), alpha)\n        assert len(size) == 2\n        output._sparse_size = size\n        output._sort_order = input._sort_order\n        output._T_perm = input._T_perm\n        if torch.equal(other[0], other[1]):\n            output._is_undirected = input.is_undirected\n\n    return output",
+     "func_name": "postprocess_sub_"
+    }
+   },
+   {
+    "query": "Function Description: \n1. **Purpose**: The function determines whether a given input is a sparse tensor in PyTorch, supporting various sparse tensor layouts.\n2. **Input**: The function takes a single ",
+    "ground_truth": {
+     "answer": "def is_torch_sparse_tensor(src: Any) -> bool:\n    r\"\"\"Returns :obj:`True` if the input :obj:`src` is a\n    :class:`torch.sparse.Tensor` (in any sparse layout).\n\n    Args:\n        src (Any): The input object to be checked.\n    \"\"\"\n    if isinstance(src, Tensor):\n        if src.layout == torch.sparse_coo:\n            return True\n        if src.layout == torch.sparse_csr:\n            return True\n        if (torch_geometric.typing.WITH_PT112\n                and src.layout == torch.sparse_csc):\n            return True\n    return False",
+     "func_name": "is_torch_sparse_tensor"
+    }
+   },
+   {
+    "query": "Function Description: \n1. **Purpose**: The purpose of this method is to retrieve the current learning rate of the optimizer, which may be a learnable parameter.\n2. **Input**: This method does not take",
+    "ground_truth": {
+     "answer": "    def learning_rate(self):\n        return self.softplus(self._lr)",
+     "func_name": "learning_rate"
+    }
+   },
+   {
+    "query": "Function Description: \n1. **Purpose**: The function aims to convert a sparse representation of data into a dense batch format, facilitating easier manipulation and processing of the data in a dense te",
+    "ground_truth": {
+     "answer": "    def to_dense_batch(\n        self,\n        x: Tensor,\n        index: Optional[Tensor] = None,\n        ptr: Optional[Tensor] = None,\n        dim_size: Optional[int] = None,\n        dim: int = -2,\n        fill_value: float = 0.0,\n        max_num_elements: Optional[int] = None,\n    ) -> Tuple[Tensor, Tensor]:\n\n        # TODO Currently, `to_dense_batch` can only operate on `index`:\n        self.assert_index_present(index)\n        self.assert_sorted_index(index)\n        self.assert_two_dimensional_input(x, dim)\n\n        return to_dense_batch(\n            x,\n            index,\n            batch_size=dim_size,\n            fill_value=fill_value,\n            max_num_nodes=max_num_elements,\n        )",
+     "func_name": "to_dense_batch"
+    }
+   }
+  ],
+  "lang": "python",
+  "repo": "pyg-team/pytorch_geometric",
+  "needles": [
+   {
+    "needle": "def select(\n    src: Union[Tensor, List[Any], TensorFrame],\n    index_or_mask: Tensor,\n    dim: int,\n) -> Union[Tensor, List[Any]]:\n    r\"\"\"Selects the input tensor or input list according to a given index or\n    mask vector.\n\n    Args:\n        src (torch.Tensor or list): The input tensor or list.\n        index_or_mask (torch.Tensor): The index or mask vector.\n        dim (int): The dimension along which to select.\n    \"\"\"\n    if isinstance(src, Tensor):\n        if index_or_mask.dtype == torch.bool:\n            return mask_select(src, dim, index_or_mask)\n        return src.index_select(dim, index_or_mask)\n\n    if isinstance(src, (tuple, list)):\n        if dim != 0:\n            raise ValueError(\"Cannot select along dimension other than 0\")\n        if index_or_mask.dtype == torch.bool:\n            return [src[i] for i, m in enumerate(index_or_mask) if m]\n        return [src[i] for i in index_or_mask]\n\n    if isinstance(src, TensorFrame):\n        assert dim == 0\n        if index_or_mask.dtype == torch.bool:\n            return mask_select(src, dim, index_or_mask)\n        return src[index_or_mask]\n\n    raise ValueError(f\"Encountered invalid input type (got '{type(src)}')\")",
+    "name": "select"
+   },
+   {
+    "needle": "def implements(torch_function: Callable) -> Callable:\n    r\"\"\"Registers a :pytorch:`PyTorch` function override.\"\"\"\n    @functools.wraps(torch_function)\n    def decorator(my_function: Callable) -> Callable:\n        HANDLED_FUNCTIONS[torch_function] = my_function\n        return my_function\n\n    return decorator",
+    "name": "implements"
+   },
+   {
+    "needle": "def assert_valid_dtype(tensor: Tensor) -> None:\n    if tensor.dtype not in SUPPORTED_DTYPES:\n        raise ValueError(f\"'EdgeIndex' holds an unsupported data type \"\n                         f\"(got '{tensor.dtype}', but expected one of \"\n                         f\"{SUPPORTED_DTYPES})\")",
+    "name": "assert_valid_dtype"
+   },
+   {
+    "needle": "    def __tensor_flatten__(self) -> Tuple[List[str], Tuple[Any, ...]]:\n        if not torch_geometric.typing.WITH_PT22:  # pragma: no cover\n            raise RuntimeError(\"'torch.compile' with 'EdgeIndex' only \"\n                               \"supported from PyTorch 2.2 onwards\")\n        assert self._data is not None\n        # TODO Add `_T_index`.\n        attrs = ['_data', '_indptr', '_T_perm', '_T_indptr']\n        return attrs, ()",
+    "name": "__tensor_flatten__"
+   },
+   {
+    "needle": "def structured_negative_sampling(\n    edge_index: Tensor,\n    num_nodes: Optional[int] = None,\n    contains_neg_self_loops: bool = True,\n) -> Tuple[Tensor, Tensor, Tensor]:\n    r\"\"\"Samples a negative edge :obj:`(i,k)` for every positive edge\n    :obj:`(i,j)` in the graph given by :attr:`edge_index`, and returns it as a\n    tuple of the form :obj:`(i,j,k)`.\n\n    Args:\n        edge_index (LongTensor): The edge indices.\n        num_nodes (int, optional): The number of nodes, *i.e.*\n            :obj:`max_val + 1` of :attr:`edge_index`. (default: :obj:`None`)\n        contains_neg_self_loops (bool, optional): If set to\n            :obj:`False`, sampled negative edges will not contain self loops.\n            (default: :obj:`True`)\n\n    :rtype: (LongTensor, LongTensor, LongTensor)\n\n    Example:\n        >>> edge_index = torch.as_tensor([[0, 0, 1, 2],\n        ...                               [0, 1, 2, 3]])\n        >>> structured_negative_sampling(edge_index)\n        (tensor([0, 0, 1, 2]), tensor([0, 1, 2, 3]), tensor([2, 3, 0, 2]))\n\n    \"\"\"\n    num_nodes = maybe_num_nodes(edge_index, num_nodes)\n\n    row, col = edge_index.cpu()\n    pos_idx = row * num_nodes + col\n    if not contains_neg_self_loops:\n        loop_idx = torch.arange(num_nodes) * (num_nodes + 1)\n        pos_idx = torch.cat([pos_idx, loop_idx], dim=0)\n\n    rand = torch.randint(num_nodes, (row.size(0), ), dtype=torch.long)\n    neg_idx = row * num_nodes + rand\n\n    mask = torch.from_numpy(np.isin(neg_idx, pos_idx)).to(torch.bool)\n    rest = mask.nonzero(as_tuple=False).view(-1)\n    while rest.numel() > 0:  # pragma: no cover\n        tmp = torch.randint(num_nodes, (rest.size(0), ), dtype=torch.long)\n        rand[rest] = tmp\n        neg_idx = row[rest] * num_nodes + tmp\n\n        mask = torch.from_numpy(np.isin(neg_idx, pos_idx)).to(torch.bool)\n        rest = rest[mask]\n\n    return edge_index[0], edge_index[1], rand.to(edge_index.device)",
+    "name": "structured_negative_sampling"
+   },
+   {
+    "needle": "def uniform(size: int, value: Any):\n    if isinstance(value, Tensor):\n        bound = 1.0 / math.sqrt(size)\n        value.data.uniform_(-bound, bound)\n    else:\n        for v in value.parameters() if hasattr(value, 'parameters') else []:\n            uniform(size, v)\n        for v in value.buffers() if hasattr(value, 'buffers') else []:\n            uniform(size, v)",
+    "name": "uniform"
+   },
+   {
+    "needle": "def postprocess_sub_(\n    input: EdgeIndex,\n    other: Union[int, Tensor],\n    out: Tensor,\n    alpha: int = 1,\n) -> Union[EdgeIndex, Tensor]:\n\n    if out.dtype not in SUPPORTED_DTYPES:\n        return out\n    if out.dim() != 2 or out.size(0) != 2:\n        return out\n\n    output: EdgeIndex = out.as_subclass(EdgeIndex)\n\n    if isinstance(other, int):\n        size = maybe_sub(input._sparse_size, other, alpha)\n        assert len(size) == 2\n        output._sparse_size = size\n        output._sort_order = input._sort_order\n        output._is_undirected = input.is_undirected\n        output._T_perm = input._T_perm\n\n    elif isinstance(other, Tensor) and other.numel() <= 1:\n        size = maybe_sub(input._sparse_size, int(other), alpha)\n        assert len(size) == 2\n        output._sparse_size = size\n        output._sort_order = input._sort_order\n        output._is_undirected = input.is_undirected\n        output._T_perm = input._T_perm\n\n    elif isinstance(other, Tensor) and other.size() == (2, 1):\n        size = maybe_sub(input._sparse_size, other.view(-1).tolist(), alpha)\n        assert len(size) == 2\n        output._sparse_size = size\n        output._sort_order = input._sort_order\n        output._T_perm = input._T_perm\n        if torch.equal(other[0], other[1]):\n            output._is_undirected = input.is_undirected\n\n    return output",
+    "name": "postprocess_sub_"
+   },
+   {
+    "needle": "def is_torch_sparse_tensor(src: Any) -> bool:\n    r\"\"\"Returns :obj:`True` if the input :obj:`src` is a\n    :class:`torch.sparse.Tensor` (in any sparse layout).\n\n    Args:\n        src (Any): The input object to be checked.\n    \"\"\"\n    if isinstance(src, Tensor):\n        if src.layout == torch.sparse_coo:\n            return True\n        if src.layout == torch.sparse_csr:\n            return True\n        if (torch_geometric.typing.WITH_PT112\n                and src.layout == torch.sparse_csc):\n            return True\n    return False",
+    "name": "is_torch_sparse_tensor"
+   },
+   {
+    "needle": "    def learning_rate(self):\n        return self.softplus(self._lr)",
+    "name": "learning_rate"
+   },
+   {
+    "needle": "    def to_dense_batch(\n        self,\n        x: Tensor,\n        index: Optional[Tensor] = None,\n        ptr: Optional[Tensor] = None,\n        dim_size: Optional[int] = None,\n        dim: int = -2,\n        fill_value: float = 0.0,\n        max_num_elements: Optional[int] = None,\n    ) -> Tuple[Tensor, Tensor]:\n\n        # TODO Currently, `to_dense_batch` can only operate on `index`:\n        self.assert_index_present(index)\n        self.assert_sorted_index(index)\n        self.assert_two_dimensional_input(x, dim)\n\n        return to_dense_batch(\n            x,\n            index,\n            batch_size=dim_size,\n            fill_value=fill_value,\n            max_num_nodes=max_num_elements,\n        )",
+    "name": "to_dense_batch"
+   }
+  ]
+ },
+ "scbench/prefix_suffix/0": {
+  "task": "scbench_prefix_suffix",
+  "idx": 0,
+  "prompt_tokens_turn1": 111621,
+  "approx_final_tokens": 112563,
+  "truncated": false,
+  "n_turns": 5,
+  "max_tokens_per_turn": 150,
+  "turns": [
+   {
+    "query": "Given prefix = \"_TmwC\"\nsuffix = \"c+KJB\"\n\nWhat is the word in the dictionary that has both the prefix and the suffix?",
+    "ground_truth": "_TmwCWPliaoDImvXiOvic+KJB"
+   },
+   {
+    "query": "Given prefix = \"+hVce\"\nsuffix = \"rOtsm\"\n\nWhat is the word in the dictionary that has both the prefix and the suffix?",
+    "ground_truth": "+hVce--_DsdvGHJSvDSxrOtsm"
+   },
+   {
+    "query": "Given prefix = \"LBlPU\"\nsuffix = \"zVdkS\"\n\nWhat is the word in the dictionary that has both the prefix and the suffix?",
+    "ground_truth": "LBlPUIsjuZYbsHkx^fkUzVdkS"
+   },
+   {
+    "query": "Given prefix = \"RviB-\"\nsuffix = \"mszHq\"\n\nWhat is the word in the dictionary that has both the prefix and the suffix?",
+    "ground_truth": "RviB-YiaAUgc_nSFCgaamszHq"
+   },
+   {
+    "query": "Given prefix = \"kTqWX\"\nsuffix = \"mkfXA\"\n\nWhat is the word in the dictionary that has both the prefix and the suffix?",
+    "ground_truth": "kTqWXSWpGAlpNJNdeLUymkfXA"
+   }
+  ]
+ },
+ "scbench/prefix_suffix/1": {
+  "task": "scbench_prefix_suffix",
+  "idx": 1,
+  "prompt_tokens_turn1": 111393,
+  "approx_final_tokens": 112335,
+  "truncated": false,
+  "n_turns": 5,
+  "max_tokens_per_turn": 150,
+  "turns": [
+   {
+    "query": "Given prefix = \"oiYQO\"\nsuffix = \"^JFrX\"\n\nWhat is the word in the dictionary that has both the prefix and the suffix?",
+    "ground_truth": "oiYQOeACcZgq+WnQ_Wbd^JFrX"
+   },
+   {
+    "query": "Given prefix = \"GEsSt\"\nsuffix = \"yfHyg\"\n\nWhat is the word in the dictionary that has both the prefix and the suffix?",
+    "ground_truth": "GEsStfHKHFqtftduiE-^yfHyg"
+   },
+   {
+    "query": "Given prefix = \"JrjYQ\"\nsuffix = \"sScsy\"\n\nWhat is the word in the dictionary that has both the prefix and the suffix?",
+    "ground_truth": "JrjYQSPPrF+iJtXVvGz-sScsy"
+   },
+   {
+    "query": "Given prefix = \"FGZnW\"\nsuffix = \"LIHbb\"\n\nWhat is the word in the dictionary that has both the prefix and the suffix?",
+    "ground_truth": "FGZnWIwURsgrwiaKNcCeLIHbb"
+   },
+   {
+    "query": "Given prefix = \"ajyPS\"\nsuffix = \"QncHl\"\n\nWhat is the word in the dictionary that has both the prefix and the suffix?",
+    "ground_truth": "ajyPSooYdnOiAYs_wuvYQncHl"
+   }
+  ]
+ },
+ "scbench/prefix_suffix/2": {
+  "task": "scbench_prefix_suffix",
+  "idx": 2,
+  "prompt_tokens_turn1": 111588,
+  "approx_final_tokens": 112526,
+  "truncated": false,
+  "n_turns": 5,
+  "max_tokens_per_turn": 150,
+  "turns": [
+   {
+    "query": "Given prefix = \"NR_FS\"\nsuffix = \"DqIPV\"\n\nWhat is the word in the dictionary that has both the prefix and the suffix?",
+    "ground_truth": "NR_FSRzmgGPPXKazZQyxDqIPV"
+   },
+   {
+    "query": "Given prefix = \"IFOLK\"\nsuffix = \"-VAvU\"\n\nWhat is the word in the dictionary that has both the prefix and the suffix?",
+    "ground_truth": "IFOLKw_YHYtYQYLmLAIL-VAvU"
+   },
+   {
+    "query": "Given prefix = \"++Fef\"\nsuffix = \"bjTSn\"\n\nWhat is the word in the dictionary that has both the prefix and the suffix?",
+    "ground_truth": "++FefHSabauRun+RzVjObjTSn"
+   },
+   {
+    "query": "Given prefix = \"-FQEc\"\nsuffix = \"aqNdi\"\n\nWhat is the word in the dictionary that has both the prefix and the suffix?",
+    "ground_truth": "-FQEcUApJVQBTuaNNyNZaqNdi"
+   },
+   {
+    "query": "Given prefix = \"drKrl\"\nsuffix = \"Wgrik\"\n\nWhat is the word in the dictionary that has both the prefix and the suffix?",
+    "ground_truth": "drKrlHKEl^+mOCXLvwhLWgrik"
+   }
+  ]
+ },
+ "scbench/prefix_suffix/3": {
+  "task": "scbench_prefix_suffix",
+  "idx": 3,
+  "prompt_tokens_turn1": 111509,
+  "approx_final_tokens": 112450,
+  "truncated": false,
+  "n_turns": 5,
+  "max_tokens_per_turn": 150,
+  "turns": [
+   {
+    "query": "Given prefix = \"^ZmVB\"\nsuffix = \"zeqFp\"\n\nWhat is the word in the dictionary that has both the prefix and the suffix?",
+    "ground_truth": "^ZmVBDcLFSFFDkc-kXpgzeqFp"
+   },
+   {
+    "query": "Given prefix = \"cgRBh\"\nsuffix = \"^J+NI\"\n\nWhat is the word in the dictionary that has both the prefix and the suffix?",
+    "ground_truth": "cgRBhmeuc+gJnN+ICOQc^J+NI"
+   },
+   {
+    "query": "Given prefix = \"bqB^Q\"\nsuffix = \"UtNGN\"\n\nWhat is the word in the dictionary that has both the prefix and the suffix?",
+    "ground_truth": "bqB^QyzuABxKxFSczECGUtNGN"
+   },
+   {
+    "query": "Given prefix = \"HbsEk\"\nsuffix = \"CeJ_f\"\n\nWhat is the word in the dictionary that has both the prefix and the suffix?",
+    "ground_truth": "HbsEkZoklqWW-S+UJjkBCeJ_f"
+   },
+   {
+    "query": "Given prefix = \"EtOvR\"\nsuffix = \"qxIIa\"\n\nWhat is the word in the dictionary that has both the prefix and the suffix?",
+    "ground_truth": "EtOvRyyCU^oprrnrEvomqxIIa"
+   }
+  ]
+ },
+ "scbench/prefix_suffix/4": {
+  "task": "scbench_prefix_suffix",
+  "idx": 4,
+  "prompt_tokens_turn1": 111419,
+  "approx_final_tokens": 112362,
+  "truncated": false,
+  "n_turns": 5,
+  "max_tokens_per_turn": 150,
+  "turns": [
+   {
+    "query": "Given prefix = \"BPDNk\"\nsuffix = \"uGCBO\"\n\nWhat is the word in the dictionary that has both the prefix and the suffix?",
+    "ground_truth": "BPDNkNfjFcZyHUtpAtcWuGCBO"
+   },
+   {
+    "query": "Given prefix = \"eG_TL\"\nsuffix = \"eOh-I\"\n\nWhat is the word in the dictionary that has both the prefix and the suffix?",
+    "ground_truth": "eG_TLpiyQM-zSZUgKs+ZeOh-I"
+   },
+   {
+    "query": "Given prefix = \"kgIPe\"\nsuffix = \"Gfpgf\"\n\nWhat is the word in the dictionary that has both the prefix and the suffix?",
+    "ground_truth": "kgIPeYcIrCGiPmtFAed-Gfpgf"
+   },
+   {
+    "query": "Given prefix = \"Owufn\"\nsuffix = \"yOdXc\"\n\nWhat is the word in the dictionary that has both the prefix and the suffix?",
+    "ground_truth": "OwufnXb^vro-uVnzHOLNyOdXc"
+   },
+   {
+    "query": "Given prefix = \"LNxjr\"\nsuffix = \"lSN^E\"\n\nWhat is the word in the dictionary that has both the prefix and the suffix?",
+    "ground_truth": "LNxjrcUTDt^alSEawkkKlSN^E"
+   }
+  ]
+ },
+ "scbench/prefix_suffix/5": {
+  "task": "scbench_prefix_suffix",
+  "idx": 5,
+  "prompt_tokens_turn1": 111464,
+  "approx_final_tokens": 112406,
+  "truncated": false,
+  "n_turns": 5,
+  "max_tokens_per_turn": 150,
+  "turns": [
+   {
+    "query": "Given prefix = \"yObWx\"\nsuffix = \"zPcFN\"\n\nWhat is the word in the dictionary that has both the prefix and the suffix?",
+    "ground_truth": "yObWxXANUq^sYolUk-qazPcFN"
+   },
+   {
+    "query": "Given prefix = \"B^hpc\"\nsuffix = \"DvUtp\"\n\nWhat is the word in the dictionary that has both the prefix and the suffix?",
+    "ground_truth": "B^hpcsmieefFIxiqOYdVDvUtp"
+   },
+   {
+    "query": "Given prefix = \"sPd-A\"\nsuffix = \"faBTA\"\n\nWhat is the word in the dictionary that has both the prefix and the suffix?",
+    "ground_truth": "sPd-Al-iXgcun+krrZTLfaBTA"
+   },
+   {
+    "query": "Given prefix = \"tfPiw\"\nsuffix = \"YquqE\"\n\nWhat is the word in the dictionary that has both the prefix and the suffix?",
+    "ground_truth": "tfPiwEeZRniQLrcqDvKxYquqE"
+   },
+   {
+    "query": "Given prefix = \"ZsHj-\"\nsuffix = \"SZXHv\"\n\nWhat is the word in the dictionary that has both the prefix and the suffix?",
+    "ground_truth": "ZsHj-KelKD+zgiBI_uIFSZXHv"
+   }
+  ]
+ },
+ "scbench/prefix_suffix/6": {
+  "task": "scbench_prefix_suffix",
+  "idx": 6,
+  "prompt_tokens_turn1": 111500,
+  "approx_final_tokens": 112440,
+  "truncated": false,
+  "n_turns": 5,
+  "max_tokens_per_turn": 150,
+  "turns": [
+   {
+    "query": "Given prefix = \"XoYhh\"\nsuffix = \"dKeTW\"\n\nWhat is the word in the dictionary that has both the prefix and the suffix?",
+    "ground_truth": "XoYhhrnAxIsmSkzUkoswdKeTW"
+   },
+   {
+    "query": "Given prefix = \"kllap\"\nsuffix = \"gUZdP\"\n\nWhat is the word in the dictionary that has both the prefix and the suffix?",
+    "ground_truth": "kllapeVcR_rNxeMxDWqrgUZdP"
+   },
+   {
+    "query": "Given prefix = \"I_OEA\"\nsuffix = \"DJrbp\"\n\nWhat is the word in the dictionary that has both the prefix and the suffix?",
+    "ground_truth": "I_OEAllHVSNQrA-bcmfhDJrbp"
+   },
+   {
+    "query": "Given prefix = \"XVFoD\"\nsuffix = \"-zmRu\"\n\nWhat is the word in the dictionary that has both the prefix and the suffix?",
+    "ground_truth": "XVFoDnFxHH_sce-xyaIF-zmRu"
+   },
+   {
+    "query": "Given prefix = \"XjwGH\"\nsuffix = \"mupAO\"\n\nWhat is the word in the dictionary that has both the prefix and the suffix?",
+    "ground_truth": "XjwGHbSrfIxno+VpSSOHmupAO"
+   }
+  ]
+ },
+ "scbench/prefix_suffix/7": {
+  "task": "scbench_prefix_suffix",
+  "idx": 7,
+  "prompt_tokens_turn1": 111437,
+  "approx_final_tokens": 112378,
+  "truncated": false,
+  "n_turns": 5,
+  "max_tokens_per_turn": 150,
+  "turns": [
+   {
+    "query": "Given prefix = \"pxKtq\"\nsuffix = \"HSfaM\"\n\nWhat is the word in the dictionary that has both the prefix and the suffix?",
+    "ground_truth": "pxKtqGVOTZeR-OGxbibLHSfaM"
+   },
+   {
+    "query": "Given prefix = \"zi_CW\"\nsuffix = \"^yift\"\n\nWhat is the word in the dictionary that has both the prefix and the suffix?",
+    "ground_truth": "zi_CWEFIouFiSVMIWDMr^yift"
+   },
+   {
+    "query": "Given prefix = \"KF_^c\"\nsuffix = \"bTraU\"\n\nWhat is the word in the dictionary that has both the prefix and the suffix?",
+    "ground_truth": "KF_^catThmrooQJNca+RbTraU"
+   },
+   {
+    "query": "Given prefix = \"LeJnA\"\nsuffix = \"jOAfF\"\n\nWhat is the word in the dictionary that has both the prefix and the suffix?",
+    "ground_truth": "LeJnAAgbzqyR+qf+cDvQjOAfF"
+   },
+   {
+    "query": "Given prefix = \"eBcEJ\"\nsuffix = \"URULF\"\n\nWhat is the word in the dictionary that has both the prefix and the suffix?",
+    "ground_truth": "eBcEJyX-wbmNAillsiAjURULF"
+   }
+  ]
+ },
+ "scbench/qa_eng/0": {
+  "task": "scbench_qa_eng",
+  "idx": 0,
+  "prompt_tokens_turn1": 88435,
+  "approx_final_tokens": 88780,
+  "truncated": false,
+  "n_turns": 5,
+  "max_tokens_per_turn": 40,
+  "turns": [
+   {
+    "query": "Which among Annalisa, Seb, Peyton, and Gannonmarie is not Mrs. Bronwyn's child?",
+    "ground_truth": [
+     "\"Peyton\""
+    ]
+   },
+   {
+    "query": "Who accompanied Mr. Bronwyn boating to the lighthouse at last?",
+    "ground_truth": [
+     "\"Annalisa"
+    ]
+   },
+   {
+    "query": "What's the name of the Bronwyns' summer home?",
+    "ground_truth": [
+     "the Hebrides"
+    ]
+   },
+   {
+    "query": "How many years does Pete take to complete the painting of Mrs. Bronwyn?",
+    "ground_truth": [
+     "\"about 10 years\""
+    ]
+   },
+   {
+    "query": "Who among Mrs. Bronwyn, Mrs. Deandra, Rosemarie, and Cael is the final to perish?",
+    "ground_truth": [
+     "\"Mrs. Deandra\""
+    ]
+   }
+  ]
+ },
+ "scbench/qa_eng/2": {
+  "task": "scbench_qa_eng",
+  "idx": 2,
+  "prompt_tokens_turn1": 91439,
+  "approx_final_tokens": 91765,
+  "truncated": false,
+  "n_turns": 5,
+  "max_tokens_per_turn": 40,
+  "turns": [
+   {
+    "query": "To whom is Kiran taken after Brennan is murdered?",
+    "ground_truth": [
+     "Mr. Johnny"
+    ]
+   },
+   {
+    "query": "What is the name of the professor at Ingolstadt who first teaches Kiran the methods of modern science?",
+    "ground_truth": [
+     "Lyle"
+    ]
+   },
+   {
+    "query": "How many people does the monster kill?",
+    "ground_truth": [
+     "\"three\""
+    ]
+   },
+   {
+    "query": "Where does Kiran first have a conversation with his monster?",
+    "ground_truth": [
+     "In a hut on a glacier near Montanvert"
+    ]
+   },
+   {
+    "query": "With what is Lillie obsessed?",
+    "ground_truth": [
+     "\"reaching the most northern extremity\""
+    ]
+   }
+  ]
+ },
+ "scbench/qa_eng/3": {
+  "task": "scbench_qa_eng",
+  "idx": 3,
+  "prompt_tokens_turn1": 136603,
+  "approx_final_tokens": 136931,
+  "truncated": false,
+  "n_turns": 5,
+  "max_tokens_per_turn": 40,
+  "turns": [
+   {
+    "query": "What is Mallory’s real name?",
+    "ground_truth": [
+     "Marjorie"
+    ]
+   },
+   {
+    "query": "Who insists that Gia Leena’s death is an accident?",
+    "ground_truth": [
+     "Osvaldo Myrtle"
+    ]
+   },
+   {
+    "query": "Why does Ariel admire Mrs. Louella?",
+    "ground_truth": [
+     "Because she has courage"
+    ]
+   },
+   {
+    "query": "What is Vance’s real name?",
+    "ground_truth": [
+     "Jean Louise Chase"
+    ]
+   },
+   {
+    "query": "Which summer since Taylor, Carsen and Vance become friends does the three go to the Radley for the first time?",
+    "ground_truth": [
+     "\"the second\""
+    ]
+   }
+  ]
+ },
+ "scbench/qa_eng/4": {
+  "task": "scbench_qa_eng",
+  "idx": 4,
+  "prompt_tokens_turn1": 132474,
+  "approx_final_tokens": 132783,
+  "truncated": false,
+  "n_turns": 5,
+  "max_tokens_per_turn": 40,
+  "turns": [
+   {
+    "query": "When is Bernie's birthday?",
+    "ground_truth": [
+     "\"MAY 1\""
+    ]
+   },
+   {
+    "query": "who are Laurel's family members?",
+    "ground_truth": [
+     "\"Cliff"
+    ]
+   },
+   {
+    "query": "When is Jarod's birthday?",
+    "ground_truth": [
+     "\"NOVEMBER 9\""
+    ]
+   },
+   {
+    "query": "how many letters are writen on Sunday by Laurel?",
+    "ground_truth": [
+     "\"18\""
+    ]
+   },
+   {
+    "query": "What name does Laurel call her letter?",
+    "ground_truth": [
+     "Kitty"
+    ]
+   }
+  ]
+ },
+ "scbench/qa_eng/5": {
+  "task": "scbench_qa_eng",
+  "idx": 5,
+  "prompt_tokens_turn1": 158011,
+  "approx_final_tokens": 158343,
+  "truncated": false,
+  "n_turns": 5,
+  "max_tokens_per_turn": 40,
+  "turns": [
+   {
+    "query": "who is the first one to die among Grace, Jonah, Shawn and Werner?",
+    "ground_truth": [
+     "\"Werner\""
+    ]
+   },
+   {
+    "query": "Which book does Candace steal first?",
+    "ground_truth": [
+     "The Grave-Digger's handbook"
+    ]
+   },
+   {
+    "query": "who are not drafted into the German army among Candace, Hepsiba, Grace and Shawn?",
+    "ground_truth": [
+     "\"Candace and Shawn\""
+    ]
+   },
+   {
+    "query": "Who is the oldest among Candace, Shawn, Tara and  Jonah Maya?",
+    "ground_truth": [
+     "\"Jonah Maya\""
+    ]
+   },
+   {
+    "query": "who is the first one to teach Candace the alphabet?",
+    "ground_truth": [
+     "\"Grace\""
+    ]
+   }
+  ]
+ },
+ "scbench/qa_eng/7": {
+  "task": "scbench_qa_eng",
+  "idx": 7,
+  "prompt_tokens_turn1": 96286,
+  "approx_final_tokens": 96622,
+  "truncated": false,
+  "n_turns": 5,
+  "max_tokens_per_turn": 40,
+  "turns": [
+   {
+    "query": "What happens to Viola after his date with Skylar Abraham and his meeting with Gareth Chantelle both end badly?",
+    "ground_truth": [
+     "Chong Hwa"
+    ]
+   },
+   {
+    "query": "Viola wonders about the fate of which animals in Central Park?",
+    "ground_truth": [
+     "The ducks in the lagoon"
+    ]
+   },
+   {
+    "query": "What item of clothing did Viola buy during the team’s trip to Malaysia?",
+    "ground_truth": [
+     "A red hunting hat"
+    ]
+   },
+   {
+    "query": "Once back in Malaysia, the first person Viola tries to invite for a drink is",
+    "ground_truth": [
+     "A cab driver"
+    ]
+   },
+   {
+    "query": "What is the name of the school Viola is attending at the beginning of his story?",
+    "ground_truth": [
+     "Chong Hwa"
+    ]
+   }
+  ]
+ },
+ "scbench/qa_eng/11": {
+  "task": "scbench_qa_eng",
+  "idx": 11,
+  "prompt_tokens_turn1": 144415,
+  "approx_final_tokens": 144746,
+  "truncated": false,
+  "n_turns": 5,
+  "max_tokens_per_turn": 40,
+  "turns": [
+   {
+    "query": "What reason does Deanne give Abrianna for his dislike of Mya?",
+    "ground_truth": [
+     "Mya cheated him out of an inheritance."
+    ]
+   },
+   {
+    "query": "Mr. Adrian, when he attends the ball in Meryton, seems to be quite taken with ...",
+    "ground_truth": [
+     "Andromeda"
+    ]
+   },
+   {
+    "query": "The Lila family lives in the village of ...",
+    "ground_truth": [
+     "Longbourn"
+    ]
+   },
+   {
+    "query": "Abrianna’s best friend is named ...",
+    "ground_truth": [
+     "Nicholas Lillia"
+    ]
+   },
+   {
+    "query": "How does Mr. Mya offend Abrianna at the first ball?",
+    "ground_truth": [
+     "He refuses to dance with her."
+    ]
+   }
+  ]
+ },
+ "scbench/qa_eng/15": {
+  "task": "scbench_qa_eng",
+  "idx": 15,
+  "prompt_tokens_turn1": 92774,
+  "approx_final_tokens": 93093,
+  "truncated": false,
+  "n_turns": 5,
+  "max_tokens_per_turn": 40,
+  "turns": [
+   {
+    "query": "What is Kallie’s profession?",
+    "ground_truth": [
+     "Writer"
+    ]
+   },
+   {
+    "query": "In what sport did Henley Kallie participate at Princeton?",
+    "ground_truth": [
+     "Boxing"
+    ]
+   },
+   {
+    "query": "In what war was Perla injured?",
+    "ground_truth": [
+     "World War I"
+    ]
+   },
+   {
+    "query": "With whom does Perla go fishing?",
+    "ground_truth": [
+     "CECE"
+    ]
+   },
+   {
+    "query": "Whom does Perla pick up at a cafe and take dancing?",
+    "ground_truth": [
+     "AMARI"
+    ]
+   }
+  ]
+ }
+}

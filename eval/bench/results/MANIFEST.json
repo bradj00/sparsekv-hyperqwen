@@ -1,0 +1,1981 @@
+{
+ "abl_knobs/xfile.g1.jsonl": {
+  "conc": 1,
+  "config_dir": "abl_knobs",
+  "gpu": [
+   1
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "0311-abl-knobs-xfile"
+  ],
+  "records": 60,
+  "records_ok": 60,
+  "scored": 60,
+  "server_cfg": "tier4",
+  "server_env": {
+   "SPARSE_SELECT_EVERY": 1,
+   "SPARSE_STATS_SUB": 1
+  },
+  "sha256_uncompressed": "06f27a677093fd7463dd6fe4158a3c0b98379e4ca2d46d61feb02030767ec0b5",
+  "shard": 1,
+  "suite": "xfile",
+  "variant": "abl-knobsoff-int4"
+ },
+ "abl_knobs_sk8/xfile.g1.jsonl": {
+  "conc": 1,
+  "config_dir": "abl_knobs_sk8",
+  "gpu": [
+   1
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "0312-abl-knobs-sk8-xfile"
+  ],
+  "records": 60,
+  "records_ok": 60,
+  "scored": 60,
+  "server_cfg": "tier4",
+  "server_env": {
+   "SPARSE_SELECT_EVERY": 1,
+   "SPARSE_SKETCH_BITS": 8,
+   "SPARSE_STATS_SUB": 1
+  },
+  "sha256_uncompressed": "9db7220328853cd4593dba6d7b639c52643d27134631ea7e52d15914eadee2c8",
+  "shard": 1,
+  "suite": "xfile",
+  "variant": "abl-knobsoff-sketch8-int4"
+ },
+ "abl_knobs_tier8/xfile.g1.jsonl": {
+  "conc": 1,
+  "config_dir": "abl_knobs_tier8",
+  "gpu": [
+   1
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "0313-abl-knobs-tier8-xfile"
+  ],
+  "records": 60,
+  "records_ok": 60,
+  "scored": 60,
+  "server_cfg": "tier8",
+  "server_env": {
+   "SPARSE_SELECT_EVERY": 1,
+   "SPARSE_STATS_SUB": 1
+  },
+  "sha256_uncompressed": "e248e58b28e6f6b8f267e5e2bef2e2f0ca6b4fb906796c471a687c4d2cce4e52",
+  "shard": 1,
+  "suite": "xfile",
+  "variant": "abl-knobsoff-int8"
+ },
+ "abl_sfx16k/xfile.g1.jsonl": {
+  "conc": 1,
+  "config_dir": "abl_sfx16k",
+  "gpu": [
+   1
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "03145-abl-sfx16k-xfile"
+  ],
+  "records": 60,
+  "records_ok": 2,
+  "scored": 2,
+  "server_cfg": "tier4",
+  "server_env": {
+   "SPARSE_SELECT_EVERY": 1,
+   "SPARSE_STATS_SUB": 1,
+   "SPARSE_TIER_SUFFIX_KSEL": 16384
+  },
+  "sha256_uncompressed": "5de1c178a7f8ccec74cc95afeaa1b0bd1272eb34b5da4e8456a80eaf0acc72d4",
+  "shard": 1,
+  "suite": "xfile",
+  "variant": "abl-knobsoff-ksel16k-int4"
+ },
+ "abl_sfxoff/xfile.g1.jsonl": {
+  "conc": 1,
+  "config_dir": "abl_sfxoff",
+  "gpu": [
+   1
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "03146-abl-sfxoff-xfile"
+  ],
+  "records": 60,
+  "records_ok": 60,
+  "scored": 60,
+  "server_cfg": "tier4",
+  "server_env": {
+   "SPARSE_SELECT_EVERY": 1,
+   "SPARSE_STATS_SUB": 1,
+   "SPARSE_TIER_SUFFIX_SPARSE": 0
+  },
+  "sha256_uncompressed": "527d14767bfaafc2b15ccee05b58a8297cc25ff4e85e529bfb1ae08eceddfedd",
+  "shard": 1,
+  "suite": "xfile",
+  "variant": "fixed-int4"
+ },
+ "dense/gpqa.g0.jsonl": {
+  "conc": 4,
+  "config_dir": "dense",
+  "gpu": [
+   0
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "520-dense-gpqa"
+  ],
+  "records": 99,
+  "records_ok": 99,
+  "scored": 99,
+  "server_cfg": "dense",
+  "server_env": {
+   "MAX_LEN": "65536",
+   "MAX_SEQS": "4"
+  },
+  "sha256_uncompressed": "af05dde72100cfb56a3eea7f05b7de8ba1c7ff8f40c2aced98c27c7bcae20285",
+  "shard": 0,
+  "suite": "gpqa",
+  "variant": "dense"
+ },
+ "dense/gpqa.g1.jsonl": {
+  "conc": 4,
+  "config_dir": "dense",
+  "gpu": [
+   1
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "510-dense-gpqa"
+  ],
+  "records": 99,
+  "records_ok": 99,
+  "scored": 99,
+  "server_cfg": "dense",
+  "server_env": {
+   "MAX_LEN": "65536",
+   "MAX_SEQS": "4"
+  },
+  "sha256_uncompressed": "06f8b04ffb55de5ccad8ab1430e188a6c9b186e5631c3cc563b860fd5b778c8a",
+  "shard": 1,
+  "suite": "gpqa",
+  "variant": "dense"
+ },
+ "dense/ifbench.g0.jsonl.gz": {
+  "conc": 4,
+  "config_dir": "dense",
+  "gpu": [
+   0
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "522-dense-ifbench"
+  ],
+  "records": 150,
+  "records_ok": 150,
+  "scored": 150,
+  "server_cfg": "dense",
+  "server_env": {
+   "MAX_LEN": "65536",
+   "MAX_SEQS": "4"
+  },
+  "sha256_uncompressed": "8539e952f13432bc3c45e846468a4225aded53251d2dd0e49d8ee32b0fece8bf",
+  "shard": 0,
+  "suite": "ifbench",
+  "variant": "dense"
+ },
+ "dense/ifbench.g1.jsonl.gz": {
+  "conc": 4,
+  "config_dir": "dense",
+  "gpu": [
+   1
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "512-dense-ifbench"
+  ],
+  "records": 150,
+  "records_ok": 150,
+  "scored": 150,
+  "server_cfg": "dense",
+  "server_env": {
+   "MAX_LEN": "65536",
+   "MAX_SEQS": "4"
+  },
+  "sha256_uncompressed": "d0013ea9002a21186cde8c346e8beaed6b9b0ebaaa772e42e3c07e2fc98bda65",
+  "shard": 1,
+  "suite": "ifbench",
+  "variant": "dense"
+ },
+ "dense/lbv2.g0.jsonl": {
+  "conc": 1,
+  "config_dir": "dense",
+  "gpu": [
+   0
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "012-dense-lbv2"
+  ],
+  "records": 24,
+  "records_ok": 24,
+  "scored": 24,
+  "server_cfg": "dense",
+  "server_env": {},
+  "sha256_uncompressed": "b9fb560ca5d624fb93d824da1b8ab6090fcfaa95ad8a2260096f239f9ed44dde",
+  "shard": 0,
+  "suite": "lbv2",
+  "variant": "dense"
+ },
+ "dense/lbv2.g1.jsonl": {
+  "conc": 1,
+  "config_dir": "dense",
+  "gpu": [
+   1
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "042-dense-lbv2"
+  ],
+  "records": 24,
+  "records_ok": 24,
+  "scored": 24,
+  "server_cfg": "dense",
+  "server_env": {},
+  "sha256_uncompressed": "cbf7f9015a264c1cb4c1720c0d89a7c56c1ae22ca9f600cbc08476f19c2d53f3",
+  "shard": 1,
+  "suite": "lbv2",
+  "variant": "dense"
+ },
+ "dense/lcb.g0.jsonl.gz": {
+  "conc": 4,
+  "config_dir": "dense",
+  "gpu": [
+   0
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "521-dense-lcb"
+  ],
+  "records": 40,
+  "records_ok": 40,
+  "scored": 40,
+  "server_cfg": "dense",
+  "server_env": {
+   "MAX_LEN": "65536",
+   "MAX_SEQS": "4"
+  },
+  "sha256_uncompressed": "2869f7ee7382bfc89f3c52fb1cc7737ed7631c497dcefcb394390416f0d62c7f",
+  "shard": 0,
+  "suite": "lcb",
+  "variant": "dense"
+ },
+ "dense/lcb.g1.jsonl.gz": {
+  "conc": 4,
+  "config_dir": "dense",
+  "gpu": [
+   1
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "511-dense-lcb"
+  ],
+  "records": 40,
+  "records_ok": 40,
+  "scored": 40,
+  "server_cfg": "dense",
+  "server_env": {
+   "MAX_LEN": "65536",
+   "MAX_SEQS": "4"
+  },
+  "sha256_uncompressed": "5299ac3b3d16378856824d92083d2ad53c055af804f55e61d11c427950f76970",
+  "shard": 1,
+  "suite": "lcb",
+  "variant": "dense"
+ },
+ "dense/mmlupro.g0.jsonl.gz": {
+  "conc": 4,
+  "config_dir": "dense",
+  "gpu": [
+   0
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "523-dense-mmlupro"
+  ],
+  "records": 140,
+  "records_ok": 140,
+  "scored": 140,
+  "server_cfg": "dense",
+  "server_env": {
+   "MAX_LEN": "65536",
+   "MAX_SEQS": "4"
+  },
+  "sha256_uncompressed": "48630e7a4b6adb875b0dc43d2aa4e8efed91297457412d6eea141775ac4a080f",
+  "shard": 0,
+  "suite": "mmlupro",
+  "variant": "dense"
+ },
+ "dense/mmlupro.g1.jsonl.gz": {
+  "conc": 4,
+  "config_dir": "dense",
+  "gpu": [
+   1
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "513-dense-mmlupro"
+  ],
+  "records": 140,
+  "records_ok": 140,
+  "scored": 140,
+  "server_cfg": "dense",
+  "server_env": {
+   "MAX_LEN": "65536",
+   "MAX_SEQS": "4"
+  },
+  "sha256_uncompressed": "757e9c5313c1574d8da98ca00cdc46009386ba9d2ef6bb75b59c2dd306f23912",
+  "shard": 1,
+  "suite": "mmlupro",
+  "variant": "dense"
+ },
+ "dense/mtp.g0.jsonl": {
+  "conc": 1,
+  "config_dir": "dense",
+  "gpu": [
+   0
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "710-dense-mtp"
+  ],
+  "records": 8,
+  "records_ok": 8,
+  "scored": 0,
+  "server_cfg": "dense",
+  "server_env": {},
+  "sha256_uncompressed": "82f7d1192f906bafb1952027084e9bd276ec89b442e9ed1a24ce46393d7279f5",
+  "shard": 0,
+  "suite": "mtp",
+  "variant": "dense"
+ },
+ "dense/mtp.g1.jsonl": {
+  "conc": 1,
+  "config_dir": "dense",
+  "gpu": [
+   1
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "730-dense-mtp"
+  ],
+  "records": 4,
+  "records_ok": 4,
+  "scored": 0,
+  "server_cfg": "dense",
+  "server_env": {},
+  "sha256_uncompressed": "5032c7f941b3bec6b3b7d3514f76d5a6a1aa4731f743ca983db8a32307745595",
+  "shard": 1,
+  "suite": "mtp",
+  "variant": "dense"
+ },
+ "dense/ruler.g0.jsonl": {
+  "conc": 1,
+  "config_dir": "dense",
+  "gpu": [
+   0
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "011-dense-ruler"
+  ],
+  "records": 114,
+  "records_ok": 114,
+  "scored": 114,
+  "server_cfg": "dense",
+  "server_env": {},
+  "sha256_uncompressed": "1d013de7a80fcabd89f4d446bc87843443ed3ad724b188e86c2f6c8dbb38f102",
+  "shard": 0,
+  "suite": "ruler",
+  "variant": "dense"
+ },
+ "dense/ruler.g1.jsonl": {
+  "conc": 1,
+  "config_dir": "dense",
+  "gpu": [
+   1
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "041-dense-ruler"
+  ],
+  "records": 107,
+  "records_ok": 107,
+  "scored": 107,
+  "server_cfg": "dense",
+  "server_env": {},
+  "sha256_uncompressed": "f7ad30aa0bbcb79398eafdbbd51488be3718b523dea856da43efa4146fbd2014",
+  "shard": 1,
+  "suite": "ruler",
+  "variant": "dense"
+ },
+ "dense/scbench.g0.jsonl": {
+  "conc": 1,
+  "config_dir": "dense",
+  "gpu": [
+   0
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "610-dense-scbench"
+  ],
+  "records": 16,
+  "records_ok": 16,
+  "scored": 16,
+  "server_cfg": "dense",
+  "server_env": {},
+  "sha256_uncompressed": "596a4eadc47111acfa86992b9687fd0d627abcab32ada0bfab98efe184823c5e",
+  "shard": 0,
+  "suite": "scbench",
+  "variant": "dense"
+ },
+ "dense/scbench.g1.jsonl": {
+  "conc": 1,
+  "config_dir": "dense",
+  "gpu": [
+   1
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "630-dense-scbench"
+  ],
+  "records": 16,
+  "records_ok": 16,
+  "scored": 16,
+  "server_cfg": "dense",
+  "server_env": {},
+  "sha256_uncompressed": "bfaa303e48d455ca2d6bb0ae0ae5fc28878da345948d15bceb9cfc6a7c993057",
+  "shard": 1,
+  "suite": "scbench",
+  "variant": "dense"
+ },
+ "dense/xfile.g0.jsonl": {
+  "conc": 1,
+  "config_dir": "dense",
+  "gpu": [
+   0
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "010-dense-xfile"
+  ],
+  "records": 60,
+  "records_ok": 60,
+  "scored": 60,
+  "server_cfg": "dense",
+  "server_env": {},
+  "sha256_uncompressed": "fa17fe3d0f8075a9ad8325d3eb924f79e93dd26b372202f5d954c8f7d3b93af4",
+  "shard": 0,
+  "suite": "xfile",
+  "variant": "dense"
+ },
+ "dense/xfile.g1.jsonl": {
+  "conc": 1,
+  "config_dir": "dense",
+  "gpu": [
+   1
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "040-dense-xfile"
+  ],
+  "records": 60,
+  "records_ok": 60,
+  "scored": 60,
+  "server_cfg": "dense",
+  "server_env": {},
+  "sha256_uncompressed": "99503a6e0fce0e68e314276143eeca7584a01daccfc23cdbc3377cca25bbb7e2",
+  "shard": 1,
+  "suite": "xfile",
+  "variant": "dense"
+ },
+ "dense_hs/mmlupro.g0.jsonl": {
+  "conc": 1,
+  "config_dir": "dense_hs",
+  "gpu": [
+   0
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "0230-dense-hs"
+  ],
+  "records": 24,
+  "records_ok": 24,
+  "scored": 24,
+  "server_cfg": "dense",
+  "server_env": {},
+  "sha256_uncompressed": "422c8bc39380959ad7b1cc9cc92c0eb55d8442cb52a037afd5d3992a771aa7ee",
+  "shard": 0,
+  "suite": "mmlupro_hs",
+  "variant": "dense"
+ },
+ "dense_hs/mmlupro.g1.jsonl": {
+  "conc": 1,
+  "config_dir": "dense_hs",
+  "gpu": [
+   1
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "03150-dense-hs"
+  ],
+  "records": 24,
+  "records_ok": 24,
+  "scored": 24,
+  "server_cfg": "dense",
+  "server_env": {},
+  "sha256_uncompressed": "9fb97556d356fd004a4660e75bd8a49501da9dd7af665f1f4b5b88c0300e52cf",
+  "shard": 1,
+  "suite": "mmlupro_hs",
+  "variant": "dense"
+ },
+ "dense_q4/ruler.g1.jsonl": {
+  "conc": 1,
+  "config_dir": "dense_q4",
+  "gpu": [
+   1
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "951-dense_q4-ruler"
+  ],
+  "records": 107,
+  "records_ok": 107,
+  "scored": 107,
+  "server_cfg": "dense",
+  "server_env": {
+   "SPARSE_DEBUG_KV_FAKEQ4": 1,
+   "checkout": "q4test (fake-int4 KV debug hook)"
+  },
+  "sha256_uncompressed": "549145b93b54280f81cf460b20df05d94f60d0dfd716cc604e652ad926bf9381",
+  "shard": 1,
+  "suite": "ruler",
+  "variant": "dense-fakeq4"
+ },
+ "dense_q4/xfile.g1.jsonl": {
+  "conc": 1,
+  "config_dir": "dense_q4",
+  "gpu": [
+   1
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "031477a-dense_q4-xfile"
+  ],
+  "records": 60,
+  "records_ok": 60,
+  "scored": 60,
+  "server_cfg": "dense",
+  "server_env": {
+   "SPARSE_DEBUG_KV_FAKEQ4": 1,
+   "checkout": "q4test (fake-int4 KV debug hook)"
+  },
+  "sha256_uncompressed": "14c14d19df3943314a221443609898be1e35eef6999ff769cbc80d42d2fa8be9",
+  "shard": 1,
+  "suite": "xfile",
+  "variant": "dense-fakeq4"
+ },
+ "fix/ruler.g1.jsonl": {
+  "conc": 1,
+  "config_dir": "fix",
+  "gpu": [
+   1
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "03148-fix-ruler"
+  ],
+  "records": 241,
+  "records_ok": 241,
+  "scored": 239,
+  "server_cfg": "tier4",
+  "server_env": {
+   "SPARSE_SELECT_EVERY": 1,
+   "SPARSE_STATS_SUB": 1,
+   "SPARSE_TIER_SUFFIX_SPARSE": 0
+  },
+  "sha256_uncompressed": "c092aea35986d40aa0e7045a518edb606a59ed2d00968d95dc993f3a8a861e1a",
+  "shard": 1,
+  "suite": "ruler",
+  "variant": "fixed-int4"
+ },
+ "fix8/xfile.g1.jsonl": {
+  "conc": 1,
+  "config_dir": "fix8",
+  "gpu": [
+   1
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "031475-fix8-xfile"
+  ],
+  "records": 60,
+  "records_ok": 60,
+  "scored": 60,
+  "server_cfg": "tier8",
+  "server_env": {
+   "SPARSE_SELECT_EVERY": 1,
+   "SPARSE_STATS_SUB": 1,
+   "SPARSE_TIER_SUFFIX_SPARSE": 0
+  },
+  "sha256_uncompressed": "1e8ecaa47ef6d1bce8dc904a863225da3076d9b59702c4a3639a664064b11897",
+  "shard": 1,
+  "suite": "xfile",
+  "variant": "fixed-int8"
+ },
+ "fix_knobson/xfile.g1.jsonl": {
+  "conc": 1,
+  "config_dir": "fix_knobson",
+  "gpu": [
+   1
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "03147-fix-knobson-xfile"
+  ],
+  "records": 60,
+  "records_ok": 60,
+  "scored": 60,
+  "server_cfg": "tier4",
+  "server_env": {
+   "SPARSE_TIER_SUFFIX_SPARSE": 0
+  },
+  "sha256_uncompressed": "1b66e89a4d1e3f7de24cd46cec9043e36029bbfa643682961eb9a999b195200c",
+  "shard": 1,
+  "suite": "xfile",
+  "variant": "fixed-knobson-int4"
+ },
+ "s5_exact/xfile.g1.jsonl": {
+  "conc": 1,
+  "config_dir": "s5_exact",
+  "gpu": [
+   1
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "031476-0611-s5-b2-exact-xfile"
+  ],
+  "records": 60,
+  "records_ok": 60,
+  "scored": 60,
+  "server_cfg": "tier4",
+  "server_env": {
+   "SPARSE_SELECT_EVERY": 1,
+   "SPARSE_STATS_SUB": 1,
+   "SPARSE_TIER_S5_DMA": 1,
+   "SPARSE_TIER_STAGE_SERIAL": 1,
+   "SPARSE_TIER_SUFFIX_EXACT": 1,
+   "SPARSE_TIER_SUFFIX_SPARSE": 0,
+   "checkout": "dev branch S5 (serial staging)"
+  },
+  "sha256_uncompressed": "a0151c89a1a1e7b815b9d6c02367e549a849787583045c4191ae68b8ae5f50fb",
+  "shard": 1,
+  "suite": "xfile",
+  "variant": "s5-exact"
+ },
+ "s5_exact_hs/mmlupro.g0c4.jsonl": {
+  "conc": 4,
+  "config_dir": "s5_exact_hs",
+  "gpu": [
+   0
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "0200-0601-s5-a2-exact-hs-c4"
+  ],
+  "records": 24,
+  "records_ok": 24,
+  "scored": 24,
+  "server_cfg": "tier4",
+  "server_env": {
+   "SPARSE_SELECT_EVERY": 1,
+   "SPARSE_STATS_SUB": 1,
+   "SPARSE_TIER_S5_DMA": 1,
+   "SPARSE_TIER_STAGE_SERIAL": 1,
+   "SPARSE_TIER_SUFFIX_EXACT": 1,
+   "SPARSE_TIER_SUFFIX_SPARSE": 0,
+   "checkout": "dev branch S5 (serial staging)"
+  },
+  "sha256_uncompressed": "d6cd0325fe38b682109a855efad9bb7da116befcb16dd7bb190195c64439e14e",
+  "shard": 0,
+  "suite": "mmlupro_hs",
+  "variant": "s5-exact"
+ },
+ "s5_hyb128/xfile.g1.jsonl": {
+  "conc": 1,
+  "config_dir": "s5_hyb128",
+  "gpu": [
+   1
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "031476-0611-s5-b3-hyb128-xfile"
+  ],
+  "records": 60,
+  "records_ok": 60,
+  "scored": 60,
+  "server_cfg": "tier4",
+  "server_env": {
+   "SPARSE_SELECT_EVERY": 1,
+   "SPARSE_STATS_SUB": 1,
+   "SPARSE_TIER_S5_DMA": 1,
+   "SPARSE_TIER_STAGE_SERIAL": 1,
+   "SPARSE_TIER_SUFFIX_EXACT": 1,
+   "SPARSE_TIER_SUFFIX_EXACT_ROWS": 128,
+   "SPARSE_TIER_SUFFIX_STATS_SUB": 1,
+   "checkout": "dev branch S5 (serial staging)"
+  },
+  "sha256_uncompressed": "ecac7a3b99373ccff3deb677227aa849bc6134d7457b34d510ccf016f4843e3a",
+  "shard": 1,
+  "suite": "xfile",
+  "variant": "s5-hyb128"
+ },
+ "s5_serial/xfile.g1.jsonl": {
+  "conc": 1,
+  "config_dir": "s5_serial",
+  "gpu": [
+   1
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "031476-0611-s5-b1-serial-xfile"
+  ],
+  "records": 60,
+  "records_ok": 60,
+  "scored": 60,
+  "server_cfg": "tier4",
+  "server_env": {
+   "SPARSE_SELECT_EVERY": 1,
+   "SPARSE_STATS_SUB": 1,
+   "SPARSE_TIER_STAGE_SERIAL": 1,
+   "SPARSE_TIER_SUFFIX_SPARSE": 0,
+   "checkout": "dev branch S5 (serial staging)"
+  },
+  "sha256_uncompressed": "f8e3b2dded2b3d4e0a83c40eb302dfb8faf4652a837903fb69c0ea7cb3d9b866",
+  "shard": 1,
+  "suite": "xfile",
+  "variant": "s5-serial"
+ },
+ "s5_serial_hs/mmlupro.g0c4.jsonl": {
+  "conc": 4,
+  "config_dir": "s5_serial_hs",
+  "gpu": [
+   0
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "0200-0601-s5-a1-serial-hs-c4"
+  ],
+  "records": 24,
+  "records_ok": 24,
+  "scored": 24,
+  "server_cfg": "tier4",
+  "server_env": {
+   "SPARSE_SELECT_EVERY": 1,
+   "SPARSE_STATS_SUB": 1,
+   "SPARSE_TIER_STAGE_SERIAL": 1,
+   "SPARSE_TIER_SUFFIX_SPARSE": 0,
+   "checkout": "dev branch S5 (serial staging)"
+  },
+  "sha256_uncompressed": "62301603d5b8118952308a74283eb75301e23fef82aebd13cc57b15e0ed488c8",
+  "shard": 0,
+  "suite": "mmlupro_hs",
+  "variant": "s5-serial"
+ },
+ "s5t_exact/xfile.g1c4.jsonl": {
+  "conc": 4,
+  "config_dir": "s5t_exact",
+  "gpu": [
+   0
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "0200-0621-s5-c3-exact-xfile-c4"
+  ],
+  "records": 60,
+  "records_ok": 60,
+  "scored": 60,
+  "server_cfg": "tier4",
+  "server_env": {
+   "SPARSE_SELECT_EVERY": 1,
+   "SPARSE_STATS_SUB": 1,
+   "SPARSE_TIER_S5_DMA": 1,
+   "SPARSE_TIER_STAGE_SERIAL": 1,
+   "SPARSE_TIER_SUFFIX_EXACT": 1,
+   "SPARSE_TIER_SUFFIX_SPARSE": 0,
+   "checkout": "dev branch S5 (serial staging)"
+  },
+  "sha256_uncompressed": "31108c4d3d57522ec8ffb5b9f5312660689468630357515f9cd91c1d62c02e80",
+  "shard": 1,
+  "suite": "xfile",
+  "variant": "s5-exact"
+ },
+ "s5t_hyb128/xfile.g1c4.jsonl": {
+  "conc": 4,
+  "config_dir": "s5t_hyb128",
+  "gpu": [
+   0
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "0200-0621-s5-c4-hyb128-xfile-c4"
+  ],
+  "records": 60,
+  "records_ok": 60,
+  "scored": 60,
+  "server_cfg": "tier4",
+  "server_env": {
+   "SPARSE_SELECT_EVERY": 1,
+   "SPARSE_STATS_SUB": 1,
+   "SPARSE_TIER_S5_DMA": 1,
+   "SPARSE_TIER_STAGE_SERIAL": 1,
+   "SPARSE_TIER_SUFFIX_EXACT": 1,
+   "SPARSE_TIER_SUFFIX_EXACT_ROWS": 128,
+   "SPARSE_TIER_SUFFIX_STATS_SUB": 1,
+   "checkout": "dev branch S5 (serial staging)"
+  },
+  "sha256_uncompressed": "1ec00b2feaa188066263ebc5cc0dda01087e82d9d2b66b6fe2ac773fa8c1bf8b",
+  "shard": 1,
+  "suite": "xfile",
+  "variant": "s5-hyb128"
+ },
+ "s5t_s4ref/xfile.g1c4.jsonl": {
+  "conc": 4,
+  "config_dir": "s5t_s4ref",
+  "gpu": [
+   0
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "0200-0621-s5-c1-s4ref-xfile-c4"
+  ],
+  "records": 60,
+  "records_ok": 60,
+  "scored": 60,
+  "server_cfg": "tier4",
+  "server_env": {
+   "SPARSE_TIER_STAGE_SERIAL": 1,
+   "checkout": "dev branch S5 (serial staging)"
+  },
+  "sha256_uncompressed": "6c58b5c299dfcfa9dc67c8436e6e9eb21a9dcf19e3aa1457244daace22d0fc4d",
+  "shard": 1,
+  "suite": "xfile",
+  "variant": "s5-release+serial"
+ },
+ "s5t_serial/xfile.g1c4.jsonl": {
+  "conc": 4,
+  "config_dir": "s5t_serial",
+  "gpu": [
+   0
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "0200-0621-s5-c2-serial-xfile-c4"
+  ],
+  "records": 60,
+  "records_ok": 60,
+  "scored": 60,
+  "server_cfg": "tier4",
+  "server_env": {
+   "SPARSE_SELECT_EVERY": 1,
+   "SPARSE_STATS_SUB": 1,
+   "SPARSE_TIER_STAGE_SERIAL": 1,
+   "SPARSE_TIER_SUFFIX_SPARSE": 0,
+   "checkout": "dev branch S5 (serial staging)"
+  },
+  "sha256_uncompressed": "686884551ffb67db886c15f815a43dce407110f6ca2087c093222aaf7a17a1bc",
+  "shard": 1,
+  "suite": "xfile",
+  "variant": "s5-serial"
+ },
+ "s6_basis/lmse.g1.jsonl": {
+  "conc": 1,
+  "config_dir": "s6_basis",
+  "gpu": [
+   1
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "0722-s6-b1-lmse-xfile"
+  ],
+  "records": 60,
+  "records_ok": 60,
+  "scored": 60,
+  "server_cfg": "tier4",
+  "server_env": {
+   "SPARSE_BASIS": "basis27_lmse.pt",
+   "SPARSE_SELECT_EVERY": 1,
+   "SPARSE_STATS_SUB": 1,
+   "SPARSE_TIER_STAGE_SERIAL": 1,
+   "SPARSE_TIER_SUFFIX_SPARSE": 0,
+   "checkout": "dev branch S6"
+  },
+  "sha256_uncompressed": "a60391ef109ec4eb15f31c790bc58d9ccfa135b3bff844727badccf2bbd181d6",
+  "shard": 1,
+  "suite": "xfile",
+  "variant": "s6-basis-lmse"
+ },
+ "s6_basis/old.g1.jsonl": {
+  "conc": 1,
+  "config_dir": "s6_basis",
+  "gpu": [
+   1
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "0721-s6-b0-oldbasis-xfile"
+  ],
+  "records": 60,
+  "records_ok": 60,
+  "scored": 60,
+  "server_cfg": "tier4",
+  "server_env": {
+   "SPARSE_SELECT_EVERY": 1,
+   "SPARSE_STATS_SUB": 1,
+   "SPARSE_TIER_STAGE_SERIAL": 1,
+   "SPARSE_TIER_SUFFIX_SPARSE": 0,
+   "checkout": "dev branch S6"
+  },
+  "sha256_uncompressed": "bbf0fc35b5c57802f33487b048729dbef40148539dfe4d070c39500d927530cb",
+  "shard": 1,
+  "suite": "xfile",
+  "variant": "s6-basis-release"
+ },
+ "s6_resume/disk_prime.jsonl": {
+  "conc": 1,
+  "config_dir": "s6_resume",
+  "gpu": [
+   0
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "0701-s6-r1-disk-prime"
+  ],
+  "records": 2,
+  "records_ok": 2,
+  "scored": 0,
+  "server_cfg": "tier4",
+  "server_env": {
+   "S6_PHASE": "prime",
+   "SPARSE_SELECT_EVERY": 1,
+   "SPARSE_STATS_SUB": 1,
+   "SPARSE_TIER_DEBUG": 1,
+   "SPARSE_TIER_DISK_DIR": "<local NVMe dir>",
+   "SPARSE_TIER_DISK_GB": 40,
+   "SPARSE_TIER_STAGE_SERIAL": 1,
+   "SPARSE_TIER_SUFFIX_SPARSE": 0,
+   "checkout": "dev branch S6"
+  },
+  "sha256_uncompressed": "d8958dd018ff155fd97c73842923058f7bebd313d9588248caf4b58439b39047",
+  "shard": null,
+  "suite": "s6_resume",
+  "variant": "s6-disk-resume"
+ },
+ "s6_resume/disk_resume.jsonl": {
+  "conc": 1,
+  "config_dir": "s6_resume",
+  "gpu": [
+   0
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "0702-s6-r2-disk-resume"
+  ],
+  "records": 2,
+  "records_ok": 2,
+  "scored": 0,
+  "server_cfg": "tier4",
+  "server_env": {
+   "S6_PHASE": "resume",
+   "SPARSE_SELECT_EVERY": 1,
+   "SPARSE_STATS_SUB": 1,
+   "SPARSE_TIER_DEBUG": 1,
+   "SPARSE_TIER_DISK_DIR": "<local NVMe dir>",
+   "SPARSE_TIER_DISK_GB": 40,
+   "SPARSE_TIER_STAGE_SERIAL": 1,
+   "SPARSE_TIER_SUFFIX_SPARSE": 0,
+   "checkout": "dev branch S6"
+  },
+  "sha256_uncompressed": "94b28f859d88b12a92352c23e9ef3f330c0c77f57402823e6f524425add2b124",
+  "shard": null,
+  "suite": "s6_resume",
+  "variant": "s6-disk-resume"
+ },
+ "sparse/lbv2.g0.jsonl": {
+  "conc": 1,
+  "config_dir": "sparse",
+  "gpu": [
+   0
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "022-sparse-lbv2"
+  ],
+  "records": 24,
+  "records_ok": 24,
+  "scored": 24,
+  "server_cfg": "sparse",
+  "server_env": {
+   "GPU_UTIL": 0.945
+  },
+  "sha256_uncompressed": "9c5b559e1fe80ec15d2f3de4026d27367bbcd4842e68dded30be1d5eba267f83",
+  "shard": 0,
+  "suite": "lbv2",
+  "variant": "sparse-gpu"
+ },
+ "sparse/lbv2.g1.jsonl": {
+  "conc": 1,
+  "config_dir": "sparse",
+  "gpu": [
+   1
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "032-sparse-lbv2"
+  ],
+  "records": 24,
+  "records_ok": 24,
+  "scored": 24,
+  "server_cfg": "sparse",
+  "server_env": {
+   "GPU_UTIL": 0.945
+  },
+  "sha256_uncompressed": "f1f3576922e0b1074157fbd194da20fdd78edd09a104c7e89ec4bc5729a75ef3",
+  "shard": 1,
+  "suite": "lbv2",
+  "variant": "sparse-gpu"
+ },
+ "sparse/mtp.g0.jsonl": {
+  "conc": 1,
+  "config_dir": "sparse",
+  "gpu": [
+   0
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "720-sparse-mtp"
+  ],
+  "records": 8,
+  "records_ok": 8,
+  "scored": 0,
+  "server_cfg": "sparse",
+  "server_env": {
+   "GPU_UTIL": 0.945
+  },
+  "sha256_uncompressed": "bfc31babf91a1ed2a269890eb6bfd50c06681f3fedcb1001f492cd8ffc1fbc94",
+  "shard": 0,
+  "suite": "mtp",
+  "variant": "sparse-gpu"
+ },
+ "sparse/mtp.g1.jsonl": {
+  "conc": 1,
+  "config_dir": "sparse",
+  "gpu": [
+   1
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "720-sparse-mtp"
+  ],
+  "records": 4,
+  "records_ok": 4,
+  "scored": 0,
+  "server_cfg": "sparse",
+  "server_env": {
+   "GPU_UTIL": 0.945
+  },
+  "sha256_uncompressed": "9931cd48aeaf40c681d398a0814bf41b910bf5c6b13e11717d8239e9976d47ed",
+  "shard": 1,
+  "suite": "mtp",
+  "variant": "sparse-gpu"
+ },
+ "sparse/ruler.g0.jsonl": {
+  "conc": 1,
+  "config_dir": "sparse",
+  "gpu": [
+   0
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "021-sparse-ruler"
+  ],
+  "records": 114,
+  "records_ok": 114,
+  "scored": 114,
+  "server_cfg": "sparse",
+  "server_env": {
+   "GPU_UTIL": 0.945
+  },
+  "sha256_uncompressed": "bd2d784bcf630827d424f2e71a5dd0134baa9b9a7f9d5037d14202508f072029",
+  "shard": 0,
+  "suite": "ruler",
+  "variant": "sparse-gpu"
+ },
+ "sparse/ruler.g1.jsonl": {
+  "conc": 1,
+  "config_dir": "sparse",
+  "gpu": [
+   1
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "031-sparse-ruler"
+  ],
+  "records": 107,
+  "records_ok": 107,
+  "scored": 107,
+  "server_cfg": "sparse",
+  "server_env": {
+   "GPU_UTIL": 0.945
+  },
+  "sha256_uncompressed": "ac66eebe05bfa12f29e2e609d53078f3948985e9ed1f63593bb2ec9fb1e9943a",
+  "shard": 1,
+  "suite": "ruler",
+  "variant": "sparse-gpu"
+ },
+ "sparse/scbench.g0.jsonl": {
+  "conc": 1,
+  "config_dir": "sparse",
+  "gpu": [
+   0
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "620-sparse-scbench"
+  ],
+  "records": 16,
+  "records_ok": 16,
+  "scored": 16,
+  "server_cfg": "sparse",
+  "server_env": {
+   "GPU_UTIL": 0.945
+  },
+  "sha256_uncompressed": "e51d0b3c2a8d20960bb036f9d33aee413d4ca451f22cfdcb5bc22c74cd518a4b",
+  "shard": 0,
+  "suite": "scbench",
+  "variant": "sparse-gpu"
+ },
+ "sparse/scbench.g1.jsonl": {
+  "conc": 1,
+  "config_dir": "sparse",
+  "gpu": [
+   1
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "620-sparse-scbench"
+  ],
+  "records": 16,
+  "records_ok": 16,
+  "scored": 16,
+  "server_cfg": "sparse",
+  "server_env": {
+   "GPU_UTIL": 0.945
+  },
+  "sha256_uncompressed": "b2b5051c0b6ab6f0b068243761f1e1ff3c605d403b0eef10b1b7959bfff66e4d",
+  "shard": 1,
+  "suite": "scbench",
+  "variant": "sparse-gpu"
+ },
+ "sparse/xfile.g0.jsonl": {
+  "conc": 1,
+  "config_dir": "sparse",
+  "gpu": [
+   0
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "020-sparse-xfile"
+  ],
+  "records": 60,
+  "records_ok": 60,
+  "scored": 60,
+  "server_cfg": "sparse",
+  "server_env": {
+   "GPU_UTIL": 0.945
+  },
+  "sha256_uncompressed": "2130abb266af5ec50570a58694d293c1df70b466a3c886520c32c242cbc89e7d",
+  "shard": 0,
+  "suite": "xfile",
+  "variant": "sparse-gpu"
+ },
+ "sparse/xfile.g1.jsonl": {
+  "conc": 1,
+  "config_dir": "sparse",
+  "gpu": [
+   1
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "030-sparse-xfile"
+  ],
+  "records": 60,
+  "records_ok": 60,
+  "scored": 60,
+  "server_cfg": "sparse",
+  "server_env": {
+   "GPU_UTIL": 0.945
+  },
+  "sha256_uncompressed": "3e80228ef592b600f61f809964383de0d64d7f9c9cb0ed49eb5230e6d8df2b8a",
+  "shard": 1,
+  "suite": "xfile",
+  "variant": "sparse-gpu"
+ },
+ "sparse_hs/mmlupro.g0.jsonl": {
+  "conc": 1,
+  "config_dir": "sparse_hs",
+  "gpu": [
+   0
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "0231-sparse-hs"
+  ],
+  "records": 24,
+  "records_ok": 24,
+  "scored": 24,
+  "server_cfg": "sparse",
+  "server_env": {
+   "GPU_UTIL": 0.945
+  },
+  "sha256_uncompressed": "d5dfc47edba750139eda86c9bf65a9be21cd9c14ec3540d1619165df63231d74",
+  "shard": 0,
+  "suite": "mmlupro_hs",
+  "variant": "sparse-gpu"
+ },
+ "sparse_hs/mmlupro.g1.jsonl": {
+  "conc": 1,
+  "config_dir": "sparse_hs",
+  "gpu": [
+   1
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "03151-sparse-hs"
+  ],
+  "records": 24,
+  "records_ok": 24,
+  "scored": 24,
+  "server_cfg": "sparse",
+  "server_env": {
+   "GPU_UTIL": 0.945
+  },
+  "sha256_uncompressed": "c963b3e535d21b9a7bef0fb4faf392a8bf50de3c163afdce9a3417a8f841703c",
+  "shard": 1,
+  "suite": "mmlupro_hs",
+  "variant": "sparse-gpu"
+ },
+ "sparse_q4/ruler.g1.jsonl": {
+  "conc": 1,
+  "config_dir": "sparse_q4",
+  "gpu": [
+   0
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "961-sparse_q4-ruler"
+  ],
+  "records": 107,
+  "records_ok": 107,
+  "scored": 107,
+  "server_cfg": "sparse",
+  "server_env": {
+   "GPU_UTIL": 0.945,
+   "SPARSE_DEBUG_KV_FAKEQ4": 1,
+   "checkout": "q4test (fake-int4 KV debug hook)"
+  },
+  "sha256_uncompressed": "8d65cea249146cd038127e57c3daaaab7dc92196dc219f9ce9e5d84155186035",
+  "shard": 1,
+  "suite": "ruler",
+  "variant": "sparse-fakeq4"
+ },
+ "sparse_q4/xfile.g1.jsonl": {
+  "conc": 1,
+  "config_dir": "sparse_q4",
+  "gpu": [
+   1
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "031477b-sparse_q4-xfile"
+  ],
+  "records": 60,
+  "records_ok": 60,
+  "scored": 60,
+  "server_cfg": "sparse",
+  "server_env": {
+   "GPU_UTIL": 0.945,
+   "SPARSE_DEBUG_KV_FAKEQ4": 1,
+   "checkout": "q4test (fake-int4 KV debug hook)"
+  },
+  "sha256_uncompressed": "76db18378d748238cb40c4f524fa3a49e3f574be09f27a5b55e944796347df27",
+  "shard": 1,
+  "suite": "xfile",
+  "variant": "sparse-fakeq4"
+ },
+ "tier4/gpqa.g0.jsonl": {
+  "conc": 4,
+  "config_dir": "tier4",
+  "gpu": [
+   0
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "510-tier4-gpqa-rq"
+  ],
+  "records": 99,
+  "records_ok": 99,
+  "scored": 99,
+  "server_cfg": "tier4",
+  "server_env": {
+   "SPARSE_SELECT_EVERY": 1,
+   "SPARSE_STATS_SUB": 1,
+   "SPARSE_TIER_SUFFIX_SPARSE": 0
+  },
+  "sha256_uncompressed": "28e49f6362a5e71ba036cb33fdf7d8664ffab213932956df73e988a5dbf5e6f0",
+  "shard": 0,
+  "suite": "gpqa",
+  "variant": "fixed-int4"
+ },
+ "tier4/gpqa.g1.jsonl": {
+  "conc": 4,
+  "config_dir": "tier4",
+  "gpu": [
+   1
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "520-tier4-gpqa"
+  ],
+  "records": 99,
+  "records_ok": 99,
+  "scored": 99,
+  "server_cfg": "tier4",
+  "server_env": {
+   "SPARSE_SELECT_EVERY": 1,
+   "SPARSE_STATS_SUB": 1,
+   "SPARSE_TIER_SUFFIX_SPARSE": 0
+  },
+  "sha256_uncompressed": "bd46d223c6bb0d9b3d556f8984b8a85b309e4383415d67451d94e1cb021f06a8",
+  "shard": 1,
+  "suite": "gpqa",
+  "variant": "fixed-int4"
+ },
+ "tier4/ifbench.g0.jsonl.gz": {
+  "conc": 4,
+  "config_dir": "tier4",
+  "gpu": [
+   0
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "512-tier4-ifbench-rq"
+  ],
+  "records": 150,
+  "records_ok": 150,
+  "scored": 150,
+  "server_cfg": "tier4",
+  "server_env": {
+   "SPARSE_SELECT_EVERY": 1,
+   "SPARSE_STATS_SUB": 1,
+   "SPARSE_TIER_SUFFIX_SPARSE": 0
+  },
+  "sha256_uncompressed": "43c5fb1b24d82a5121e1f190fe326080d908e1f0c71c9c035e6a0263f7fb12d7",
+  "shard": 0,
+  "suite": "ifbench",
+  "variant": "fixed-int4"
+ },
+ "tier4/ifbench.g1.jsonl.gz": {
+  "conc": 4,
+  "config_dir": "tier4",
+  "gpu": [
+   1
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "522-tier4-ifbench"
+  ],
+  "records": 150,
+  "records_ok": 150,
+  "scored": 150,
+  "server_cfg": "tier4",
+  "server_env": {
+   "SPARSE_SELECT_EVERY": 1,
+   "SPARSE_STATS_SUB": 1,
+   "SPARSE_TIER_SUFFIX_SPARSE": 0
+  },
+  "sha256_uncompressed": "98d2b167cc6c757b95464ba9e7984fdc90f9bdcf286e529659dbcfdeddad571c",
+  "shard": 1,
+  "suite": "ifbench",
+  "variant": "fixed-int4"
+ },
+ "tier4/lbv2.g0.jsonl": {
+  "conc": 1,
+  "config_dir": "tier4",
+  "gpu": [
+   0
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "042-tier4-lbv2-rq"
+  ],
+  "records": 24,
+  "records_ok": 24,
+  "scored": 24,
+  "server_cfg": "tier4",
+  "server_env": {
+   "SPARSE_SELECT_EVERY": 1,
+   "SPARSE_STATS_SUB": 1,
+   "SPARSE_TIER_SUFFIX_SPARSE": 0
+  },
+  "sha256_uncompressed": "76df686d82b1c35ec67cbfa62a3b1c79f2d0f9138f461e3f0ace94830c0e34df",
+  "shard": 0,
+  "suite": "lbv2",
+  "variant": "fixed-int4"
+ },
+ "tier4/lbv2.g1.jsonl": {
+  "conc": 1,
+  "config_dir": "tier4",
+  "gpu": [
+   1
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "012-tier4-lbv2"
+  ],
+  "records": 24,
+  "records_ok": 24,
+  "scored": 24,
+  "server_cfg": "tier4",
+  "server_env": {},
+  "sha256_uncompressed": "938a0360765c6701619820a9dd50e94da474e37327477ab1f50ac3ea1b512c98",
+  "shard": 1,
+  "suite": "lbv2",
+  "variant": "release-int4"
+ },
+ "tier4/lcb.g0.jsonl.gz": {
+  "conc": 4,
+  "config_dir": "tier4",
+  "gpu": [
+   0
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "511-tier4-lcb-rq"
+  ],
+  "records": 40,
+  "records_ok": 40,
+  "scored": 40,
+  "server_cfg": "tier4",
+  "server_env": {
+   "SPARSE_SELECT_EVERY": 1,
+   "SPARSE_STATS_SUB": 1,
+   "SPARSE_TIER_SUFFIX_SPARSE": 0
+  },
+  "sha256_uncompressed": "a537191d1a08bb5010daba4960c1d48c774de3482072fa2d8d7e47657d762c83",
+  "shard": 0,
+  "suite": "lcb",
+  "variant": "fixed-int4"
+ },
+ "tier4/lcb.g1.jsonl.gz": {
+  "conc": 4,
+  "config_dir": "tier4",
+  "gpu": [
+   1
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "521-tier4-lcb"
+  ],
+  "records": 40,
+  "records_ok": 40,
+  "scored": 40,
+  "server_cfg": "tier4",
+  "server_env": {
+   "SPARSE_SELECT_EVERY": 1,
+   "SPARSE_STATS_SUB": 1,
+   "SPARSE_TIER_SUFFIX_SPARSE": 0
+  },
+  "sha256_uncompressed": "6a8e0d5e164813a30ae534b81bbed503630278f6d5dda9b2376c5c95e87d9e81",
+  "shard": 1,
+  "suite": "lcb",
+  "variant": "fixed-int4"
+ },
+ "tier4/mmlupro.g0.jsonl.gz": {
+  "conc": 4,
+  "config_dir": "tier4",
+  "gpu": [
+   0
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "513-tier4-mmlupro-rq"
+  ],
+  "records": 140,
+  "records_ok": 140,
+  "scored": 140,
+  "server_cfg": "tier4",
+  "server_env": {
+   "SPARSE_SELECT_EVERY": 1,
+   "SPARSE_STATS_SUB": 1,
+   "SPARSE_TIER_SUFFIX_SPARSE": 0
+  },
+  "sha256_uncompressed": "5a3ade55ba3451d00021678adb8c6a1be0ddb7eae69571c2c551715efab85097",
+  "shard": 0,
+  "suite": "mmlupro",
+  "variant": "fixed-int4"
+ },
+ "tier4/mmlupro.g1.jsonl.gz": {
+  "conc": 4,
+  "config_dir": "tier4",
+  "gpu": [
+   1
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "523-tier4-mmlupro"
+  ],
+  "records": 140,
+  "records_ok": 140,
+  "scored": 140,
+  "server_cfg": "tier4",
+  "server_env": {
+   "SPARSE_SELECT_EVERY": 1,
+   "SPARSE_STATS_SUB": 1,
+   "SPARSE_TIER_SUFFIX_SPARSE": 0
+  },
+  "sha256_uncompressed": "a80830835771408b204937bec4d4008a0f7539ff266a7563568e154faa10cba0",
+  "shard": 1,
+  "suite": "mmlupro",
+  "variant": "fixed-int4"
+ },
+ "tier4/mtp.g0.jsonl": {
+  "conc": 1,
+  "config_dir": "tier4",
+  "gpu": [
+   0
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "730-tier4-mtp"
+  ],
+  "records": 10,
+  "records_ok": 10,
+  "scored": 0,
+  "server_cfg": "tier4",
+  "server_env": {
+   "SPARSE_SELECT_EVERY": 1,
+   "SPARSE_STATS_SUB": 1,
+   "SPARSE_TIER_SUFFIX_SPARSE": 0
+  },
+  "sha256_uncompressed": "70cfa40822dc6ab39ac2000f6923568da36cecd19746e26160e1fa265c9a3152",
+  "shard": 0,
+  "suite": "mtp",
+  "variant": "fixed-int4"
+ },
+ "tier4/mtp.g1.jsonl": {
+  "conc": 1,
+  "config_dir": "tier4",
+  "gpu": [
+   1
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "710-tier4-mtp"
+  ],
+  "records": 5,
+  "records_ok": 5,
+  "scored": 0,
+  "server_cfg": "tier4",
+  "server_env": {
+   "SPARSE_SELECT_EVERY": 1,
+   "SPARSE_STATS_SUB": 1,
+   "SPARSE_TIER_SUFFIX_SPARSE": 0
+  },
+  "sha256_uncompressed": "8f1f513c1acffd67409eca327f04a35fc000869a932e672434b19112de969e58",
+  "shard": 1,
+  "suite": "mtp",
+  "variant": "fixed-int4"
+ },
+ "tier4/ruler.g0.jsonl": {
+  "conc": 1,
+  "config_dir": "tier4",
+  "gpu": [
+   0
+  ],
+  "job_file_env": {
+   "SPARSE_SELECT_EVERY": 1,
+   "SPARSE_STATS_SUB": 1,
+   "SPARSE_TIER_SUFFIX_SPARSE": 0
+  },
+  "job_file_env_differs": true,
+  "jobs": [
+   "041-tier4-ruler"
+  ],
+  "records": 114,
+  "records_ok": 114,
+  "scored": 114,
+  "server_cfg": "tier4",
+  "server_env": {},
+  "sha256_uncompressed": "a611931313098bfac80c6c9efc12a4d0ce33dd0fe34a52382763b7c62b64140d",
+  "shard": 0,
+  "suite": "ruler",
+  "variant": "release-int4"
+ },
+ "tier4/ruler.g1.jsonl": {
+  "conc": 1,
+  "config_dir": "tier4",
+  "gpu": [
+   1
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "011-tier4-ruler"
+  ],
+  "records": 107,
+  "records_ok": 107,
+  "scored": 107,
+  "server_cfg": "tier4",
+  "server_env": {},
+  "sha256_uncompressed": "984864a0ecaa8d71af396d3a952fae25d05071fb4c895f767faf09ecaa2259c9",
+  "shard": 1,
+  "suite": "ruler",
+  "variant": "release-int4"
+ },
+ "tier4/scbench.g0.jsonl": {
+  "conc": 1,
+  "config_dir": "tier4",
+  "gpu": [
+   0
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "630-tier4-scbench"
+  ],
+  "records": 16,
+  "records_ok": 16,
+  "scored": 16,
+  "server_cfg": "tier4",
+  "server_env": {
+   "SPARSE_SELECT_EVERY": 1,
+   "SPARSE_STATS_SUB": 1,
+   "SPARSE_TIER_SUFFIX_SPARSE": 0
+  },
+  "sha256_uncompressed": "472de3c4e2a604dc2820d2a318e21006bd5dfad0812ca80128bbe0ce7379d807",
+  "shard": 0,
+  "suite": "scbench",
+  "variant": "fixed-int4"
+ },
+ "tier4/scbench.g1.jsonl": {
+  "conc": 1,
+  "config_dir": "tier4",
+  "gpu": [
+   1
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "610-tier4-scbench"
+  ],
+  "records": 16,
+  "records_ok": 16,
+  "scored": 16,
+  "server_cfg": "tier4",
+  "server_env": {
+   "SPARSE_SELECT_EVERY": 1,
+   "SPARSE_STATS_SUB": 1,
+   "SPARSE_TIER_SUFFIX_SPARSE": 0
+  },
+  "sha256_uncompressed": "b3d108a58c97c78ef504f73faa454dcca3ebf0618cf7a844a9f00eca5c8ef3c5",
+  "shard": 1,
+  "suite": "scbench",
+  "variant": "fixed-int4"
+ },
+ "tier4/xfile.g0.jsonl": {
+  "conc": 1,
+  "config_dir": "tier4",
+  "gpu": [
+   0
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "040-tier4-xfile"
+  ],
+  "records": 60,
+  "records_ok": 60,
+  "scored": 60,
+  "server_cfg": "tier4",
+  "server_env": {},
+  "sha256_uncompressed": "f509c218bae7a2d595e22e0654d26ff03632f4105a5f73c504b07e21575095e6",
+  "shard": 0,
+  "suite": "xfile",
+  "variant": "release-int4"
+ },
+ "tier4/xfile.g1.jsonl": {
+  "conc": 1,
+  "config_dir": "tier4",
+  "gpu": [
+   1
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "010-tier4-xfile"
+  ],
+  "records": 60,
+  "records_ok": 60,
+  "scored": 60,
+  "server_cfg": "tier4",
+  "server_env": {},
+  "sha256_uncompressed": "dfe0c3f73cd321b81bf4d2e11d933a06e2b55e67548ca9ee67a1e35f3abca0fe",
+  "shard": 1,
+  "suite": "xfile",
+  "variant": "release-int4"
+ },
+ "tier4_hs/mmlupro.g0.jsonl": {
+  "conc": 1,
+  "config_dir": "tier4_hs",
+  "gpu": [
+   0
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "0232-tier4-hs-rq"
+  ],
+  "records": 24,
+  "records_ok": 24,
+  "scored": 24,
+  "server_cfg": "tier4",
+  "server_env": {
+   "SPARSE_SELECT_EVERY": 1,
+   "SPARSE_STATS_SUB": 1,
+   "SPARSE_TIER_SUFFIX_SPARSE": 0
+  },
+  "sha256_uncompressed": "19f44604499dcd1b6dd86300d86e8112a1d85c7605b2018e761c6ff2aa9d0de6",
+  "shard": 0,
+  "suite": "mmlupro_hs",
+  "variant": "fixed-int4"
+ },
+ "tier4_hs/mmlupro.g1.jsonl": {
+  "conc": 1,
+  "config_dir": "tier4_hs",
+  "gpu": [
+   1
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "03152-tier4-hs"
+  ],
+  "records": 24,
+  "records_ok": 24,
+  "scored": 24,
+  "server_cfg": "tier4",
+  "server_env": {
+   "SPARSE_SELECT_EVERY": 1,
+   "SPARSE_STATS_SUB": 1,
+   "SPARSE_TIER_SUFFIX_SPARSE": 0
+  },
+  "sha256_uncompressed": "8f7f5a1067f337f9eb85865403a9195a4e240639e5741990b29676e435bef958",
+  "shard": 1,
+  "suite": "mmlupro_hs",
+  "variant": "fixed-int4"
+ },
+ "tier8/lbv2.g0.jsonl": {
+  "conc": 1,
+  "config_dir": "tier8",
+  "gpu": [
+   0
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "932-tier8-lbv2"
+  ],
+  "records": 24,
+  "records_ok": 24,
+  "scored": 24,
+  "server_cfg": "tier8",
+  "server_env": {
+   "SPARSE_SELECT_EVERY": 1,
+   "SPARSE_STATS_SUB": 1,
+   "SPARSE_TIER_SUFFIX_SPARSE": 0
+  },
+  "sha256_uncompressed": "745cdd96fa7907910d17493f74c3f10df825c552e5864fdeafdd243eaa2a37de",
+  "shard": 0,
+  "suite": "lbv2",
+  "variant": "fixed-int8"
+ },
+ "tier8/lbv2.g1.jsonl": {
+  "conc": 1,
+  "config_dir": "tier8",
+  "gpu": [
+   1
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "922-tier8-lbv2"
+  ],
+  "records": 24,
+  "records_ok": 24,
+  "scored": 24,
+  "server_cfg": "tier8",
+  "server_env": {
+   "SPARSE_SELECT_EVERY": 1,
+   "SPARSE_STATS_SUB": 1,
+   "SPARSE_TIER_SUFFIX_SPARSE": 0
+  },
+  "sha256_uncompressed": "c956e0e0e9dabc07d15bc72bb6b64300f2d7cf61d0cf6e2291aa48b22a9d0666",
+  "shard": 1,
+  "suite": "lbv2",
+  "variant": "fixed-int8"
+ },
+ "tier8/ruler.g0.jsonl": {
+  "conc": 1,
+  "config_dir": "tier8",
+  "gpu": [
+   0
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "931-tier8-ruler"
+  ],
+  "records": 114,
+  "records_ok": 114,
+  "scored": 114,
+  "server_cfg": "tier8",
+  "server_env": {
+   "SPARSE_SELECT_EVERY": 1,
+   "SPARSE_STATS_SUB": 1,
+   "SPARSE_TIER_SUFFIX_SPARSE": 0
+  },
+  "sha256_uncompressed": "4d36e9685eeaca90153e353ec8f6f983c31654b931954d8f6a53da77f0bfa58d",
+  "shard": 0,
+  "suite": "ruler",
+  "variant": "fixed-int8"
+ },
+ "tier8/ruler.g1.jsonl": {
+  "conc": 1,
+  "config_dir": "tier8",
+  "gpu": [
+   1
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "921-tier8-ruler"
+  ],
+  "records": 107,
+  "records_ok": 107,
+  "scored": 107,
+  "server_cfg": "tier8",
+  "server_env": {
+   "SPARSE_SELECT_EVERY": 1,
+   "SPARSE_STATS_SUB": 1,
+   "SPARSE_TIER_SUFFIX_SPARSE": 0
+  },
+  "sha256_uncompressed": "c7781bccca698d0c1bdbb6633df8e9fa94d8d1881aff3c91145941a0f042fe49",
+  "shard": 1,
+  "suite": "ruler",
+  "variant": "fixed-int8"
+ },
+ "tier8/scbench.g0.jsonl": {
+  "conc": 1,
+  "config_dir": "tier8",
+  "gpu": [
+   0
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "940-tier8-scbench"
+  ],
+  "records": 16,
+  "records_ok": 16,
+  "scored": 16,
+  "server_cfg": "tier8",
+  "server_env": {
+   "SPARSE_SELECT_EVERY": 1,
+   "SPARSE_STATS_SUB": 1,
+   "SPARSE_TIER_SUFFIX_SPARSE": 0
+  },
+  "sha256_uncompressed": "d8255203173bbb884aabe00c4451c54bb5e16f5a51c4ac2476233bd373a5b651",
+  "shard": 0,
+  "suite": "scbench",
+  "variant": "fixed-int8"
+ },
+ "tier8/scbench.g1.jsonl": {
+  "conc": 1,
+  "config_dir": "tier8",
+  "gpu": [
+   1
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "940-tier8-scbench"
+  ],
+  "records": 16,
+  "records_ok": 16,
+  "scored": 16,
+  "server_cfg": "tier8",
+  "server_env": {
+   "SPARSE_SELECT_EVERY": 1,
+   "SPARSE_STATS_SUB": 1,
+   "SPARSE_TIER_SUFFIX_SPARSE": 0
+  },
+  "sha256_uncompressed": "1cbfe49d2b1a3d657c265c5ab618c4018a72699185df1033d70bf0c592bf369a",
+  "shard": 1,
+  "suite": "scbench",
+  "variant": "fixed-int8"
+ },
+ "tier8/xfile.g0.jsonl": {
+  "conc": 1,
+  "config_dir": "tier8",
+  "gpu": [
+   0
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "930-tier8-xfile"
+  ],
+  "records": 60,
+  "records_ok": 60,
+  "scored": 60,
+  "server_cfg": "tier8",
+  "server_env": {
+   "SPARSE_SELECT_EVERY": 1,
+   "SPARSE_STATS_SUB": 1,
+   "SPARSE_TIER_SUFFIX_SPARSE": 0
+  },
+  "sha256_uncompressed": "25514bf123147f7eb91e341420422d0f0a751e6a2cd7fe366afd3a987b49e801",
+  "shard": 0,
+  "suite": "xfile",
+  "variant": "fixed-int8"
+ },
+ "tier8/xfile.g1.jsonl": {
+  "conc": 1,
+  "config_dir": "tier8",
+  "gpu": [
+   1
+  ],
+  "job_file_env_differs": false,
+  "jobs": [
+   "0314-tier8-xfile"
+  ],
+  "records": 60,
+  "records_ok": 60,
+  "scored": 60,
+  "server_cfg": "tier8",
+  "server_env": {},
+  "sha256_uncompressed": "9b161c94a9ba1e81d227ee0621cf748046f048c51a76373c52140529cbf68553",
+  "shard": 1,
+  "suite": "xfile",
+  "variant": "release-int8"
+ }
+}
