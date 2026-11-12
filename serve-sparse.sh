@@ -20,6 +20,17 @@
 #   SPARSE_PREFILL_YIELD_SHORT_BYPASS=2600  short follow-ups (<= 2600 uncached tokens) skip the prefill yield
 #   SPARSE_TIER_PIN_PREFIX_MAX=2          up to 2 pinned warm prefixes (requests with vllm_xargs sparse_pin_prefix)
 # Off by default: PTHFA_FLAT_GQA=1 (flat GQA rows in pthfa prefill; small speedup, not bit-exact).
+# v1.2 defaults (docs/CHANGELOG.md, docs/OPTIMIZATION_NOTES.md), each overridable from the environment; all four are
+# off in the code and are turned on here:
+#   SPARSE_GDN_RECOVER=1                  one GDN state block per request under MTP (27 -> 6 pinned blocks); bit-identical
+#   SPARSE_TIER_HOT_GLOBAL=1              one shared hot pool per sparse layer instead of one hot buffer per request slot
+#   SPARSE_TIER_SHARED_PLAN=1             residency plan of a decode step computed once, not once per sparse layer
+#   SPARSE_SCHEDULER_CLS=1                prefill-yield policy as a vLLM --scheduler-cls class (sparsekv/sched.py)
+#   INDUCTOR_DETERMINISTIC=1              deterministic Inductor compile: two builds of the same code give the same output
+# Off by default (optional or small, docs/OPTIMIZATION_NOTES.md): SPARSE_PREFILL_BUDGET_SHARE=1 with
+# SPARSE_PREFILL_BUDGET_MAX_WAIT=45 (reorders pending prefills; no capacity gain), SPARSE_TIER_HOT_GLOBAL_ROWS (pool
+# size; 50176 for the 11 x 90K configuration), SPARSE_TIER_MAMBA_EVICT_SUPERSEDED and SPARSE_PREFILL_DEEP_CHUNK_DEPTH
+# (measured, not adopted).
 #
 # Defaults are a DEV server: 127.0.0.1:8093. Production would set BIND=0.0.0.0 PORT=8080 HQ_GPU=0 HQ_TMP=... in its unit.
 # The GPU is required (HQ_GPU or CUDA_VISIBLE_DEVICES): nothing is picked for you.
@@ -54,7 +65,20 @@ case "$PORT" in 8080|8082) [ "${SPARSE_PRODUCTION:-0}" = 1 ] || {
 # ---- dense baseline (HyperQwen PTH_FA=1 + MTP-7) ----
 export SPEC=${SPEC:-mtp} CTX=${CTX:-long} PREFIX_CACHE=${PREFIX_CACHE:-1} EMBED_UVA=${EMBED_UVA:-1}
 export PTH_FA=1 DRAFT_TOKENS=${DRAFT_TOKENS:-7}
+# v1.2: Inductor deterministic mode (INDUCTOR_DETERMINISTIC=0 restores the old behaviour). Without it Inductor BENCHMARKS
+# two candidate configs (R0_BLOCK 8192 vs 2048) for each of the 254 fused RMS-norm reduction kernels at compile time and
+# bakes the timing winners into the AOT artifact (~/.cache/vllm/torch_compile_cache/torch_aot_compile/<hash>); the two
+# configs sum the 5120 squares in a different order, so two compiles of the SAME code can give different logprobs.
+# Passed as an inductor config patch through --compilation-config (start_qwen.sh): the TORCHINDUCTOR_DETERMINISTIC env
+# var alone is NOT enough here (config.deterministic is False again by the time vLLM calls standalone_compile).
+# benchmark_combo_kernel must be off: Inductor refuses that benchmark in deterministic mode (combo kernels stay on).
+if [ "${INDUCTOR_DETERMINISTIC:-1}" = 1 ]; then export INDUCTOR_DET=',"inductor_compile_config":{"deterministic":true,"combo_kernels":true,"benchmark_combo_kernel":false}'; else export INDUCTOR_DET=; fi
 export INT8_ACT=${INT8_ACT-int8} PREFILL_ATTN=${PREFILL_ATTN-int8}
+# v1.2: one GDN state block per request under MTP (patches/sparse-gdn-recover.patch; off in the vLLM code default).
+# It needs speculative decoding in align mode (PREFIX_CACHE=1 passes --mamba-cache-mode align), so it is only turned
+# on by default for this launcher's baseline; set SPARSE_GDN_RECOVER yourself to override.
+if [ "$SPEC" = mtp ] && [ "$PREFIX_CACHE" = 1 ]; then export SPARSE_GDN_RECOVER=${SPARSE_GDN_RECOVER:-1}
+else export SPARSE_GDN_RECOVER=${SPARSE_GDN_RECOVER:-0}; fi
 # v1.1: keep the trailing 864-token prefix-cache block on a hit (start_qwen.sh: disable_eagle_block_drop); prefill
 # attention through FlashAttention-2 over the int8 cache (pthfa fa2_prefill.py; needs pthfa rebuilt from this tree)
 export SPEC_NO_BLOCK_DROP=${SPEC_NO_BLOCK_DROP:-1} PTHFA_PREFILL_FA2=${PTHFA_PREFILL_FA2:-1}
@@ -99,6 +123,17 @@ case "$PROFILE" in
     # (default num_gpu_blocks//10), SPARSE_TIER_TAIL / _SINK_BLOCKS / _MARGIN: passed through when set.
     TIER_ARGS='--kv-transfer-config {"kv_connector":"HostTierConnector","kv_connector_module_path":"sparsekv.tier_connector","kv_role":"kv_both"}'
     [ "$SPARSE_TIER_SPILL" = 1 ] && TIER_ARGS="$TIER_ARGS --no-scheduler-reserve-full-isl"
+    # v1.2: one shared hot pool per sparse layer and one residency plan per decode step (both off in the code default).
+    # SPARSE_TIER_HOT_GLOBAL_ROWS sizes the pool (default 4 x the per-slot rows; 50176 for 11 x 90K, see README.md).
+    # The pool is keyed by host token, so it needs real spill: with SPARSE_TIER_SPILL=0 it defaults to off.
+    if [ "$SPARSE_TIER_SPILL" = 1 ]; then export SPARSE_TIER_HOT_GLOBAL=${SPARSE_TIER_HOT_GLOBAL:-1}
+    else export SPARSE_TIER_HOT_GLOBAL=${SPARSE_TIER_HOT_GLOBAL:-0}; fi
+    export SPARSE_TIER_SHARED_PLAN=${SPARSE_TIER_SHARED_PLAN:-1}
+    # v1.2: SPARSE_SCHEDULER_CLS=1 (set here; 0 = the v1.1 behaviour) runs the prefill-yield policy from a vLLM scheduler
+    # class (sparsekv/sched.py, sync or async to match the server) instead of the Scheduler.schedule monkeypatch. Same
+    # policy object and knobs; the class tells install_prefill_yield not to patch, so it is never applied twice.
+    export SPARSE_SCHEDULER_CLS=${SPARSE_SCHEDULER_CLS:-1}
+    [ "$SPARSE_SCHEDULER_CLS" = 1 ] && TIER_ARGS="$TIER_ARGS --scheduler-cls sparsekv.sched.SparseScheduler"
     ;;
   sparse)
     export MAX_LEN=${MAX_LEN-153600} MAX_SEQS=${MAX_SEQS:-2} GPU_UTIL=${GPU_UTIL:-0.92}
@@ -117,6 +152,9 @@ echo "[serve-sparse] profile=$PROFILE gpu=$CUDA_VISIBLE_DEVICES port=$PORT bind=
      "spill=$SPARSE_TIER_SPILL sketch_bits=$SPARSE_SKETCH_BITS stats_sub=$SPARSE_STATS_SUB select_every=$SPARSE_SELECT_EVERY" \
      "host_bits=${SPARSE_TIER_HOST_BITS:-} suffix_sparse=${SPARSE_TIER_SUFFIX_SPARSE:-}" \
      "gdn_slots=${SPARSE_TIER_HOST_MAMBA_SLOTS:-} save_at_finish=${SPARSE_TIER_MAMBA_SAVE_AT_FINISH:-} no_block_drop=$SPEC_NO_BLOCK_DROP" \
-     "fa2_prefill=$PTHFA_PREFILL_FA2 yield_bypass=$SPARSE_PREFILL_YIELD_SHORT_BYPASS pin_max=${SPARSE_TIER_PIN_PREFIX_MAX:-} release=$(head -1 "$SP/sparsekv/RELEASE")"
+     "fa2_prefill=$PTHFA_PREFILL_FA2 yield_bypass=$SPARSE_PREFILL_YIELD_SHORT_BYPASS pin_max=${SPARSE_TIER_PIN_PREFIX_MAX:-}" \
+     "gdn_recover=$SPARSE_GDN_RECOVER hot_global=${SPARSE_TIER_HOT_GLOBAL:-} shared_plan=${SPARSE_TIER_SHARED_PLAN:-}" \
+     "scheduler_cls=${SPARSE_SCHEDULER_CLS:-} budget_share=${SPARSE_PREFILL_BUDGET_SHARE:-0} inductor_det=${INDUCTOR_DETERMINISTIC:-1}" \
+     "release=$(head -1 "$SP/sparsekv/RELEASE")"
 export EXTRA_ARGS="--served-model-name ${HQ_NAMES:-qwen3.8-27b-q4 qwen3.8-27b} $TIER_ARGS ${EXTRA_ARGS:-}"
 exec bash single-user/start_qwen.sh

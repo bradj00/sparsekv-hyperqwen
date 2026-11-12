@@ -1,0 +1,268 @@
+Backports of three upstream frontend fixes onto vLLM 0.31.0 (API-server side only: tool-call parser and detokenizer;
+no engine, GPU or model-output change; no new knob, always on):
+  #64675 (Qwen3 tool-call parser: parse each closed <parameter> once while streaming; follow-up to #62027. Merged
+          upstream. Hand-merged into this stack's _qwen3_arg_converter, which also carries #59882: </function> is
+          stripped first, then the cached parse runs with partial = partial or call_closed.)
+  #65775 (fixes #65774: a repeated Qwen3 tool parameter keeps its FIRST value, so streamed arguments stay valid JSON
+          and equal the non-streaming ones. Open upstream. Behaviour change: non-streaming used to keep the LAST value.
+          The unclosed last parameter kept by #59882 follows the same first-value rule.)
+  #63668 (fixes #63667: cap the tokens the incremental detokenizers hold back on malformed UTF-8 at
+          MAX_PENDING_TOKENS = 16 and flush them as U+FFFD, instead of re-decoding the whole run on every token. Open
+          upstream. v1/engine/detokenizer.py as upstream; in detokenizer_utils.py upstream's output_token_count, a local
+          0.31 does not have, is written len(output_tokens).)
+Tests (CPU, PYTHONPATH at a patched copy of the installed package; no server was run):
+  tests/parser (0.31 suite + earlier PRs' tests, cohere/ and mistral/ ignored as before): 4882 passed, 2 skipped
+  before and after; with the 10 tests of #64675/#65775 added: 4892 passed, 2 skipped (8 of the 10 fail unpatched).
+  tests/tokenizers_/test_detokenize.py (v0.31.0 file, -k "not Llama-3.2 and not Pixtral and not mistral"): 500 passed,
+  160 skipped before and after; with #63668's 6 tests added: 506 passed, 160 skipped.
+  Timing, CodeLlama-7b tokenizer, N lone lead-byte tokens after a prompt, 1000/2000/4000/8000 tokens:
+    fast, before 0.078/0.305/1.205/5.463 s (nothing streamed); after 0.005/0.010/0.021/0.042 s
+    slow, before 0.082/0.328/1.174/4.628 s (nothing streamed); after 0.025/0.052/0.115/0.283 s
+    (slow rows with len(tokenizer) cached in the benchmark: 0.31 calls it on every slow step, ~4 ms each with a
+    fast tokenizer, a constant this patch leaves alone and that otherwise hides the difference)
+  Differential fuzz: converter/extender with and without the closed-parameter cache, and against the unpatched
+  converter on duplicate-free input, 0 mismatches in ~100K growth steps; streamed == non-streaming arguments in
+  9000 runs of random calls with repeated and unclosed parameters.
+
+--- a/parser/qwen3.py
++++ b/parser/qwen3.py
+@@ -56,6 +56,7 @@
+     re.DOTALL,
+ )
+ _PARTIAL_PARAM_RE = re.compile(r"<\s*parameter\s*=\s*([^>]+)>(.*)$", re.DOTALL)
++_PARAM_OPENER_RE = re.compile(r"<\s*parameter\s*=")
+ 
+ 
+ def _trim_wrapping_newlines(value: str) -> str:
+@@ -67,27 +68,69 @@
+     return value
+ 
+ 
+-def _qwen3_arg_converter(raw_args: str, partial: bool) -> str:
+-    params: dict[str, object] = {}
++class _ClosedParams:
++    """Closed parameters of a raw argument text, reused by longer texts.
++
++    Raw arguments only grow while a call streams, so a parse of a text that
++    extends ``text`` resumes after its last closed parameter.
++    """
++
++    __slots__ = ("text", "end", "params", "outside")
++
++    def __init__(self) -> None:
++        self.text = ""  # raw text the closed parameters depend on
++        self.end = 0  # end of the last closed parameter in ``text``
++        self.params: dict[str, str] = {}
++        self.outside = ""  # text before ``end`` outside the closed parameters
++
++
++def _qwen3_parse_params(
++    raw_args: str, partial: bool, closed: _ClosedParams | None = None
++) -> tuple[dict[str, str], re.Match | None]:
++    """Return the closed parameters, trimmed, and the open trailing one."""
++    params: dict[str, str] = {}
++    outside: list[str] = []
++    pos = 0
++    if closed is not None and raw_args.startswith(closed.text):
++        params.update(closed.params)
++        outside.append(closed.outside)
++        pos = closed.end
++    start = pos
++
++    for match in _PARAM_RE.finditer(raw_args, pos):
++        outside.append(raw_args[pos : match.start()])
++        # A repeated key keeps its first value, the one already streamed.
++        params.setdefault(match.group(1), _trim_wrapping_newlines(match.group(2)))
++        pos = match.end()
++
++    if closed is not None and pos > start:
++        # A value closed by the next opener holds only while that opener follows.
++        opener = _PARAM_OPENER_RE.match(raw_args, pos)
++        closed.text = raw_args[: opener.end() if opener else pos]
++        closed.end = pos
++        closed.params = dict(params)
++        closed.outside = "".join(outside)
++
++    open_param = None
++    if partial:
++        open_param = _PARTIAL_PARAM_RE.search("".join(outside) + raw_args[pos:])
++    return params, open_param
++
++
++def _qwen3_arg_converter(
++    raw_args: str, partial: bool, closed: _ClosedParams | None = None
++) -> str:
+     # Backport of vllm-project/vllm#59882: the model may close </function> without closing
+     # the last <parameter=...>. Keep that value when the call itself is closed; still drop
+     # it when the output was cut off before </function>.
+     call_closed = raw_args.endswith(FUNC_END)
+     raw_args = raw_args.removesuffix(FUNC_END)
+ 
+-    for match in _PARAM_RE.finditer(raw_args):
+-        name = match.group(1)
+-        value = match.group(2)
+-        params[name] = _trim_wrapping_newlines(value)
+-
+-    if partial or call_closed:
+-        remaining = _PARAM_RE.sub("", raw_args)
+-        m = _PARTIAL_PARAM_RE.search(remaining)
+-        if m:
+-            name = m.group(1)
+-            value = m.group(2)
+-            if name:
+-                params[name] = _trim_wrapping_newlines(value)
++    params, open_param = _qwen3_parse_params(raw_args, partial or call_closed, closed)
++    if open_param is not None and open_param.group(1):
++        params.setdefault(
++            open_param.group(1), _trim_wrapping_newlines(open_param.group(2))
++        )
+ 
+     return json.dumps(params, ensure_ascii=False)
+ 
+@@ -106,7 +149,7 @@
+ 
+ 
+ def _param_value_extender(
+-    raw_args: str, trim_newlines: bool
++    raw_args: str, trim_newlines: bool, closed: _ClosedParams | None = None
+ ) -> ArgValueExtender | None:
+     """Extend the open trailing ``<parameter=...>`` value of *raw_args*.
+ 
+@@ -114,12 +157,12 @@
+     With *trim_newlines* it follows ``_trim_wrapping_newlines``: it drops a
+     leading newline of the value and holds back a trailing one.
+     """
+-    match = _PARTIAL_PARAM_RE.search(_PARAM_RE.sub("", raw_args))
++    closed_params, match = _qwen3_parse_params(raw_args, True, closed)
+     if match is None:
+         return None
+     name, value = match.group(1), match.group(2)
+-    # A repeated key keeps its first position, so its value is not last.
+-    if any(m.group(1) == name for m in _PARAM_RE.finditer(raw_args)):
++    # A repeated key keeps its first value, so this one is never streamed.
++    if name in closed_params:
+         return None
+ 
+     window = _param_value_end_window(value)
+@@ -146,8 +189,10 @@
+     return extend
+ 
+ 
+-def _qwen3_arg_value_extender(raw_args: str) -> ArgValueExtender | None:
+-    return _param_value_extender(raw_args, trim_newlines=True)
++def _qwen3_arg_value_extender(
++    raw_args: str, closed: _ClosedParams | None = None
++) -> ArgValueExtender | None:
++    return _param_value_extender(raw_args, trim_newlines=True, closed=closed)
+ 
+ 
+ @functools.cache
+@@ -311,6 +356,13 @@
+             tools,
+             **kwargs,
+         )
++        # Each streaming conversion resumes after the last closed parameter.
++        if self._arg_converter is _qwen3_arg_converter:
++            closed = _ClosedParams()
++            self._arg_converter = functools.partial(_qwen3_arg_converter, closed=closed)
++            self._arg_value_extender = functools.partial(
++                _qwen3_arg_value_extender, closed=closed
++            )
+ 
+     def extract_reasoning(
+         self,
+--- a/tokenizers/detokenizer_utils.py
++++ b/tokenizers/detokenizer_utils.py
+@@ -7,6 +7,12 @@
+ 
+ from vllm.tokenizers import TokenizerLike
+ 
++# Incremental detokenization holds a token back while the decoded text ends in
++# an incomplete UTF-8 sequence. A code point spans at most 4 byte-fallback
++# tokens, so a longer run is malformed output; it is flushed as replacement
++# characters so that per-token decode cost stays bounded.
++MAX_PENDING_TOKENS = 16
++
+ 
+ def _replace_none_with_empty(tokens: list[str | None]):
+     for i, token in enumerate(tokens):
+@@ -258,7 +264,9 @@
+             spaces_between_special_tokens=spaces_between_special_tokens,
+         )
+ 
+-    if len(new_text) <= len(prefix_text) or new_text.endswith("�"):
++    if (
++        len(new_text) <= len(prefix_text) or new_text.endswith("�")
++    ) and len(output_tokens) - read_offset < MAX_PENDING_TOKENS:
+         # utf-8 char at the end means it's a potential unfinished byte sequence
+         # from byte fallback tokenization.
+         # If it's in the middle, it's probably a real invalid id generated
+--- a/v1/engine/detokenizer.py
++++ b/v1/engine/detokenizer.py
+@@ -12,6 +12,7 @@
+ from vllm.logger import init_logger
+ from vllm.tokenizers import TokenizerLike
+ from vllm.tokenizers.detokenizer_utils import (
++    MAX_PENDING_TOKENS,
+     convert_prompt_ids_to_tokens,
+     detokenize_incrementally,
+ )
+@@ -183,6 +184,10 @@
+             ids=request.prompt_token_ids,
+             skip_special_tokens=self.skip_special_tokens,
+         )
++        # Tokens the stream has not rendered yet, and the tokens behind its
++        # last rendered text (what a restarted stream is primed with).
++        self._pending_ids: list[int] = []
++        self._context_ids: list[int] = (request.prompt_token_ids or [])[-4:]
+ 
+         self.spaces_between_special_tokens = (
+             sampling_params.skip_special_tokens
+@@ -226,7 +231,7 @@
+             # Handle rare observed overflow, still to be diagnosed.
+             # See https://github.com/vllm-project/vllm/issues/21951.
+             logger.exception("Encountered invalid token id: %r", next_token_id)
+-            token = None
++            return None
+         except Exception as e:
+             if not str(e).startswith(INVALID_PREFIX_ERR_MSG):
+                 raise e
+@@ -242,8 +247,37 @@
+             self.stream = tokenizers.decoders.DecodeStream(
+                 skip_special_tokens=self.skip_special_tokens
+             )
++            self._pending_ids.clear()
+             token = self.stream.step(self.tokenizer, next_token_id)
+-        return token
++        if token:
++            self._context_ids = (self._pending_ids + [next_token_id])[-4:]
++            self._pending_ids.clear()
++            return token
++        self._pending_ids.append(next_token_id)
++        if len(self._pending_ids) < MAX_PENDING_TOKENS:
++            return None
++        return self._flush_pending()
++
++    def _flush_pending(self) -> str:
++        """Render the held-back tokens as they are (replacement characters for
++        malformed bytes) and restart the stream behind them, so that a long
++        malformed run is not re-decoded in full on every step."""
++        text = self.tokenizer.decode(
++            self._pending_ids, skip_special_tokens=self.skip_special_tokens
++        )
++        self._pending_ids.clear()
++        # Prime the new stream with the text before the run so the next token
++        # decodes in the same context as in an unbroken stream. A primed prefix
++        # that itself ends in an incomplete sequence would be re-emitted.
++        context = self._context_ids
++        if self.tokenizer.decode(
++            context, skip_special_tokens=self.skip_special_tokens
++        ).endswith("�"):
++            context = []
++        self.stream = tokenizers.decoders.DecodeStream(
++            ids=context or None, skip_special_tokens=self.skip_special_tokens
++        )
++        return text
+ 
+ 
+ class SlowIncrementalDetokenizer(BaseIncrementalDetokenizer):

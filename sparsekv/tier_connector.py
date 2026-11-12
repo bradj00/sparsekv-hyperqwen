@@ -35,7 +35,7 @@ import numpy as np
 import torch
 
 from sparsekv.tier import (HostKVMirror, HotBuffer, TierScratch, alloc_pinned, copy_blocks, copy_blocks_from_host4,
-                           gather_rows_tiered, host_row_width, quant_blocks_to_host4)
+                           gather_rows_tiered, gather_rows_tiered_global, host_row_width, quant_blocks_to_host4)
 
 try:
     from vllm.v1.core.kv_cache_utils import get_block_hash, make_block_hash_with_group_id
@@ -54,6 +54,22 @@ def runtime() -> "TierRuntime | None":
     return _RT
 
 
+def hot_global_enabled() -> bool:
+    """S14 (SPARSE_TIER_HOT_GLOBAL=1, default off; needs SPARSE_TIER_SPILL=1): ONE hot pool per sparse layer shared by
+    all requests and keyed by host token, instead of one buffer per request slot keyed by logical position. Rows:
+    SPARSE_TIER_HOT_GLOBAL_ROWS, default min(max_num_seqs, 4) x the per-slot row count (tier_sim_s14.py: a pool of
+    n x 2C rows misses like today's layout while <= n spilled requests decode at once, and less below that)."""
+    return os.environ.get("SPARSE_TIER_HOT_GLOBAL", "0") == "1"
+
+
+def shared_plan_enabled() -> bool:
+    """S14 (SPARSE_TIER_SHARED_PLAN=1, default off; SPILL only): the block-level residency plan of a decode slice
+    (spilled mask -> sketch block table, GPU block table with spilled entries nulled, host block table) is the same
+    for all sparse layers of a step, so the first sparse layer computes it into persistent buffers and the other 15
+    read it. The top-k itself stays per layer (each layer scores with its own query and sketch)."""
+    return os.environ.get("SPARSE_TIER_SHARED_PLAN", "0") == "1"
+
+
 def tier_dims(vllm_config, bs: int, C: int, spill: bool) -> dict:
     """Sizes TierRuntime allocates (shared with gpu_extra_bytes so the memory reserve cannot drift)."""
     max_reqs = int(vllm_config.scheduler_config.max_num_seqs)
@@ -68,7 +84,12 @@ def tier_dims(vllm_config, bs: int, C: int, spill: bool) -> dict:
         block_bytes = (int(mc.get_num_kv_heads(pc)) * bs * host_row_width(2 * (int(mc.get_head_size()) + 4))
                        * len(sparse_layer_ids()))
         HB = host_pool_blocks(max_len, max_reqs, bs, block_bytes, check_ram=False)
-    return {"max_reqs": max_reqs, "max_len": max_len, "maxblk": maxblk, "H": H, "HB": HB}
+    d = {"max_reqs": max_reqs, "max_len": max_len, "maxblk": maxblk, "H": H, "HB": HB}
+    if hot_global_enabled():
+        if not spill:
+            raise ValueError("SPARSE_TIER_HOT_GLOBAL=1 needs SPARSE_TIER_SPILL=1 (pool rows are keyed by host token)")
+        d["Hg"] = max(1, int(os.environ.get("SPARSE_TIER_HOT_GLOBAL_ROWS", str(min(max_reqs, 4) * H))))
+    return d
 
 
 def gpu_extra_bytes(vllm_config, nlayers: int, hkv: int, w: int, r: int, bs: int, C: int) -> dict:
@@ -81,6 +102,10 @@ def gpu_extra_bytes(vllm_config, nlayers: int, hkv: int, w: int, r: int, bs: int
         "tier_hot": nlayers * (d["max_reqs"] * d["H"] * hkv * w + nslots * (d["H"] * 8 + d["maxblk"] * bs * 4)),
         "tier_scratch": (d["max_reqs"] + 8) * C * 17,
     }
+    if "Hg" in d:  # S14 global pool: rows + tag/last per row + one key->row entry per host-pool token
+        out["tier_hot"] = nlayers * (d["Hg"] * hkv * w + d["Hg"] * 8 + d["HB"] * bs * 4 + 4)
+    if spill and shared_plan_enabled():  # S14 shared plan: 3 int32 tables [max_reqs + 8, maxblk] (one width)
+        out["tier_shared_plan"] = 3 * (d["max_reqs"] + 8) * d["maxblk"] * 4
     if spill:
         out["tier_sketch_host_rows"] = nlayers * d["HB"] * bs * hkv * sketch_row_bytes(r)
         out["tier_prefill_staging"] = (d["maxblk"] + 1) * hkv * bs * w
@@ -239,8 +264,22 @@ class TierRuntime:
         self.mirror = HostKVMirror(L, self.HB, HKV, BS, self.WH, device=dev)
         self.host_free = list(range(self.HB - 1, -1, -1))
         nslots = self.max_reqs + 1  # slot max_reqs = dummy for CUDA-graph padding rows
-        self.hot = HotBuffer(L, nslots, H, HKV, W, max_ctx=maxblk * BS, device=dev, kv_slots=self.max_reqs)
-        self.scratch = TierScratch(self.max_reqs + 8, self.C, dev)
+        self.hot_global = "Hg" in dims  # S14: one pool keyed by host token (see hot_global_enabled)
+        if self.hot_global:
+            H = dims["Hg"]
+            self.hot = HotBuffer(L, 1, H, HKV, W, max_ctx=self.HB * BS, device=dev, kv_slots=1)
+            self.scratch = TierScratch(self.max_reqs + 8, self.C, dev, glob=True)
+        else:
+            self.hot = HotBuffer(L, nslots, H, HKV, W, max_ctx=maxblk * BS, device=dev, kv_slots=self.max_reqs)
+            self.scratch = TierScratch(self.max_reqs + 8, self.C, dev)
+        # S14 shared residency plan (see shared_plan_enabled): {block-table width: (sk_bt, gbt, hbt)} buffers
+        self.shared_plan = self.spill and shared_plan_enabled()
+        self._plan: dict[int, tuple[torch.Tensor, torch.Tensor, torch.Tensor]] = {}
+        # leader = the sparse layer that runs first in a forward (lowest model layer number)
+        self._plan_leader = min(self.layers.items(), key=lambda kv: int(_LAYER_RE.search(kv[0]).group(1)))[1][0]
+        self._plan_counts = [0, 0]  # [computed, reused] (python-side: counts eager calls and graph captures only)
+        self._plan_check = os.environ.get("SPARSE_TIER_SHARED_PLAN_CHECK", "0") == "1"
+        self.plan_diff = torch.zeros((), dtype=torch.int64, device=dev)
         self.batch_slots = torch.full((self.max_reqs + 8,), self.max_reqs, dtype=torch.int32, device=dev)
         self.mirrored = torch.zeros((max(self.groups) + 1, nslots), dtype=torch.int32, device=dev)
         self.host_bt = torch.full((nslots, maxblk), -1, dtype=torch.int32, device=dev)
@@ -321,9 +360,12 @@ class TierRuntime:
         _log("tier: kv cache view shape %s strides %s contiguous=%s", tuple(any_kv.shape), any_kv.stride(),
              any_kv.is_contiguous())
         _log("tier: runtime mode=%s: %d sparse layers in group(s) %s, window layers %s, host pool %.2f GB "
-             "(%d blocks), GPU pool %d blocks, hot %d rows/slot (%.0f MB total), C=%d, tail=%d",
+             "(%d blocks), GPU pool %d blocks, hot %d rows/%s (%.0f MB total), C=%d, tail=%d",
              "SPILL" if self.spill else "shadow", L, self.groups, sorted(self.window_layers),
-             self.mirror.nbytes / 1e9, self.HB, NB, H, self.hot.nbytes / 1e6, self.C, self.tail)
+             self.mirror.nbytes / 1e9, self.HB, NB, H, "GLOBAL pool" if self.hot_global else "slot",
+             self.hot.nbytes / 1e6, self.C, self.tail)
+        if self.shared_plan:
+            _log("tier: S14 shared residency plan on (leader = sparse layer slot %d)", self._plan_leader)
 
     # ---------------------------------------------------------------- sketch registry (called by sparse_kv)
     def sketch_rows(self, nb: int, bs: int) -> int:
@@ -399,6 +441,9 @@ class TierRuntime:
                 self.stats["select_full_reused"] = list(self._sel_counts)
             if _MAMBA_HOST is not None:
                 self.stats["gdn_store"] = dict(_MAMBA_HOST.stats)
+            if getattr(self, "shared_plan", False):
+                self.stats["shared_plan"] = list(self._plan_counts) + (
+                    [int(self.plan_diff)] if self._plan_check else [])  # [computed, reused(, differing entries)]
             _log("tier: stats %s hot[hit,miss,resident]=%s suffix[hit,host,resident]=%s verify[diff,compared]=%s",
                  self.stats, self.hot.stats.tolist(), self.sf_stats.tolist(), self.vcount.tolist())
 
@@ -452,6 +497,10 @@ class TierRuntime:
         """DMA GPU blocks (all sparse layers of group g) + their sketch rows into host blocks (compute stream)."""
         rows = None
         ids4 = None
+        if getattr(self, "hot_global", False) and len(hids):
+            # S14: pool rows are keyed by host token, so rows cached from these host blocks die with the old content
+            self.hot.invalidate_host_blocks(self.h2d(list(hids), torch.int64), self.BS)
+            self.stats["hot_invalidated_blocks"] = self.stats.get("hot_invalidated_blocks", 0) + len(hids)
         for l in range(self.L):
             if self.layers_group(l) != g:
                 continue
@@ -608,7 +657,8 @@ class TierRuntime:
 
     def _new(self, rid, block_ids, ncomp):
         slot = self.free_slots.pop()
-        self.hot.reset_slot(slot)
+        if not getattr(self, "hot_global", False):  # S14 global pool: rows belong to host tokens, not to the slot
+            self.hot.reset_slot(slot)
         self.mirrored[:, slot] = 0
         self.host_bt[slot].fill_(-1)
         self.freed_upto[slot] = 0
@@ -642,9 +692,49 @@ class TierRuntime:
         lg = self.layers.get(layer_name)
         if lg is None or not self.spill:
             return block_table
+        if getattr(self, "shared_plan", False):
+            return self._decode_plan(lg[0], lg[1], block_table, seq_lens, lg[0] == self._plan_leader)[0]
         slots = self.batch_slots[: block_table.shape[0]]
         sp = self._spilled(lg[1], block_table, seq_lens, slots)
         return torch.where(sp, self._host_bt(block_table, slots) + self.NB, block_table).contiguous()
+
+    def _decode_plan(self, slot_l: int, group: int, bt, seq_lens, compute: bool):
+        """S14 shared residency plan of a decode slice: (sketch block table, GPU block table with spilled entries
+        = -1, host block table), each [nreq, width] int32 with dense rows.
+        compute=True (the leader = first sparse layer of the forward, from its select): compute the three tables and
+        store them in persistent buffers. compute=False (every other sparse layer, and every layer's gather): read
+        the buffers -- all sparse layers of one forward see the same block table, seq_lens and slots.
+        Graph-safe: static shapes, in-place writes, no host sync; who computes is fixed by the layer, never by tensor
+        values. Buffers are per block-table width (the tiered gather needs dense rows) and are created by the leader,
+        outside graph capture only; a call that finds no buffer computes its own tables (same values).
+        SPARSE_TIER_SHARED_PLAN_CHECK=1 (debug): readers also compute and count differing entries in
+        self.plan_diff (device counter, logged with the tier stats; must stay 0)."""
+        nreq, width = bt.shape
+        buf = self._plan.get(width)
+        if (buf is None and compute and nreq <= self.batch_slots.numel()
+                and not (torch.cuda.is_available() and torch.cuda.is_current_stream_capturing())):
+            buf = tuple(torch.zeros((self.batch_slots.numel(), width), dtype=torch.int32, device=bt.device)
+                        for _ in range(3))
+            self._plan[width] = buf
+        have = buf is not None and nreq <= buf[0].shape[0]
+        if have and not compute and not self._plan_check:
+            self._plan_counts[1] += 1
+            return buf[0][:nreq], buf[1][:nreq], buf[2][:nreq]
+        slots = self.batch_slots[:nreq]
+        sp = self._spilled(group, bt, seq_lens, slots)
+        hbt = self._host_bt(bt, slots)
+        sk = torch.where(sp, hbt + self.NB, bt)
+        gbt = torch.where(sp, torch.full_like(bt, -1), bt)
+        self._plan_counts[0] += 1
+        if not have:
+            return sk.contiguous(), gbt.contiguous(), hbt
+        if compute:
+            buf[0][:nreq].copy_(sk)
+            buf[1][:nreq].copy_(gbt)
+            buf[2][:nreq].copy_(hbt)
+        else:  # check mode
+            self.plan_diff += (buf[0][:nreq] != sk).sum() + (buf[1][:nreq] != gbt).sum() + (buf[2][:nreq] != hbt).sum()
+        return buf[0][:nreq], buf[1][:nreq], buf[2][:nreq]
 
     def select_reuse_args(self, nreq: int, store: torch.Tensor) -> dict:
         """Extra kwargs for triton_ops.select in the decode path (empty unless SPARSE_SELECT_EVERY > 1)."""
@@ -657,10 +747,19 @@ class TierRuntime:
         nreq = idx.shape[0]
         slots = self.batch_slots[:nreq]
         bt = block_table[:nreq]
-        sp = self._spilled(group, bt, seq_lens, slots)
-        gbt = torch.where(sp, torch.full_like(bt, -1), bt).contiguous()
-        gather_rows_tiered(kv, gbt, self.mirror.dev[slot_l], self._host_bt(bt, slots), idx, n_valid, st_kv, st_bt,
-                           self.hot, slot_l, slots, self.scratch)
+        if getattr(self, "shared_plan", False):
+            # S14: this layer's select (sketch_block_table) ran just before on the same slice; the leader stored the plan
+            _, gbt, hbt = self._decode_plan(slot_l, group, bt, seq_lens, False)
+        else:
+            sp = self._spilled(group, bt, seq_lens, slots)
+            gbt = torch.where(sp, torch.full_like(bt, -1), bt).contiguous()
+            hbt = self._host_bt(bt, slots)
+        if getattr(self, "hot_global", False):
+            gather_rows_tiered_global(kv, gbt, self.mirror.dev[slot_l], hbt, idx, n_valid, st_kv, st_bt,
+                                      self.hot, slot_l, slots, self.scratch, cached_slots=self.max_reqs)
+        else:
+            gather_rows_tiered(kv, gbt, self.mirror.dev[slot_l], hbt, idx, n_valid, st_kv, st_bt,
+                               self.hot, slot_l, slots, self.scratch)
         if self.verify and ref_gather is not None and not self.spill:
             # SPARSE_TIER_VERIFY=1 (shadow mode only): stage again with the plain GPU gather and count differing
             # bytes in the valid columns -- must stay 0
@@ -1075,10 +1174,16 @@ class TierRuntime:
         gbt = torch.where(spm, torch.full_like(bt, -1), bt).contiguous()
         nbs = -(-Cs // self.BS)
         if self.sf_scratch is None or self.sf_scratch.code.shape[0] < ns or self.sf_scratch.code.shape[1] != Cs:
-            self.sf_scratch = TierScratch(max(ns, 16), Cs, self.dev)  # eager path: grows outside graphs
+            self.sf_scratch = TierScratch(max(ns, 16), Cs, self.dev,  # eager path: grows outside graphs
+                                          glob=getattr(self, "hot_global", False))
             self.pad_slots = torch.full((max(ns, 16),), self.max_reqs, dtype=torch.int32, device=self.dev)
             self._sf_bt = torch.arange(max(ns, 16) * nbs, dtype=torch.int32, device=self.dev).view(-1, nbs)
         st_bt = self._sf_bt[:ns]
+        if getattr(self, "hot_global", False):  # S14: pad_slots >= cached_slots -> rows never touch the pool
+            gather_rows_tiered_global(kv, gbt, self.mirror.dev[l], hbt, idx, nv, self.pf_kv, st_bt, self.hot, l,
+                                      self.pad_slots[:ns], self.sf_scratch, cached_slots=self.max_reqs,
+                                      stats=self.sf_stats)
+            return self.pf_kv, st_bt, nv
         gather_rows_tiered(kv, gbt, self.mirror.dev[l], hbt, idx, nv, self.pf_kv, st_bt, self.hot, l,
                            self.pad_slots[:ns], self.sf_scratch, stats=self.sf_stats,
                            cache_rows=False)  # padding slot only: C may exceed hot.H (KSEL 16K crash fix)
@@ -1179,13 +1284,45 @@ class PrefillYield:
     SPARSE_PREFILL_YIELD_SHORT_SCAN (default 1): a deferred long waiting request no longer blocks the scan of the
     waiting queue (it is skipped in order), so a short request behind it is seen.
     SPARSE_PREFILL_YIELD_LOG=1: one 'tier: admit' line per request (uncached / cached tokens, queue wait, yield steps
-    it waited through, bypass). Counters are logged as 'tier: yield stats' at most every 60 s when they change."""
+    it waited through, bypass). Counters are logged as 'tier: yield stats' at most every 60 s when they change.
+
+    s15 prefill-budget sharing (SPARSE_PREFILL_BUDGET_SHARE, 0 = off = s13 behaviour; needs SHARE_CHUNK > 0 and the
+    same vLLM hook as the bypass). Without it a prefill step's budget (2048 tokens = two 864-token blocks) goes to
+    the prefills in vLLM's own order: running list first (admission order), then the waiting queue (arrival order);
+    the first one takes both blocks, or, when requests wait, the first two take one block each. Everything else gets
+    zero tokens (vLLM's align split hands out nothing below a block), so follow-ups queue behind each other for
+    one duty cycle per two blocks. With the knob on, a prefill step taken while other requests decode and with two
+    or more prefills pending is scheduled as a throttled step whose hook predicate picks who prefills:
+      1  shortest-remaining-uncached first: the request with the fewest uncached tokens left gets the step (both
+         blocks if it needs them); budget it cannot use goes to the next shortest in whole blocks or a final tail.
+      2  one block is reserved for the oldest prefill (first in vLLM's order), the rest goes shortest-first.
+    SPARSE_PREFILL_BUDGET_AGE (tokens, default 256): each prefill step a request has waited takes this much off its
+    rank, so a long prefill is not starved by a stream of shorter ones. A waiting request's uncached size is learned
+    when vLLM shows it to the hook (every yield step and every shared step); until then it ranks by its full length.
+    The step is charged like any prefill step (debt = ceil(tokens x K / 1024)), so the decode duty cycle and the
+    prefill tokens per cycle are unchanged; only the order changes. A request that was picked but not scheduled (no
+    slot, no KV blocks, blocked) is left out of the next picks for a growing number of steps, so it cannot hold
+    the step. Steps without decodes, or with a single prefill pending, are not touched."""
 
     WAIT_EDGES = (1.0, 5.0, 20.0, 60.0)  # admission-wait histogram edges (s): <1, 1-5, 5-20, 20-60, >=60
 
     def __init__(self, steps_per_1k: float, share_chunk: int = 0, ctx_unit: float = 0.0, short_bypass: int = 0,
-                 short_scan: bool = True, short_max_debt: int = 240, log_admit: bool = False):
+                 short_scan: bool = True, short_max_debt: int = 240, log_admit: bool = False,
+                 deep_chunk_depth: int = 0, budget_share: int = 0, budget_age: int = 256,
+                 budget_max_wait: float = 0.0):
         self.k = float(steps_per_1k)
+        # s15: see the class docstring. 0 = off (no code path below changes).
+        self.budget_share = int(budget_share) if int(share_chunk) > 0 else 0
+        self.budget_age = int(budget_age)
+        # s15: deadline for budget sharing (SPARSE_PREFILL_BUDGET_MAX_WAIT seconds, 0 = off): a prefill candidate
+        # that has waited longer than this since arrival outranks all that have not, oldest first.
+        self.budget_max_wait = float(budget_max_wait)
+        # s13: a prefill chunk's wall time grows with its depth (attention ~ chunk x context: by the fitted cold-
+        # prefill cost a 1728-token chunk is ~1.0 s at depth 0 and ~2.3 s at 90K, ~4.5 s at 240K), and every decoding
+        # stream stalls for that long. SPARSE_PREFILL_DEEP_CHUNK_DEPTH = D > 0: while other requests decode, a
+        # prefill that is already D tokens deep runs in share_chunk-sized (864) chunks, which bounds the stall;
+        # the yield debt is per token, so the prefill/decode duty cycle is unchanged. 0 = off.
+        self.deep_chunk_depth = int(deep_chunk_depth)
         # S5: an exact follow-up's attention cost grows with its context (ql x L), not just with ql. ctx_unit > 0
         # weighs each prefill token by (1 + context / ctx_unit) when computing the yield debt
         # (SPARSE_PREFILL_YIELD_CTX_UNIT, 0 = off = S4 behaviour; ~100000 matches GEMM ~= attention at 100K).
@@ -1218,6 +1355,8 @@ class PrefillYield:
         left = [pol.short_bypass]
 
         def bypass(request, num_computed_tokens, running):
+            if pol.budget_share > 0 and not running:
+                pol._budget_note(request, request.num_tokens - num_computed_tokens)
             if running:
                 unc = getattr(request, "_sparse_uncached", None)
                 if unc is None or unc > pol.short_bypass:
@@ -1235,6 +1374,147 @@ class PrefillYield:
         bypass.granted = set()
         bypass.scan = pol.short_scan
         return bypass
+
+    # --- s15 prefill-budget sharing
+    def _budget_note(self, request, rem: int) -> None:
+        """Remember a waiting request's uncached size (vLLM has just looked up its prefix hit) and when it was first
+        seen, in prefill steps."""
+        request._sparse_unc_est = int(rem)
+        if getattr(request, "_sparse_pf_seen", None) is None:
+            request._sparse_pf_seen = self.stats["prefill_steps"]
+
+    def _budget_want(self, start: int, rem: int, cap: int, left: int) -> int:
+        """Tokens vLLM would schedule for a prefill at `start` with `rem` tokens to go, a chunk cap (0 = none) and
+        `left` tokens of budget: a chunk that does not end the prefill must end on a block boundary."""
+        bs = self.share_chunk
+        n = min(rem, left) if cap <= 0 else min(rem, cap, left)
+        if n < rem:
+            n = (start + n) // bs * bs - start
+        if start % bs and n > bs - start % bs:
+            n = bs - start % bs
+        return max(n, 0)
+
+    def _make_recorder(self):
+        """Yield step without the short bypass: nobody is let through, but the waiting requests' sizes are noted."""
+        pol = self
+
+        def recorder(request, num_computed_tokens, running):
+            if not running:
+                pol._budget_note(request, request.num_tokens - num_computed_tokens)
+            return False
+
+        recorder.granted = set()
+        recorder.scan = pol.short_scan
+        return recorder
+
+    def _make_budget(self, sched, cfg, ndec: int):
+        """Plan one shared prefill step. Returns the hook predicate (with .cap = chunk cap for the step, .planned =
+        the picked request ids), or None when there is nothing to share (the step then runs as before)."""
+        pol, bs, now = self, self.share_chunk, self.stats["prefill_steps"]
+        self._bgt_clock = clock = getattr(self, "_bgt_clock", 0) + 1  # counts planned steps (for the hold below)
+        cands = []  # (rank key, vLLM order, request id, start, remaining, is running)
+        for r in sched.running:
+            if r.is_prefill_chunk:
+                cands.append([0, len(cands), r, r.num_computed_tokens, r.num_tokens - r.num_computed_tokens, True])
+        for q in (getattr(sched, "kv_holding_waiting", ()), getattr(sched, "waiting", ())):
+            try:
+                for r in q:
+                    est = getattr(r, "_sparse_unc_est", None)
+                    rem = r.num_tokens if est is None else est
+                    if rem > 1:  # a request with one token to go is a decode: vLLM never defers it
+                        cands.append([0, len(cands), r, r.num_tokens - rem, rem, False])
+            except TypeError:
+                pass
+        if len(cands) < 2:
+            return None
+        nspec = int(getattr(sched, "num_spec_tokens", 0) or 0)
+        spec = getattr(getattr(sched, "vllm_config", None), "speculative_config", None)
+        draft = int(getattr(spec, "max_num_new_slots_for_drafting", 0) or 0)
+        inp = int(getattr(cfg, "max_num_batched_tokens", 0) or 0)
+        tok = int(getattr(sched, "max_num_scheduled_tokens", 0) or 0) or inp
+        if tok <= 0:
+            return None
+        # what the decodes leave of vLLM's two budgets (tokens per step, and input rows incl. draft slots)
+        left = min(tok - ndec * (1 + nspec), (inp or tok) - ndec * (1 + nspec + draft))
+        for c in cands:
+            r = c[2]
+            if getattr(r, "_sparse_pf_seen", None) is None:
+                r._sparse_pf_seen = now
+            c[0] = c[4] - pol.budget_age * (now - r._sparse_pf_seen)
+            if pol.budget_max_wait > 0:
+                arr = getattr(r, "arrival_time", None)
+                if arr and time.time() - arr > pol.budget_max_wait:
+                    c[0] = -1e15 + arr  # overdue: ahead of every non-overdue candidate, oldest first
+                    pol.stats["budget_overdue"] = pol.stats.get("budget_overdue", 0) + 1
+        ranked = sorted((c for c in cands if getattr(c[2], "_sparse_bgt_hold", (0, 0))[0] <= clock),
+                        key=lambda c: (c[0], c[1]))
+        if not ranked:
+            return None
+        if pol.budget_share == 2 and cands[0][5] and any(c is cands[0] for c in ranked):
+            ranked = [cands[0]] + [c for c in ranked if c is not cands[0]]
+        first = ranked[0]
+        w = pol._budget_want(first[3], first[4], 0, left - draft)
+        deep = pol.deep_chunk_depth > 0 and first[5] and first[3] >= pol.deep_chunk_depth
+        grants: dict = {}
+        if w > bs and not deep and pol.budget_share != 2:
+            cap = 0  # the shortest needs more than a block: it takes the step alone, with the full budget
+            grants[first[2].request_id] = w
+            left -= w + draft
+            for c in ranked[1:]:  # what is left can still end a prefill (a tail needs no block boundary)
+                if c[4] <= left - draft:
+                    grants[c[2].request_id] = c[4]
+                    left -= c[4] + draft
+        else:
+            cap = bs
+            for c in ranked:
+                w = pol._budget_want(c[3], c[4], bs, left - draft)
+                if w > 0:
+                    grants[c[2].request_id] = w
+                    left -= w + draft
+        if not grants:
+            return None
+        free = [left]
+
+        def budget(request, num_computed_tokens, running):
+            rem = request.num_tokens - num_computed_tokens
+            if not running:
+                pol._budget_note(request, rem)
+            planned = grants.pop(request.request_id, None)
+            if cap == 0 and request is not first[2] and rem > free[0] + (planned or 0):
+                return False  # full-budget step: next to the picked request only a prefill's last chunk fits
+            avail = free[0] + (planned + draft if planned is not None else 0)
+            w = pol._budget_want(num_computed_tokens, rem, cap, avail - draft)
+            if w <= 0:
+                free[0] = avail
+                return False
+            free[0] = avail - w - draft
+            budget.granted.add(request.request_id)
+            return True
+
+        budget.granted = set()
+        budget.planned = set(grants)
+        budget.cap = cap
+        budget.scan = True  # a request that is not picked must not hide the picked ones behind it
+        return budget
+
+    def _budget_account(self, sched, budget, nst) -> None:
+        st, now = self.stats, getattr(self, "_bgt_clock", 0)
+        got = [rid for rid in budget.granted if nst.get(rid, 0) > 0]
+        st["budget_steps"] = st.get("budget_steps", 0) + 1
+        st["budget_reqs"] = st.get("budget_reqs", 0) + len(got)
+        if len(got) > 1:
+            st["budget_multi_steps"] = st.get("budget_multi_steps", 0) + 1
+        reqs = getattr(sched, "requests", None) or {}
+        for rid in budget.planned:
+            r = reqs.get(rid)
+            if r is None:
+                continue
+            if nst.get(rid, 0) > 0:
+                r._sparse_bgt_hold = (0, 0)
+            else:  # picked but not scheduled: leave it out of the next 1, 2, ... 8 picks
+                miss = min(getattr(r, "_sparse_bgt_hold", (0, 0))[1] + 1, 8)
+                r._sparse_bgt_hold = (now + miss, miss)
+                st["budget_missed"] = st.get("budget_missed", 0) + 1
 
     def _short_behind_long(self, sched) -> bool:
         pf = [r for r in sched.running if r.is_prefill_chunk]
@@ -1295,91 +1575,134 @@ class PrefillYield:
         _log("tier: yield stats %s debt %d", {k: (round(v, 1) if isinstance(v, float) else v)
                                               for k, v in snap.items()}, self.debt)
 
+    def step(self, sched, orig, throttle_prefills: bool = False):
+        """One schedule() call under the policy. orig(sched, throttle) is vLLM's schedule. Shared by the monkeypatch
+        (wrap) and by the --scheduler-cls subclass (sparsekv/sched.py), so both paths take the same decisions.
+
+        Async scheduling (production: --async-scheduling, one step in flight while the next is scheduled): everything
+        read here is scheduler-side state that vLLM advances at schedule time (_update_after_schedule sets
+        is_prefill_chunk and num_computed_tokens for the step just scheduled), not when outputs come back, so the
+        decode/prefill split and the debt are the same as with synchronous scheduling. The one difference: a request
+        whose last token is in the in-flight step still counts as a decode for that one schedule() call."""
+        pol = self
+        decodes = {r.request_id for r in sched.running if not r.is_prefill_chunk}
+        throttle = bool(throttle_prefills)
+        ours = False
+        if not throttle and pol.debt > 0 and decodes:
+            pol.debt -= 1
+            pol.stats["yield_steps"] += 1
+            throttle = ours = True
+            sched.prefill_capacity_bound = False  # otherwise vLLM ignores the deferral when requests wait
+        elif not decodes:
+            pol.debt = 0
+        bypass = None
+        if ours and pol.short_bypass > 0:
+            if pol.debt <= pol.short_max_debt:
+                bypass = pol._make_bypass()
+                sched._sparse_yield_bypass = bypass
+            else:
+                pol.stats["bypass_denied_debt"] += 1
+        if pol.short_bypass > 0 or pol.log_admit:
+            pol._note_waiting(sched)
+        cfg = getattr(sched, "scheduler_config", None)
+        budget = None
+        if pol.budget_share > 0:
+            if ours and bypass is None:
+                bypass = pol._make_recorder()
+                sched._sparse_yield_bypass = bypass
+            elif not throttle and decodes and cfg is not None:
+                budget = pol._make_budget(sched, cfg, len(decodes))
+                if budget is not None:
+                    # s15: a prefill step run as a throttled step, so that the hook decides who prefills
+                    throttle = True
+                    sched.prefill_capacity_bound = False
+                    sched._sparse_yield_bypass = budget
+        share = (pol.share_chunk > 0 and cfg is not None and not throttle
+                 and any(r.is_prefill_chunk for r in sched.running)
+                 and (len(getattr(sched, "waiting", ())) + len(getattr(sched, "kv_holding_waiting", ())) > 0
+                      # s9: a short request's leftover chunk sits behind a long prefill in running order (the long
+                      # chunk takes the whole budget until it ends): cap chunks so both progress
+                      or (pol.short_bypass > 0 and pol._short_behind_long(sched))))
+        if (not share and pol.deep_chunk_depth > 0 and pol.share_chunk > 0 and cfg is not None and not throttle
+                and decodes and any(r.is_prefill_chunk and r.num_computed_tokens >= pol.deep_chunk_depth
+                                    for r in sched.running)):
+            share = True
+            pol.stats["deep_steps"] = pol.stats.get("deep_steps", 0) + 1
+        if budget is not None and budget.cap > 0:
+            share = True
+        if share:
+            old_thr = cfg.long_prefill_token_threshold
+            cfg.long_prefill_token_threshold = (min(old_thr, pol.share_chunk) if old_thr > 0
+                                                else pol.share_chunk)
+            pol.stats["shared_steps"] += 1
+        try:
+            out = orig(sched, throttle)
+        finally:
+            if share:
+                cfg.long_prefill_token_threshold = old_thr
+            if bypass is not None or budget is not None:
+                sched._sparse_yield_bypass = None
+        nst = out.num_scheduled_tokens or {}
+        if budget is not None:
+            pol._budget_account(sched, budget, nst)
+        if pol.ctx_unit > 0:
+            reqs = getattr(sched, "requests", None) or {}
+            n = sum(v * (1.0 + getattr(reqs.get(rid), "num_computed_tokens", 0) / pol.ctx_unit)
+                    for rid, v in nst.items() if rid not in decodes)
+        else:
+            n = sum(v for rid, v in nst.items() if rid not in decodes)
+        bypassed = set()
+        if bypass is not None and bypass.granted:
+            bypassed = {rid for rid in bypass.granted if nst.get(rid, 0) > 0}
+        if n > 0 and decodes:
+            pol.stats["prefill_steps"] += 1
+            owed = -(-int(n * pol.k) // 1024)
+            if bypassed:
+                # only bypass requests could prefill in a throttled step: charge them on top of the remaining debt
+                pol.stats["bypass_steps"] += 1
+                pol.stats["bypass_reqs"] += sum(1 for rid in bypassed
+                                                if not getattr(sched.requests.get(rid), "_sparse_bypassed", False))
+                for rid in bypassed:
+                    r = sched.requests.get(rid)
+                    if r is not None:
+                        r._sparse_bypassed = True
+                pol.stats["bypass_tokens"] += sum(nst[rid] for rid in bypassed)
+                pol.stats["bypass_debt_added"] += owed
+                pol.debt += owed
+            else:
+                pol.debt = max(pol.debt, owed)
+        if pol.short_bypass > 0 or pol.log_admit:
+            pol._note_admissions(sched, out, bypassed)
+            pol._maybe_log()
+        return out
+
     def wrap(self, orig):
         pol = self
 
         def schedule(sched, throttle_prefills: bool = False):
-            decodes = {r.request_id for r in sched.running if not r.is_prefill_chunk}
-            throttle = bool(throttle_prefills)
-            ours = False
-            if not throttle and pol.debt > 0 and decodes:
-                pol.debt -= 1
-                pol.stats["yield_steps"] += 1
-                throttle = ours = True
-                sched.prefill_capacity_bound = False  # otherwise vLLM ignores the deferral when requests wait
-            elif not decodes:
-                pol.debt = 0
-            bypass = None
-            if ours and pol.short_bypass > 0:
-                if pol.debt <= pol.short_max_debt:
-                    bypass = pol._make_bypass()
-                    sched._sparse_yield_bypass = bypass
-                else:
-                    pol.stats["bypass_denied_debt"] += 1
-            if pol.short_bypass > 0 or pol.log_admit:
-                pol._note_waiting(sched)
-            cfg = getattr(sched, "scheduler_config", None)
-            share = (pol.share_chunk > 0 and cfg is not None and not throttle
-                     and any(r.is_prefill_chunk for r in sched.running)
-                     and (len(getattr(sched, "waiting", ())) + len(getattr(sched, "kv_holding_waiting", ())) > 0
-                          # s9: a short request's leftover chunk sits behind a long prefill in running order (the long
-                          # chunk takes the whole budget until it ends): cap chunks so both progress
-                          or (pol.short_bypass > 0 and pol._short_behind_long(sched))))
-            if share:
-                old_thr = cfg.long_prefill_token_threshold
-                cfg.long_prefill_token_threshold = (min(old_thr, pol.share_chunk) if old_thr > 0
-                                                    else pol.share_chunk)
-                pol.stats["shared_steps"] += 1
-            try:
-                out = orig(sched, throttle)
-            finally:
-                if share:
-                    cfg.long_prefill_token_threshold = old_thr
-                if bypass is not None:
-                    sched._sparse_yield_bypass = None
-            nst = out.num_scheduled_tokens or {}
-            if pol.ctx_unit > 0:
-                reqs = getattr(sched, "requests", None) or {}
-                n = sum(v * (1.0 + getattr(reqs.get(rid), "num_computed_tokens", 0) / pol.ctx_unit)
-                        for rid, v in nst.items() if rid not in decodes)
-            else:
-                n = sum(v for rid, v in nst.items() if rid not in decodes)
-            bypassed = set()
-            if bypass is not None and bypass.granted:
-                bypassed = {rid for rid in bypass.granted if nst.get(rid, 0) > 0}
-            if n > 0 and decodes:
-                pol.stats["prefill_steps"] += 1
-                owed = -(-int(n * pol.k) // 1024)
-                if bypassed:
-                    # only bypass requests could prefill in a throttled step: charge them on top of the remaining debt
-                    pol.stats["bypass_steps"] += 1
-                    pol.stats["bypass_reqs"] += sum(1 for rid in bypassed
-                                                    if not getattr(sched.requests.get(rid), "_sparse_bypassed", False))
-                    for rid in bypassed:
-                        r = sched.requests.get(rid)
-                        if r is not None:
-                            r._sparse_bypassed = True
-                    pol.stats["bypass_tokens"] += sum(nst[rid] for rid in bypassed)
-                    pol.stats["bypass_debt_added"] += owed
-                    pol.debt += owed
-                else:
-                    pol.debt = max(pol.debt, owed)
-            if pol.short_bypass > 0 or pol.log_admit:
-                pol._note_admissions(sched, out, bypassed)
-                pol._maybe_log()
-            return out
+            return pol.step(sched, orig, throttle_prefills)
 
         schedule._sparse_prefill_yield = pol
         return schedule
 
 
-def install_prefill_yield(cls=None) -> "PrefillYield | None":
+# s14: set by sparsekv.sched (the --scheduler-cls subclass) before vLLM builds the scheduler and its connector. The
+# subclass applies the policy in its own schedule(), so install_prefill_yield must not also wrap Scheduler.schedule.
+_SCHED_CLS_ACTIVE = False
+
+
+def install_prefill_yield(cls=None, monkeypatch: "bool | None" = None) -> "PrefillYield | None":
+    """Build the policy from the environment and (default) wrap cls.schedule with it. monkeypatch=False, or None
+    while a sparsekv.sched scheduler is being built (_SCHED_CLS_ACTIVE): only build and return it; the caller's
+    schedule() applies it through PrefillYield.step."""
     k = float(os.environ.get("SPARSE_PREFILL_YIELD_STEPS_PER_1K", "12"))
     share = int(os.environ.get("SPARSE_PREFILL_SHARE_CHUNK", "864"))
     if k <= 0:
         return None
     if cls is None:
         from vllm.v1.core.sched.scheduler import Scheduler as cls  # noqa: N813
+    if monkeypatch is None:
+        monkeypatch = not _SCHED_CLS_ACTIVE
     cur = cls.schedule
     if getattr(cur, "_sparse_prefill_yield", None) is not None:
         return cur._sparse_prefill_yield
@@ -1388,15 +1711,28 @@ def install_prefill_yield(cls=None) -> "PrefillYield | None":
         _log("tier: SPARSE_PREFILL_YIELD_SHORT_BYPASS=%d IGNORED: vLLM lacks the sparse-prefill-yield-bypass hook "
              "(re-run sparsekv/install.sh)", short)
         short = 0
+    bshare = int(os.environ.get("SPARSE_PREFILL_BUDGET_SHARE", "0"))
+    if bshare > 0 and (share <= 0 or not _sched_has_bypass_hook(cls)):
+        _log("tier: SPARSE_PREFILL_BUDGET_SHARE=%d IGNORED: it needs SPARSE_PREFILL_SHARE_CHUNK > 0 and the "
+             "sparse-prefill-yield-bypass hook in vLLM (re-run sparsekv/install.sh)", bshare)
+        bshare = 0
     pol = PrefillYield(k, share, float(os.environ.get("SPARSE_PREFILL_YIELD_CTX_UNIT", "0")), short_bypass=short,
                        short_scan=os.environ.get("SPARSE_PREFILL_YIELD_SHORT_SCAN", "1") == "1",
                        short_max_debt=int(os.environ.get("SPARSE_PREFILL_YIELD_SHORT_MAX_DEBT", "240")),
-                       log_admit=os.environ.get("SPARSE_PREFILL_YIELD_LOG", "0") == "1")
-    cls.schedule = pol.wrap(cur)
+                       log_admit=os.environ.get("SPARSE_PREFILL_YIELD_LOG", "0") == "1",
+                       deep_chunk_depth=int(os.environ.get("SPARSE_PREFILL_DEEP_CHUNK_DEPTH", "0")),
+                       budget_share=bshare, budget_age=int(os.environ.get("SPARSE_PREFILL_BUDGET_AGE", "256")),
+                       budget_max_wait=float(os.environ.get("SPARSE_PREFILL_BUDGET_MAX_WAIT", "0")))
+    if monkeypatch:
+        cls.schedule = pol.wrap(cur)
     _log("tier: prefill yield on: %.1f decode-only steps per 1K prefill tokens while decodes run; prefill chunks capped "
-         "at %d tokens while requests wait; short-request bypass %s", k, share,
+         "at %d tokens while requests wait; short-request bypass %s; applied by %s", k, share,
          ("<= %d uncached tokens (scan %d, max debt %d)" % (short, pol.short_scan, pol.short_max_debt)) if short
-         else "off")
+         else "off", "the Scheduler.schedule monkeypatch" if monkeypatch else "the scheduler class (--scheduler-cls)")
+    if bshare > 0:
+        _log("tier: prefill budget sharing on (mode %d: %s; age credit %d tokens per prefill step waited)", bshare,
+             "shortest remaining first" if bshare == 1 else "one block for the oldest, rest shortest first",
+             pol.budget_age)
     return pol
 
 
@@ -1511,6 +1847,12 @@ class MambaHostStore:
         self.pending_compares: list = []
         self.stats = {"saved": 0, "restored": 0, "evict": 0, "pinned": 0, "unpinned": 0, "flushed_at_finish": 0}
         self.kept: set = set()  # s9: boundary hashes of pinned warm prefixes (never LRU-evicted or dropped)
+        # s13: superseded-first eviction (SPARSE_TIER_MAMBA_EVICT_SUPERSEDED=1). sup[h] = stored hashes that lie
+        # DEEPER on the same block-hash chain as h (a later turn of the same conversation). When a slot is needed,
+        # the oldest state that still has a live deeper state goes first, so a busy agent's stale turn-N states are
+        # recycled before an idle agent's only checkpoint (whose loss costs a full re-prefill).
+        self.evict_superseded = os.environ.get("SPARSE_TIER_MAMBA_EVICT_SUPERSEDED", "0") == "1"
+        self.sup: dict = {}
 
     def lookup(self, h):
         s = self.h2s.get(h)
@@ -1518,19 +1860,43 @@ class MambaHostStore:
             self.h2s.move_to_end(h)
         return s
 
-    def save(self, h, blocks: dict) -> int | None:
-        """Register h -> slot and queue the GPU->host copy; returns its save id (None if h is already stored)."""
+    def _victim(self):
+        """The key to evict: with superseded-first on, the oldest unpinned state that has a live deeper state on its
+        chain; otherwise (or if there is none) the oldest unpinned state."""
+        if self.evict_superseded and self.sup:
+            for k in self.h2s:
+                if k in self.kept:
+                    continue
+                deeper = self.sup.get(k)
+                if deeper:
+                    deeper.intersection_update(self.h2s.keys())
+                    if deeper:
+                        self.stats["evict_superseded"] = self.stats.get("evict_superseded", 0) + 1
+                        return k
+                    del self.sup[k]
+        return next((k for k in self.h2s if k not in self.kept), None)
+
+    def save(self, h, blocks: dict, ancestors=None) -> int | None:
+        """Register h -> slot and queue the GPU->host copy; returns its save id (None if h is already stored).
+        ancestors: the block hashes below h on its chain (the request's block_hashes before the boundary); stored
+        states among them are recorded as superseded by h."""
+        if self.evict_superseded and ancestors:
+            anc = ancestors if isinstance(ancestors, (set, frozenset)) else set(ancestors)
+            for k in self.h2s:
+                if k != h and k in anc:
+                    self.sup.setdefault(k, set()).add(h)
         if h in self.h2s:
             self.h2s.move_to_end(h)
             return None
         if self.free:
             slot = self.free.pop()
         else:
-            victim = next((k for k in self.h2s if k not in self.kept), None)  # oldest unpinned
+            victim = self._victim()
             if victim is None:
                 self.stats["refused_kept"] = self.stats.get("refused_kept", 0) + 1
                 return None
             slot = self.h2s.pop(victim)
+            self.sup.pop(victim, None)
             self.stats["evict"] += 1
         self.h2s[h] = slot
         sid = self.next_sid
@@ -1544,6 +1910,7 @@ class MambaHostStore:
         if self.h2s.get(h) != slot or h in self.kept:
             return False
         del self.h2s[h]
+        self.sup.pop(h, None)
         self.free.append(slot)
         return True
 
@@ -1966,7 +2333,8 @@ class HostTierConnector(KVConnectorBase_V1, SupportsHMA):
                     top = max([e[2] for e in ds["done"]] + [e[2] for e in ds["pending"].values()] + [0])
                     if boundary <= top:
                         continue
-                sid = _MAMBA_HOST.save(h, blocks)
+                sid = _MAMBA_HOST.save(h, blocks, req.block_hashes[:boundary // bs - 1]
+                                       if _MAMBA_HOST.evict_superseded else None)
                 if dec and sid is not None:
                     ds["pending"][sid] = (h, _MAMBA_HOST.h2s[h], boundary)
                     self._dec_sid[sid] = rid

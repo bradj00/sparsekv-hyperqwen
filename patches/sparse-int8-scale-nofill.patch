@@ -1,0 +1,22 @@
+Backport of vLLM #64141 (via HyperQwen #404): creating the int8/int4 per-token-head scale views must not fill them.
+The views alias every page of the shared KV tensor, so fill_(1.0) at first use wrote 1.0 over pages that other
+layers of a hybrid model already hold state in. Scales are written when a slot is stored.
+
+--- a/v1/attention/backends/triton_attn.py
++++ b/v1/attention/backends/triton_attn.py
+@@ -620,7 +620,6 @@
+             stride=(block_f32, slot_f32, head_f32),
+             storage_offset=k_scale_off_f32,
+         )
+-        self._k_scale_cache.fill_(1.0)
+ 
+         # V scales (second content half)
+         self._v_scale_cache = torch.as_strided(
+@@ -629,7 +628,6 @@
+             stride=(block_f32, slot_f32, head_f32),
+             storage_offset=v_scale_off_f32,
+         )
+-        self._v_scale_cache.fill_(1.0)
+ 
+     def fused_output_quant_supported(self, quant_key: QuantKey):
+         return quant_key == kFp8StaticTensorSym

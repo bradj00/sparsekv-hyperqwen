@@ -24,10 +24,20 @@ index 8e51b21..1735f4d 100644
  qwen_check_bool_knobs() {
    local k v bad=0
 diff --git a/patches/apply.sh b/patches/apply.sh
-index d2ef229..106953f 100755
+index d2ef229..6c6e96e 100755
 --- a/patches/apply.sh
 +++ b/patches/apply.sh
-@@ -11,6 +11,14 @@
+@@ -4,6 +4,9 @@
+ # kvarn/install.sh and the install pages in docs/) calls this file instead of parsing
+ # patches/series itself.
+ #
++#   bash patches/apply.sh --sparse-state DIR
++#                                     print "<name> applied|absent" for each sparse-*.patch, in
++#                                     series order, as --sparse decides it; changes nothing
+ #   bash patches/apply.sh --list      print the series in apply order, one basename per line
+ #   bash patches/apply.sh --list --kvarn
+ #                                     print the four KVarN patches in apply order, the same way
+@@ -11,6 +14,15 @@
  #                                     (site-packages/vllm, not site-packages)
  #   bash patches/apply.sh --kvarn DIR apply the four KVarN patches in kvarn/ to DIR, after
  #                                     the series (kvarn/install.sh calls this; so does CI)
@@ -35,42 +45,103 @@ index d2ef229..106953f 100755
 +#                                     apply only the sparse-KV entries of the series (the
 +#                                     sparse-*.patch names, in series order) to DIR, a vllm
 +#                                     tree that already has the rest of the series; idempotent
-+#                                     like --kvarn (sparsekv/install.sh calls this). A fresh
++#                                     (sparsekv/install.sh calls this), also when sparse patches
++#                                     stack on one file: see apply_sparse below. A fresh
 +#                                     install gets them from the plain DIR mode, because they
 +#                                     are in patches/series; every sparse patch is inert unless
 +#                                     its SPARSE_* environment knob is set.
  #
  # Exit codes: 0 success; 1 a patch did not apply (the message names it); 2 a usage error,
  # or a list and its directory disagree (patches/series and patches/, or KVARN and kvarn/).
-@@ -54,7 +62,7 @@ KVARN=(kvarn-0.31.0.patch kvarn-v2-runner-0.31.0.patch kvarn-recycled-pages-0.31
+@@ -41,7 +53,7 @@
+ # Output contract (patches/check_vllm_series.sh counts these lines), one line per patch:
+ #   == <name>
+ #   == <name> (<N> hunk(s) at an offset)
+-#   == <name> (already applied)            (--kvarn only)
++#   == <name> (already applied)            (--kvarn and --sparse only)
+ # On a failure, the patch output goes to stderr, indented, after a FAILED: line.
+ set -euo pipefail
+ HERE=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+@@ -54,7 +66,7 @@ KVARN=(kvarn-0.31.0.patch kvarn-v2-runner-0.31.0.patch kvarn-recycled-pages-0.31
         kvarn-fp16-dequant-0.31.0.patch)
  
  usage() {
 -  echo "usage: bash patches/apply.sh --list [--kvarn] | [--kvarn] DIR  (DIR = the installed vllm package directory)" >&2
-+  echo "usage: bash patches/apply.sh --list [--kvarn] | [--kvarn|--sparse] DIR  (DIR = the installed vllm package directory)" >&2
++  echo "usage: bash patches/apply.sh --list [--kvarn] | [--kvarn|--sparse|--sparse-state] DIR  (DIR = the installed vllm package directory)" >&2
    exit 2
  }
  
-@@ -135,12 +143,31 @@ apply_kvarn() {
+@@ -135,12 +147,83 @@ apply_kvarn() {
    done
  }
  
 +# The sparse-KV entries of the series (sparse-*.patch), applied idempotently to a tree that
-+# already carries the rest of the series: same reverse-dry-run check as --kvarn.
-+apply_sparse() {
-+  local dir=$1 names name n=0
-+  [ -d "$dir" ] || { echo "ERROR: $dir is not a directory" >&2; usage; }
-+  names=$(list) || exit 2
++# already carries the rest of the series.
++#
++# s17: sparse patches may STACK on one file (sparse-frontend-backports.patch sits on top of
++# sparse-parser-qwen3-backports.patch in the Qwen3 tool parser). An isolated reverse dry-run of
++# the EARLIER patch then fails in a fully installed tree (its "after" lines were changed again by
++# the later patch), so the --kvarn style check called it "not applied", and the forward apply
++# that followed failed and left .rej files. Applied-ness is therefore decided for the whole
++# sparse set at once, on a scratch copy of the files the set touches, walking the series
++# LAST-FIRST: a patch that reverses exactly (fuzz 0) there is applied, and is reversed in the
++# scratch copy so the patches under it are tested against the tree they were cut for. The real
++# tree is only touched by the forward apply of the patches found absent, in series order. A
++# partly applied patch reverses nowhere, is reported absent, and then fails the forward apply by
++# name, as before. (sparsekv/install.sh --check does the same walk for its report.)
++sparse_names() {
++  local names name
++  names=$(list) || return 2
 +  while IFS= read -r name; do
-+    case "$name" in sparse-*.patch) ;; *) continue ;; esac
++    case "$name" in sparse-*.patch) printf '%s\n' "$name" ;; esac
++  done <<<"$names"
++}
++
++# sparse_states DIR: one line "<name> applied|absent" per sparse patch, in series order.
++sparse_states() {
++  local dir=$1 tmp name f i names=() out=()
++  while IFS= read -r name; do [ -n "$name" ] && names+=("$name"); done < <(sparse_names)
++  [ "${#names[@]}" -gt 0 ] || return 0
++  tmp=$(mktemp -d "${TMPDIR:-/tmp}/sparse-apply.XXXXXX")
++  for name in "${names[@]}"; do
++    while IFS= read -r f; do
++      [ -n "$f" ] || continue
++      if [ -f "$dir/$f" ] && [ ! -e "$tmp/$f" ]; then mkdir -p "$tmp/$(dirname "$f")"; cp "$dir/$f" "$tmp/$f"; fi
++    done < <(sed -n -e 's|^+++ b/||p' -e 's|^--- a/||p' "$HERE/$name" | cut -f1 | sort -u)
++  done
++  for ((i=${#names[@]}-1; i>=0; i--)); do
++    name=${names[$i]}
++    if patch -p1 -R --dry-run -s --fuzz 0 -d "$tmp" -i "$HERE/$name" >/dev/null 2>&1; then
++      patch -p1 -R --fuzz 0 --no-backup-if-mismatch -s -d "$tmp" -i "$HERE/$name" >/dev/null 2>&1
++      out[$i]="$name applied"
++    else
++      out[$i]="$name absent"
++    fi
++  done
++  find "$tmp" -type f -delete; find "$tmp" -depth -type d -empty -delete
++  printf '%s\n' "${out[@]}"
++}
++
++apply_sparse() {
++  local dir=$1 states name st n=0
++  [ -d "$dir" ] || { echo "ERROR: $dir is not a directory" >&2; usage; }
++  list >/dev/null || exit 2
++  states=$(sparse_states "$dir")
++  [ -n "$states" ] || { echo "ERROR: patches/series has no sparse-*.patch entries" >&2; exit 2; }
++  while read -r name st; do
 +    n=$((n + 1))
-+    if patch -p1 -R --dry-run -s --fuzz 0 -d "$dir" -i "$HERE/$name" >/dev/null 2>&1; then
++    if [ "$st" = applied ]; then
 +      echo "== $name (already applied)"
 +      continue
 +    fi
 +    apply_one "$dir" "$HERE/$name" "$name" "$SERIES_HINT"
-+  done <<<"$names"
-+  [ "$n" -gt 0 ] || { echo "ERROR: patches/series has no sparse-*.patch entries" >&2; exit 2; }
++  done <<<"$states"
++}
++
++sparse_state_mode() {
++  [ -d "$1" ] || { echo "ERROR: $1 is not a directory" >&2; usage; }
++  list >/dev/null || exit 2
++  sparse_states "$1"
 +}
 +
  case "${1:-}" in
@@ -80,20 +151,25 @@ index d2ef229..106953f 100755
      else usage; fi ;;
    --kvarn) [ $# -eq 2 ] || usage; apply_kvarn "$2" ;;
 +  --sparse) [ $# -eq 2 ] || usage; apply_sparse "$2" ;;
++  --sparse-state) [ $# -eq 2 ] || usage; sparse_state_mode "$2" ;;
    ""|-*) usage ;;
    *) [ $# -eq 1 ] || usage; apply_series "$1" ;;
  esac
 diff --git a/patches/series b/patches/series
-index 6f33db3..f180b38 100644
+index 6f33db3..d58164d 100644
 --- a/patches/series
 +++ b/patches/series
-@@ -65,3 +65,6 @@ qwen3_5-embed-uva.patch
+@@ -65,3 +65,10 @@ qwen3_5-embed-uva.patch
  vllm-pr40371-prompt-progress.patch
  vllm-pr61050-lru-running-prefix.patch
  kv-cache-seat-budget.patch
 +sparse-tier-spill-kvcheck.patch
 +sparse-switch-dual-graphs.patch
 +sparse-prefill-yield-bypass.patch
++sparse-parser-qwen3-backports.patch
++sparse-gdn-recover.patch
++sparse-int8-scale-nofill.patch
++sparse-frontend-backports.patch
 diff --git a/pthfa/csrc/pth_attn/attn_args.h b/pthfa/csrc/pth_attn/attn_args.h
 index 3a85528..4ad6fe1 100644
 --- a/pthfa/csrc/pth_attn/attn_args.h
@@ -597,7 +673,7 @@ index 0b29ca4..51d6adb 100644
 +            self._run_slice(part, query, output, pcaches, attn_metadata.causal)
          return output
 diff --git a/single-user/start_qwen.sh b/single-user/start_qwen.sh
-index 7abace1..792a274 100755
+index 7abace1..6677f8f 100755
 --- a/single-user/start_qwen.sh
 +++ b/single-user/start_qwen.sh
 @@ -337,6 +337,7 @@ if [ "$PTH_FA" = 1 ]; then
@@ -626,3 +702,12 @@ index 7abace1..792a274 100755
  SPEC_ARGS=()
  [ -n "$SPEC_CFG" ] && SPEC_ARGS=(--speculative-config "$SPEC_CFG")
  
+@@ -1010,7 +1022,7 @@ qwen_exec venv/bin/vllm serve "$MODEL" \
+   "${ASYNC_ARGS[@]}" \
+   --max-num-batched-tokens 2048 \
+   "${SPEC_ARGS[@]}" \
+-  --compilation-config "{\"max_cudagraph_capture_size\":$CG,\"custom_ops\":[\"+rms_norm\",\"+silu_and_mul\"]${CG_MODE}}" \
++  --compilation-config "{\"max_cudagraph_capture_size\":$CG,\"custom_ops\":[\"+rms_norm\",\"+silu_and_mul\"]${CG_MODE}${INDUCTOR_DET:-}}" \
+   --reasoning-parser qwen3 \
+   --enable-prompt-tokens-details \
+   "${METRICS_ARGS[@]}" \

@@ -15,7 +15,7 @@
 #      (adds sparse_kv.py and the SPARSE_KV hook in vllm_backend.py; inert unless SPARSE_KV=1).
 #      The same change is already in this repo's pthfa/python sources, so a pthfa rebuild from
 #      this repo carries it too.
-#   3. module: the runtime files of sparsekv/ (ref, triton_ops, tier, tier_connector) into
+#   3. module: the runtime files of sparsekv/ (ref, triton_ops, tier, tier_connector, sched) into
 #      <site-packages>/sparsekv, so the server and the KV connector import them from any cwd.
 #   4. basis: --basis FILE (default sparsekv/basis/basis27.pt) copied to
 #      <VENV>/share/sparsekv/basis27.pt (+ .sha256). serve-sparse.sh defaults SPARSE_BASIS to it.
@@ -27,7 +27,7 @@
 set -euo pipefail
 HERE=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 REPO=$(cd -- "$HERE/.." && pwd)
-RUNTIME_FILES=(__init__.py ref.py triton_ops.py tier.py tier_connector.py)
+RUNTIME_FILES=(__init__.py ref.py triton_ops.py tier.py tier_connector.py sched.py)
 PTHFA_PATCH="$HERE/patches/pthfa-sparse-kv.patch"
 
 usage() { sed -n '2,6p' "$0" >&2; exit 2; }
@@ -68,11 +68,26 @@ sparse_vllm_patches() { bash "$REPO/patches/apply.sh" --list | grep '^sparse-.*\
 
 report() {
   local rc=0 st name
-  for name in $(sparse_vllm_patches); do
-    st=0; patch_state "$VLLM_DIR" "$REPO/patches/$name" || st=$?
-    case $st in 0) echo "vllm   $name: applied" ;; 1) echo "vllm   $name: NOT applied"; rc=1 ;;
-                *) echo "vllm   $name: CONFLICT (partly applied or a different tree)"; rc=1 ;; esac
+  # Patches of the series may stack on the same file (s14: the frontend backports sit on top of the parser backports), so
+  # each is checked on a scratch copy of the files the sparse patches touch, with the LATER patches reversed first.
+  local tmp names=() lines=() i f
+  tmp=$(mktemp -d "${TMPDIR:-/tmp}/sparsekv-check.XXXXXX")
+  for name in $(sparse_vllm_patches); do names+=("$name"); done
+  for name in "${names[@]}"; do
+    for f in $(sed -n 's|^+++ b/||p' "$REPO/patches/$name" | cut -f1); do
+      if [ -f "$VLLM_DIR/$f" ] && [ ! -e "$tmp/$f" ]; then mkdir -p "$tmp/$(dirname "$f")"; cp "$VLLM_DIR/$f" "$tmp/$f"; fi
+    done
   done
+  for ((i=${#names[@]}-1; i>=0; i--)); do
+    name=${names[$i]}
+    st=0; patch_state "$tmp" "$REPO/patches/$name" || st=$?
+    case $st in 0) lines+=("vllm   $name: applied")
+                   patch -p1 -R --fuzz 0 --no-backup-if-mismatch -s -d "$tmp" -i "$REPO/patches/$name" >/dev/null 2>&1 ;;
+                1) lines+=("vllm   $name: NOT applied"); rc=1 ;;
+                *) lines+=("vllm   $name: CONFLICT (partly applied or a different tree)"); rc=1 ;; esac
+  done
+  for ((i=${#lines[@]}-1; i>=0; i--)); do echo "${lines[$i]}"; done
+  find "$tmp" -type f -delete; find "$tmp" -depth -type d -empty -delete
   st=0; patch_state "$PTHFA_DIR" "$PTHFA_PATCH" || st=$?
   case $st in 0) echo "pthfa  pthfa-sparse-kv.patch: applied" ;; 1) echo "pthfa  pthfa-sparse-kv.patch: NOT applied"; rc=1 ;;
               *) echo "pthfa  pthfa-sparse-kv.patch: CONFLICT"; rc=1 ;; esac
@@ -99,6 +114,7 @@ uninstall)
     patch -p1 -R --fuzz 0 --no-backup-if-mismatch -s -d "$PTHFA_DIR" -i "$PTHFA_PATCH"
     echo "== reversed pthfa-sparse-kv.patch"
   else echo "== pthfa-sparse-kv.patch not applied (state $st), left alone"; fi
+  # last-first on the real tree: with stacked patches each reverse check is then exact
   for name in $(sparse_vllm_patches | tac); do
     pf="$REPO/patches/$name"; [ -f "$APPLIED/vllm/$name" ] && pf="$APPLIED/vllm/$name"
     st=0; patch_state "$VLLM_DIR" "$pf" || st=$?
@@ -115,12 +131,23 @@ esac
 # ---- install ----
 echo "[install] venv $VENV"
 # Upgrade: a previously applied patch whose content changed is reversed first (from its stored copy).
-for old in "$APPLIED"/vllm/*.patch "$APPLIED"/pthfa/*.patch; do
-  [ -f "$old" ] || continue
-  name=$(basename "$old"); kind=$(basename "$(dirname "$old")")
-  if [ "$kind" = vllm ]; then dir=$VLLM_DIR; cur=$REPO/patches/$name; else dir=$PTHFA_DIR; cur=$PTHFA_PATCH; fi
-  cmp -s "$old" "$cur" && continue
+# s17: sparse vLLM patches may stack on one file, so the stored copies are walked LAST-FIRST in series order (stored
+# names that left the series first), starting at the last one and stopping after the FIRST changed one: an unchanged
+# patch above a changed one is reversed too (it may sit on top of it) and is re-applied by step 1 below. Reversing
+# last-first on the real tree keeps each reverse check exact.
+upgrade_one() {  # KIND(vllm|pthfa) STORED_FILE CHANGED(1|0)
+  local kind=$1 old=$2 changed=$3 name dir st
+  name=$(basename "$old")
+  if [ "$kind" = vllm ]; then dir=$VLLM_DIR; else dir=$PTHFA_DIR; fi
   st=0; patch_state "$dir" "$old" || st=$?
+  if [ "$changed" = 0 ]; then
+    # unchanged, only lifted because a changed patch lies under it; its stored copy stays (step 1 re-applies it)
+    if [ $st = 0 ]; then
+      patch -p1 -R --fuzz 0 --no-backup-if-mismatch -s -d "$dir" -i "$old"
+      echo "== upgrade: lifted $name (unchanged; re-applied below)"
+    fi
+    return 0
+  fi
   case $st in
     0) patch -p1 -R --fuzz 0 --no-backup-if-mismatch -s -d "$dir" -i "$old"
        echo "== upgrade: reversed the previously installed $name" ;;
@@ -131,6 +158,28 @@ for old in "$APPLIED"/vllm/*.patch "$APPLIED"/pthfa/*.patch; do
        exit 1 ;;
   esac
   rm -f "$old"
+}
+stored=()   # stored vLLM patches in apply order: series order, then names no longer in the series
+for name in $(sparse_vllm_patches); do [ -f "$APPLIED/vllm/$name" ] && stored+=("$name"); done
+for old in "$APPLIED"/vllm/*.patch; do
+  [ -f "$old" ] || continue
+  name=$(basename "$old")
+  case " ${stored[*]-} " in *" $name "*) ;; *) stored+=("$name") ;; esac
+done
+first_changed=-1
+for ((i=0; i<${#stored[@]}; i++)); do
+  if ! cmp -s "$APPLIED/vllm/${stored[$i]}" "$REPO/patches/${stored[$i]}"; then first_changed=$i; break; fi
+done
+if [ $first_changed -ge 0 ]; then
+  for ((i=${#stored[@]}-1; i>=first_changed; i--)); do
+    if cmp -s "$APPLIED/vllm/${stored[$i]}" "$REPO/patches/${stored[$i]}"; then chg=0; else chg=1; fi
+    upgrade_one vllm "$APPLIED/vllm/${stored[$i]}" $chg
+  done
+fi
+for old in "$APPLIED"/pthfa/*.patch; do
+  [ -f "$old" ] || continue
+  cmp -s "$old" "$PTHFA_PATCH" && continue
+  upgrade_one pthfa "$old" 1
 done
 echo "[install] 1/5 vLLM sparse patches -> $VLLM_DIR"
 bash "$REPO/patches/apply.sh" --sparse "$VLLM_DIR"

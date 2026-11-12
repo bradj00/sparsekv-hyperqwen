@@ -1,0 +1,576 @@
+diff -ruN a/model_executor/layers/mamba/abstract.py b/model_executor/layers/mamba/abstract.py
+--- a/model_executor/layers/mamba/abstract.py	2026-11-11 08:30:52.918697554 +0000
++++ b/model_executor/layers/mamba/abstract.py	2026-11-11 08:39:09.021391093 +0000
+@@ -79,10 +79,20 @@
+             num_speculative_blocks=(
+                 0
+                 if vllm_config.cache_config.use_kda_recoverssm
++                or self._gdn_recover_enabled()
+                 else vllm_config.num_speculative_tokens
+             ),
+         )
+ 
++    def _gdn_recover_enabled(self) -> bool:
++        # sparsekv s13 (SPARSE_GDN_RECOVER=1): GDN verifies off the running
++        # block and replays the accepted tokens afterwards (gdn/recover.py).
++        if self.mamba_type != MambaAttentionBackendEnum.GDN_ATTN:
++            return False
++        from vllm.model_executor.layers.mamba.gdn import recover
++
++        return recover.enabled()
++
+     def get_attn_backend(self) -> type[AttentionBackend]:
+         """Get the attention backend class for this Mamba layer."""
+         return get_mamba_attn_backend(self.mamba_type)
+Binary files a/model_executor/layers/mamba/gdn/__pycache__/qwen_gdn_linear_attn.cpython-310.pyc and b/model_executor/layers/mamba/gdn/__pycache__/qwen_gdn_linear_attn.cpython-310.pyc differ
+Binary files a/model_executor/layers/mamba/gdn/__pycache__/recover.cpython-310.pyc and b/model_executor/layers/mamba/gdn/__pycache__/recover.cpython-310.pyc differ
+diff -ruN a/model_executor/layers/mamba/gdn/qwen_gdn_linear_attn.py b/model_executor/layers/mamba/gdn/qwen_gdn_linear_attn.py
+--- a/model_executor/layers/mamba/gdn/qwen_gdn_linear_attn.py	2026-11-11 08:32:41.816111357 +0000
++++ b/model_executor/layers/mamba/gdn/qwen_gdn_linear_attn.py	2026-11-11 09:39:53.899028249 +0000
+@@ -29,6 +29,7 @@
+     MergedColumnParallelLinear,
+     RowParallelLinear,
+ )
++from vllm.model_executor.layers.mamba.gdn import recover as _gdn_recover
+ from vllm.model_executor.layers.mamba.gdn.base import GatedDeltaNetAttention
+ from vllm.model_executor.layers.mamba.mamba_mixer2 import mamba_v2_sharded_weight_loader
+ from vllm.model_executor.layers.mamba.mamba_utils import (
+@@ -530,6 +531,22 @@
+             self.gdn_decode_kernel = "XPU"
+ 
+         self.enable_fused_gdn_decode = self.gdn_decode_kernel == "cuda"
++        self._gdn_recover = _gdn_recover.enabled() and self.num_spec > 0
++        if self._gdn_recover:
++            if self.enable_fused_gdn_decode:
++                raise ValueError(
++                    "SPARSE_GDN_RECOVER=1 supports the Triton GDN decode path only"
++                )
++            _gdn_recover.attach(
++                self,
++                get_current_vllm_config().scheduler_config.max_num_seqs
++                * (self.num_spec + 1),
++                self.num_v_heads // self.tp_size,
++                self.num_k_heads // self.tp_size,
++                self.head_k_dim,
++                self.head_v_dim,
++                self.model_config.dtype,
++            )
+         logger.info_once("GDN decode kernel: %s", self.gdn_decode_kernel)
+ 
+         compilation_config = get_current_vllm_config().compilation_config
+@@ -1444,6 +1461,24 @@
+ 
+         # 2.1: Process the multi-query part
+         if spec_sequence_masks is not None:
++            if self._gdn_recover:
++                # sparsekv s13 recover mode: the kernel reads the running block
++                # and stores no state (NULL write columns; the read column is
++                # appended and selected through num_accepted); the accepted
++                # tokens are replayed after sampling (gdn/recover.py).
++                _gdn_recover.save(self, a_spec, b_spec, key_spec, value_spec)
++                assert spec_state_indices_tensor is not None
++                spec_state_indices_tensor = torch.cat(
++                    [
++                        torch.zeros_like(spec_state_indices_tensor),
++                        spec_state_indices_tensor[:, :1],
++                    ],
++                    dim=1,
++                )
++                num_accepted_tokens = torch.full_like(
++                    spec_state_indices_tensor[:, 0],
++                    spec_state_indices_tensor.size(1),
++                )
+             core_attn_out_spec, last_recurrent_state = (
+                 fused_sigmoid_gating_delta_rule_update(
+                     A_log=self.A_log,
+diff -ruN a/model_executor/layers/mamba/gdn/recover.py b/model_executor/layers/mamba/gdn/recover.py
+--- a/model_executor/layers/mamba/gdn/recover.py	1970-01-01 00:00:00.000000000 +0000
++++ b/model_executor/layers/mamba/gdn/recover.py	2026-11-11 09:39:53.899028249 +0000
+@@ -0,0 +1,200 @@
++# SPDX-License-Identifier: Apache-2.0
++"""GDN speculative decode without per-draft-token state blocks (SPARSE_GDN_RECOVER=1, sparsekv s13).
++
++Baseline (align mode + MTP/EAGLE, K draft tokens): the verify step runs K+1 tokens through every GDN layer and
++stores the recurrent state after EACH token in its own block (block-table columns c, c+1, ..., c+K; c = the running
++block), because the accepted count is only known after sampling; the next step starts from column
++num_accepted - 1. Every resident request therefore holds K extra state blocks per mamba group for its whole life
++(Qwen3.x 27B, K=7, 3 groups: 21 of the 27 blocks a request pins; on a 112-block pool that is 3-4 residents).
++
++Recover mode keeps ONE state block per group (num_speculative_blocks = 0):
++  * verify forward: the kernel reads the running block and stores NO state; the per-token gate/key/value inputs of
++    the window are kept in a small per-layer buffer (K+1 tokens per request);
++  * postprocess (accepted count n known, still on the GPU): ``commit`` replays tokens 0..n-1 of the window onto the
++    running block with the same recurrence, so the running block always holds the state of the accepted prefix. When
++    the accepted tokens cross a block boundary it also writes the block-aligned checkpoint the align cache keeps.
++The convolution state never used the extra blocks (one sliding window in the running block, shifted by
++num_accepted - 1), so it is untouched and still reads num_accepted.
++
++Numerics: bit-identical to the baseline. Both start from the stored running state, carry the window in fp32 with the
++same operations in the same order, and round to the cache dtype once, at the accepted token.
++"""
++import os
++
++import torch
++
++from vllm.triton_utils import tl, triton
++
++_ENABLED = os.environ.get("SPARSE_GDN_RECOVER", "0") == "1"
++_BUILDERS: list = []
++STATS = {"commits": 0, "layers": 0}
++
++
++def enabled() -> bool:
++    return _ENABLED
++
++
++def register_builder(builder) -> None:
++    if builder not in _BUILDERS:
++        _BUILDERS.append(builder)
++
++
++def clear() -> None:
++    for b in _BUILDERS:
++        b._recover_step = None
++
++
++@triton.jit(do_not_specialize=["N"])
++def gdn_recover_commit_kernel(
++    A_log,
++    a,
++    b,
++    dt_bias,
++    k,
++    v,
++    h,
++    tok_start,  # int32 [N + 1] first window token of each spec row (in the saved buffers)
++    n_apply,  # int32 [N] tokens 0..n_apply-1 of the window are applied (= accepted count); <= 0: nothing
++    run_blk,  # int32 [N] block id of the running state (<= 0: skip)
++    ckpt_at,  # int32 [N] write a checkpoint after this many applied tokens (< 1: none)
++    ckpt_blk,  # int32 [N] block id of that checkpoint
++    beta,
++    threshold,
++    N: tl.int64,
++    H: tl.constexpr,
++    HV: tl.constexpr,
++    K: tl.constexpr,
++    V: tl.constexpr,
++    BK: tl.constexpr,
++    BV: tl.constexpr,
++    stride_state: tl.constexpr,
++):
++    i_v, i_nh = tl.program_id(0), tl.program_id(1)
++    i_n, i_hv = i_nh // HV, i_nh % HV
++    i_h = i_hv // (HV // H)
++    napp = tl.load(n_apply + i_n).to(tl.int64)
++    if napp <= 0:
++        return
++    blk = tl.load(run_blk + i_n).to(tl.int64)
++    if blk <= 0:
++        return
++    bos = tl.load(tok_start + i_n).to(tl.int64)
++    width = tl.load(tok_start + i_n + 1).to(tl.int64) - bos
++    if napp > width:
++        napp = width
++    c_at = tl.load(ckpt_at + i_n).to(tl.int64)
++    c_blk = tl.load(ckpt_blk + i_n).to(tl.int64)
++
++    o_k = tl.arange(0, BK)
++    o_v = i_v * BV + tl.arange(0, BV)
++    mask_k = o_k < K
++    mask_v = o_v < V
++    mask_h = mask_v[:, None] & mask_k[None, :]
++
++    p_k = k + (bos * H + i_h) * K + o_k
++    p_v = v + (bos * HV + i_hv) * V + o_v
++    p_a = a + bos * HV + i_hv
++    p_b = b + bos * HV + i_hv
++    off_h = i_hv * V * K + o_v[:, None] * K + o_k[None, :]
++    p_h = h + blk * stride_state + off_h
++    b_h = tl.load(p_h, mask=mask_h, other=0).to(tl.float32)
++    g_scale = -tl.exp(tl.load(A_log + i_hv).to(tl.float32))
++    dtb = tl.load(dt_bias + i_hv).to(tl.float32)
++
++    for i_t in range(0, napp):
++        b_k = tl.load(p_k, mask=mask_k, other=0).to(tl.float32)
++        b_v = tl.load(p_v, mask=mask_v, other=0).to(tl.float32)
++        x = tl.load(p_a).to(tl.float32) + dtb
++        softplus_x = tl.where(beta * x <= threshold, (1 / beta) * tl.log(1 + tl.exp(beta * x)), x)
++        b_g = g_scale * softplus_x
++        b_beta = tl.sigmoid(tl.load(p_b).to(tl.float32))
++        b_k = b_k * (tl.rsqrt(tl.sum(b_k * b_k) + 1e-6))
++        b_h *= tl.exp(b_g)
++        b_v -= tl.sum(b_h * b_k[None, :], 1)
++        b_v *= b_beta
++        b_h += b_v[:, None] * b_k[None, :]
++        if (i_t + 1 == c_at) & (c_blk > 0):
++            tl.store(h + c_blk * stride_state + off_h, b_h.to(h.dtype.element_ty), mask=mask_h)
++        p_k += H * K
++        p_v += HV * V
++        p_a += HV
++        p_b += HV
++    tl.store(p_h, b_h.to(h.dtype.element_ty), mask=mask_h)
++
++
++def attach(layer, max_tokens: int, hv: int, h: int, kdim: int, vdim: int, dtype) -> None:
++    """Per GDN layer: buffers for the gate/key/value inputs of the current verify window (spec-token order).
++    Registered as non-persistent module buffers so they move to the GPU with the weights and are part of the
++    model's memory before vLLM profiles what is left for the KV cache (48 layers x 1.5 MB at 11 x 8 tokens)."""
++    layer.register_buffer("_gdn_rec_a", torch.zeros((max_tokens, hv), dtype=dtype), persistent=False)
++    layer.register_buffer("_gdn_rec_b", torch.zeros((max_tokens, hv), dtype=dtype), persistent=False)
++    layer.register_buffer("_gdn_rec_k", torch.zeros((max_tokens, h, kdim), dtype=dtype), persistent=False)
++    layer.register_buffer("_gdn_rec_v", torch.zeros((max_tokens, hv, vdim), dtype=dtype), persistent=False)
++
++
++def save(layer, a: torch.Tensor, b: torch.Tensor, k: torch.Tensor, v: torch.Tensor) -> None:
++    """a, b: [T, HV]; k: [1, T, H, K]; v: [1, T, HV, V] (the spec rows of this step)."""
++    t = a.shape[0]
++    layer._gdn_rec_a[:t].copy_(a)
++    layer._gdn_rec_b[:t].copy_(b)
++    layer._gdn_rec_k[:t].copy_(k[0])
++    layer._gdn_rec_v[:t].copy_(v[0])
++
++
++def commit(
++    num_sampled,
++    idx_mapping: torch.Tensor,
++    state_idx: torch.Tensor,
++    num_computed_tokens: torch.Tensor | None,
++    static_forward_context: dict,
++    block_size: int,
++) -> None:
++    """After sampling: bring every spec row's running GDN state to its accepted prefix (see the module docstring).
++    num_sampled / idx_mapping are batch-ordered; state_idx / num_computed_tokens are per request slot
++    (num_computed_tokens already holds the post-step count)."""
++    for builder in _BUILDERS:
++        step = builder._recover_step
++        builder._recover_step = None
++        if step is None or isinstance(num_sampled, int) or num_computed_tokens is None:
++            continue
++        rows, tok_start, run_blk, block_table = step
++        nspec = rows.shape[0]
++        if nspec == 0:
++            continue
++        req = idx_mapping[rows].long()
++        valid = req >= 0
++        req = req.clamp(min=0)
++        n = num_sampled[rows].to(torch.int64).clamp(min=1)
++        new = num_computed_tokens[req].to(torch.int64)
++        col = state_idx[req].to(torch.int64)
++        running = new - n + 1  # tokens covered by the state after window token 0
++        aligned = (new // block_size) * block_size
++        bias = aligned - running
++        dest = aligned // block_size - 1
++        need = valid & (aligned >= running) & (dest != col) & (dest >= 0)
++        ckpt_at = torch.where(need, bias + 1, torch.full_like(bias, -1)).to(torch.int32)
++        dest_c = dest.clamp(0, block_table.shape[1] - 1)
++        ckpt_blk = torch.where(need, block_table[rows, dest_c].to(torch.int64),
++                               torch.zeros_like(dest)).to(torch.int32)
++        n_apply = torch.where(valid, n, torch.zeros_like(n)).to(torch.int32)
++        run_blk = run_blk[:nspec].contiguous()
++        tok_start = tok_start[: nspec + 1].contiguous()
++        STATS["commits"] += 1
++        for name in builder.layer_names:
++            layer = static_forward_context[name]
++            ra = getattr(layer, "_gdn_rec_a", None)
++            if ra is None:
++                continue
++            rk, rv = layer._gdn_rec_k, layer._gdn_rec_v
++            h = layer.kv_cache[1]
++            hv, kdim, vdim = ra.shape[1], rk.shape[2], rv.shape[2]
++            bk, bv = triton.next_power_of_2(kdim), min(triton.next_power_of_2(vdim), 32)
++            gdn_recover_commit_kernel[(triton.cdiv(vdim, bv), nspec * hv)](
++                layer.A_log, ra, layer._gdn_rec_b, layer.dt_bias, rk, rv, h,
++                tok_start, n_apply, run_blk, ckpt_at, ckpt_blk,
++                1.0, 20.0,
++                N=nspec, H=rk.shape[1], HV=hv, K=kdim, V=vdim, BK=bk, BV=bv,
++                stride_state=h.stride(0),
++                num_warps=4,
++            )
++            STATS["layers"] += 1
+Binary files a/model_executor/layers/mamba/__pycache__/abstract.cpython-310.pyc and b/model_executor/layers/mamba/__pycache__/abstract.cpython-310.pyc differ
+diff -ruN a/v1/attention/backends/gdn_attn.py b/v1/attention/backends/gdn_attn.py
+--- a/v1/attention/backends/gdn_attn.py	2026-11-11 08:32:29.007943013 +0000
++++ b/v1/attention/backends/gdn_attn.py	2026-11-11 08:39:09.025391148 +0000
+@@ -110,6 +110,14 @@
+         else:
+             self.num_spec = 0
+         self.use_spec_decode: bool = self.num_spec > 0
++        # sparsekv s13: one state block per request, accepted tokens replayed
++        # after sampling (model_executor/layers/mamba/gdn/recover.py).
++        from vllm.model_executor.layers.mamba.gdn import recover as _recover
++
++        self._recover = _recover.enabled() and self.use_spec_decode
++        self._recover_step: tuple | None = None
++        if self._recover:
++            _recover.register_builder(self)
+         self._init_reorder_batch_threshold(1, self.use_spec_decode)
+ 
+         self.use_full_cuda_graph: bool = (
+@@ -178,6 +186,35 @@
+             device=device,
+         )
+ 
++    def _recover_indices(self, running: torch.Tensor) -> torch.Tensor:
++        """[S] running block ids -> [S, num_spec + 1] with NULL draft columns:
++        the verify kernel stores only the state after window token 0."""
++        out = running.new_full((running.shape[0], self.num_spec + 1), NULL_BLOCK_ID)
++        out[:, 0] = running
++        return out
++
++    def _recover_stash(
++        self,
++        masks_cpu: torch.Tensor | None,
++        num_spec_decodes: int,
++        spec_query_start_loc: torch.Tensor | None,
++        spec_state_indices: torch.Tensor | None,
++        block_table: torch.Tensor,
++    ) -> None:
++        if masks_cpu is None or num_spec_decodes == 0:
++            self._recover_step = None
++            return
++        assert spec_query_start_loc is not None and spec_state_indices is not None
++        rows = async_tensor_h2d(
++            torch.nonzero(masks_cpu, as_tuple=False)[:, 0], device=block_table.device
++        )
++        self._recover_step = (
++            rows,
++            spec_query_start_loc,
++            spec_state_indices[:, 0],
++            block_table,
++        )
++
+     def _build_chunk_metadata(
+         self,
+         prefill_query_start_loc: torch.Tensor,
+@@ -357,6 +394,10 @@
+                 spec_state_indices_tensor = block_table_tensor[
+                     spec_sequence_masks_cpu, : self.num_spec + 1
+                 ]
++                if self._recover:
++                    spec_state_indices_tensor = self._recover_indices(
++                        spec_state_indices_tensor[:, 0]
++                    )
+                 non_spec_state_indices_tensor = None
+                 # Padded sequences are always at the back, so the first
+                 # num_spec_decodes + 1 entries of query_start_loc already
+@@ -378,6 +419,10 @@
+                 spec_state_indices_tensor = block_table_tensor[
+                     spec_sequence_masks_cpu, : self.num_spec + 1
+                 ]
++                if self._recover:
++                    spec_state_indices_tensor = self._recover_indices(
++                        spec_state_indices_tensor[:, 0]
++                    )
+                 non_spec_state_indices_tensor = block_table_tensor[
+                     non_spec_sequence_masks_cpu, 0
+                 ]
+@@ -535,6 +580,15 @@
+             non_spec_query_start_loc = self.non_spec_query_start_loc[: batch_size + 1]
+             non_spec_query_start_loc[num_decodes + 1 :].fill_(non_spec_num_query_tokens)
+ 
++        if self._recover:
++            self._recover_stash(
++                spec_sequence_masks_cpu,
++                num_spec_decodes,
++                spec_query_start_loc,
++                spec_state_indices_tensor,
++                m.block_table_tensor,
++            )
++
+         attn_metadata = GDNAttentionMetadata(
+             num_prefills=num_prefills,
+             num_prefill_tokens=num_prefill_tokens,
+@@ -601,6 +655,7 @@
+         """Re-gather this group's state indices. The other fields are
+         batch-level and stay shared with ``metadata``."""
+         m = metadata
++        full_blk_table = blk_table
+         if self.vllm_config.cache_config.mamba_cache_mode == "align":
+             assert self.mamba_aligned_state_indices is not None
+             blk_table = self.mamba_aligned_state_indices
+@@ -612,6 +667,8 @@
+                 prefill_indices = non_spec_indices[m.num_decodes :]
+         else:
+             spec_indices = blk_table[masks, : self.num_spec + 1]
++            if self._recover:
++                spec_indices = self._recover_indices(spec_indices[:, 0])
+             if m.num_prefills > 0:
+                 non_spec_indices = prefill_indices = blk_table[~masks, 0]
+ 
+@@ -635,6 +692,15 @@
+             non_spec_indices = self.non_spec_state_indices_tensor[:batch_size]
+             non_spec_indices[m.num_decodes :].fill_(NULL_BLOCK_ID)
+ 
++        if self._recover:
++            self._recover_stash(
++                masks,
++                m.num_spec_decodes,
++                m.spec_query_start_loc,
++                spec_indices,
++                full_blk_table,
++            )
++
+         return replace(
+             m,
+             spec_state_indices_tensor=spec_indices,
+@@ -665,4 +731,6 @@
+         num_decode_draft_tokens_cpu = torch.diff(m.query_start_loc_cpu).sub_(1)
+         assert num_decode_draft_tokens_cpu.shape == num_accepted_tokens.shape
+ 
+-        return self.build(0, m, num_accepted_tokens, num_decode_draft_tokens_cpu)
++        md = self.build(0, m, num_accepted_tokens, num_decode_draft_tokens_cpu)
++        self._recover_step = None  # capture dummies are never committed
++        return md
+Binary files a/v1/attention/backends/__pycache__/gdn_attn.cpython-310.pyc and b/v1/attention/backends/__pycache__/gdn_attn.cpython-310.pyc differ
+diff -ruN a/v1/worker/gpu/model_states/mamba_hybrid.py b/v1/worker/gpu/model_states/mamba_hybrid.py
+--- a/v1/worker/gpu/model_states/mamba_hybrid.py	2026-11-11 08:30:52.518692438 +0000
++++ b/v1/worker/gpu/model_states/mamba_hybrid.py	2026-11-11 09:28:04.962186287 +0000
+@@ -9,6 +9,7 @@
+ 
+ from vllm.config import VllmConfig
+ from vllm.config.compilation import CUDAGraphMode
++from vllm.model_executor.layers.mamba.gdn import recover as _gdn_recover
+ from vllm.model_executor.layers.mamba.mamba_utils import MambaStateCopyFuncsByType
+ from vllm.triton_utils import tl, triton
+ from vllm.v1.attention.backends.gdn_attn import GDNAttentionMetadataBuilder
+@@ -90,6 +91,9 @@
+         # kernel reusing the postprocess copy machinery, so the per-step src
+         # columns and the running state_idx are kept GPU-resident.
+         self._align_mode = self.cache_config.mamba_cache_mode == "align"
++        self._gdn_recover = _gdn_recover.enabled() and self._align_mode
++        if _gdn_recover.enabled() and not self._align_mode:
++            raise ValueError("SPARSE_GDN_RECOVER=1 requires --mamba-cache-mode align")
+         self.recoverssm = (
+             RecoverSSMState() if self.cache_config.use_kda_recoverssm else None
+         )
+@@ -342,6 +346,8 @@
+             self.recoverssm.record_step(
+                 attn_metadata, attn_groups, for_capture=for_capture
+             )
++        if self._gdn_recover and for_capture:
++            _gdn_recover.clear()
+         return attn_metadata
+ 
+     def postprocess_state(
+@@ -379,6 +385,8 @@
+             )
+ 
+         if not num_reqs:
++            if self._gdn_recover:
++                _gdn_recover.clear()
+             return
+ 
+         # Align: save the running state to the block-aligned position when
+@@ -397,6 +405,20 @@
+                 num_computed_tokens,
+                 idx_mapping,
+             )
++        if self._gdn_recover:
++            # Replay the accepted window tokens onto the running state block.
++            _gdn_recover.commit(
++                num_sampled,
++                idx_mapping,
++                self._mamba_state_idx_gpu,
++                num_computed_tokens,
++                self.vllm_config.compilation_config.static_forward_context,
++                (
++                    self._mamba_spec.block_size
++                    if self._mamba_spec is not None
++                    else self.cache_config.block_size
++                ),
++            )
+ 
+ 
+ @triton.jit
+Binary files a/v1/worker/gpu/model_states/__pycache__/mamba_hybrid.cpython-310.pyc and b/v1/worker/gpu/model_states/__pycache__/mamba_hybrid.cpython-310.pyc differ
+diff -ruN a/v1/worker/mamba_utils.py b/v1/worker/mamba_utils.py
+--- a/v1/worker/mamba_utils.py	2026-11-11 08:32:42.512120520 +0000
++++ b/v1/worker/mamba_utils.py	2026-11-11 09:28:04.962186287 +0000
+@@ -9,6 +9,7 @@
+ 
+ from vllm.config import CacheConfig
+ from vllm.logger import init_logger
++from vllm.model_executor.layers.mamba.gdn import recover as _gdn_recover
+ from vllm.model_executor.layers.mamba.mamba_utils import (
+     MambaStateCopyFuncsByType,
+     get_conv_copy_spec,
+@@ -209,9 +210,16 @@
+     COPY_BLOCK_SIZE: tl.constexpr,
+     CONV_STATE_DIM_FIRST: tl.constexpr,
+     TEMPORAL_TILES: tl.constexpr,
++    TEMPORAL_MODE: tl.constexpr,
+ ):
+     """Copy one (layer, state-type) mamba state block between block columns.
+ 
++    ``TEMPORAL_MODE`` (sparsekv s13, GDN recover mode: one state block per
++    request, no speculative columns): 0 = baseline; 1 = the temporal state is
++    always in ``src_col`` (no accepted-column bias; boundary pre-copy);
++    2 = postprocess: no temporal copy (``gdn/recover.py`` writes the running
++    state and the block-aligned checkpoint from the saved window inputs).
++
+     Shared copy body of ``postprocess_mamba_fused_kernel`` and
+     ``precopy_mamba_align_fused_kernel``, mirroring the V1 copy specs
+     (``get_conv_copy_spec`` / ``get_temporal_copy_spec``):
+@@ -349,7 +357,12 @@
+     # Temporal state: copy state[bt[src_col + token_bias]] -> state[bt[dst_col]]
+     # Body u64 range is partitioned across TEMPORAL_TILES CTAs to keep the
+     # SMs filled at small batch.
+-    actual_src_block_id = tl.load(block_table_base + src_col + token_bias).to(tl.int64)
++    temporal_bias = token_bias
++    if TEMPORAL_MODE != 0:
++        if TEMPORAL_MODE == 2:
++            return
++        temporal_bias = token_bias * 0
++    actual_src_block_id = tl.load(block_table_base + src_col + temporal_bias).to(tl.int64)
+     src_addr = state_base_addr + actual_src_block_id * state_block_stride
+     # Use natural block data size (inner_size * elem_size), NOT
+     # state_block_stride which is the page stride and can exceed the
+@@ -414,6 +427,7 @@
+     # 3D grid (num_reqs, total_states, TEMPORAL_TILES). Default 1 preserves
+     # the existing 2D-grid contract.
+     TEMPORAL_TILES: tl.constexpr = 1,
++    TEMPORAL_MODE: tl.constexpr = 0,
+ ):
+     """Fused GPU kernel for postprocess_mamba that computes decisions AND performs
+     mamba state copies without any CPU-GPU synchronization.
+@@ -497,6 +511,7 @@
+         COPY_BLOCK_SIZE,
+         CONV_STATE_DIM_FIRST,
+         TEMPORAL_TILES,
++        TEMPORAL_MODE,
+     )
+ 
+ 
+@@ -572,6 +587,7 @@
+     # TEMPORAL_TILES: see postprocess_mamba_fused_kernel. Default 1 preserves
+     # the 2D-grid contract; > 1 requires a 3D grid.
+     TEMPORAL_TILES: tl.constexpr = 1,
++    TEMPORAL_MODE: tl.constexpr = 0,
+ ):
+     """Pre-copy mamba "align" state across block boundaries.
+ 
+@@ -628,6 +644,7 @@
+         COPY_BLOCK_SIZE,
+         CONV_STATE_DIM_FIRST,
+         TEMPORAL_TILES,
++        TEMPORAL_MODE,
+     )
+ 
+ 
+@@ -1229,6 +1246,7 @@
+             CONV_STATE_DIM_FIRST=is_conv_state_dim_first(),
+             HAS_IDX_MAPPING=idx_mapping is not None,
+             TEMPORAL_TILES=_TEMPORAL_TILES,
++            TEMPORAL_MODE=1 if _gdn_recover.enabled() else 0,
+         )
+ 
+     def run_fused_postprocess_align(
+@@ -1284,6 +1302,7 @@
+             HAS_IDX_MAPPING=True,
+             PRECOMPUTED_NEW_COMPUTED=True,
+             TEMPORAL_TILES=_TEMPORAL_TILES,
++            TEMPORAL_MODE=2 if _gdn_recover.enabled() else 0,
+         )
+ 
+ 
+Binary files a/v1/worker/__pycache__/mamba_utils.cpython-310.pyc and b/v1/worker/__pycache__/mamba_utils.cpython-310.pyc differ

@@ -11,11 +11,25 @@ This repository includes or modifies the following third-party works:
   single-user/start_qwen.sh, pthfa/install.sh, pthfa/csrc/pth_attn/*,
   pthfa/python/pth_flash_attn/vllm_backend.py). No HyperQwen files are
   redistributed here beyond the diff context in that patch.
+  sparsekv/tools/mk_draft_vocab_variant.sh calls HyperQwen's
+  prepare/build_draft_vocab.py at run time; it is not included.
+  bench/test_sparse_apply_stacked.sh is a new file by this project that
+  tests the patched patches/apply.sh.
 
 * vLLM (https://github.com/vllm-project/vllm), Copyright contributors to the
   vLLM project, Apache-2.0. patches/sparse-switch-dual-graphs.patch,
-  patches/sparse-tier-spill-kvcheck.patch and
-  patches/sparse-prefill-yield-bypass.patch modify vLLM 0.31 files. Result
+  patches/sparse-tier-spill-kvcheck.patch,
+  patches/sparse-prefill-yield-bypass.patch and
+  patches/sparse-gdn-recover.patch modify vLLM 0.31 files (the last also
+  adds model_executor/layers/mamba/gdn/recover.py, a new file by this
+  project). patches/sparse-parser-qwen3-backports.patch,
+  patches/sparse-frontend-backports.patch and
+  patches/sparse-int8-scale-nofill.patch are backports of upstream vLLM
+  pull requests to vLLM 0.31 (#61253, #62027, #61217, #59882; #64675,
+  #65775, #63668; #64141, the last as carried in HyperQwen #404),
+  written by their respective vLLM contributors
+  and adapted here; they contain vLLM code. sparsekv/sched.py subclasses
+  vLLM's Scheduler and AsyncScheduler at run time. Result
   files under run*/ contain vLLM source excerpts quoted in model outputs
   (Apache-2.0; some vllm_flash_attn excerpts derive from
   Dao-AILab/flash-attention, https://github.com/Dao-AILab/flash-attention,
@@ -41,6 +55,11 @@ This repository includes or modifies the following third-party works:
 * The needle-in-a-haystack method follows Greg Kamradt's NIAH
   (https://github.com/gkamradt/LLMTest_NeedleInAHaystack), MIT,
   Copyright (c) 2023 Greg Kamradt.
+
+Result records under eval/v12/results/ hold timings, token counts and scores
+only: no prompt or answer text. The agent-mix records there come from
+replaying requests of real coding sessions; none of their content is
+included.
 
 Test documents (essay haystacks, the vLLM source corpus) are not
 redistributed; harness scripts read them from paths you supply. Quoted

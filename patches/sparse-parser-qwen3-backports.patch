@@ -1,0 +1,339 @@
+Backports of four upstream parser fixes onto vLLM 0.31.0 for the Qwen3 tool-call path (qwen3_coder / qwen3_xml):
+  #61253 (engine: per-argument value extender; needed by #62027; import hunk adapted to 0.31)
+  #62027 (stream Qwen3 tool argument values incrementally: no re-parse of the whole argument per chunk)
+  #61217 (forward skipped tool spans verbatim in the reasoning pass: literal </think> in an argument survives)
+  #59882 (keep an unclosed last <parameter=...> when </function> closes the call; hand-ported, open upstream)
+Tests: tests/parser (0.31 suite + the PRs' tests): 4882 passed, 2 skipped.
+
+diff --git a/parser/engine/parser_engine.py b/parser/engine/parser_engine.py
+index 527c310..f97ee64 100644
+--- a/parser/engine/parser_engine.py
++++ b/parser/engine/parser_engine.py
+@@ -25,7 +25,11 @@ from vllm.entrypoints.generate.base.protocol import (
+ from vllm.logger import init_logger
+ from vllm.parser.abstract_parser import Parser, StreamState
+ from vllm.parser.engine.events import EventType, SemanticEvent
+-from vllm.parser.engine.parser_engine_config import ParserEngineConfig, ParserState
++from vllm.parser.engine.parser_engine_config import (
++    ArgValueExtender,
++    ParserEngineConfig,
++    ParserState,
++)
+ from vllm.parser.engine.streaming_parser_engine import StreamingParserEngine
+ from vllm.tool_parsers.utils import (
+     coerce_to_schema_type,
+@@ -53,7 +57,10 @@ class ToolCallSlot:
+         "_args_joined",
+         "name_sent",
+         "string_keys",
+-        "streamed_json",
++        "_streamed_parts",
++        "_streamed_joined",
++        "extend_open_value",
++        "open_value_streams",
+     )
+ 
+     def __init__(self) -> None:
+@@ -63,7 +70,10 @@ class ToolCallSlot:
+         self._args_joined: str | None = ""
+         self.name_sent: bool = False
+         self.string_keys: set[str] | None = None
+-        self.streamed_json: str = ""
++        self._streamed_parts: list[str] = []
++        self._streamed_joined: str | None = ""
++        self.extend_open_value: ArgValueExtender | None = None
++        self.open_value_streams: bool = False
+ 
+     @property
+     def args(self) -> str:
+@@ -75,6 +85,21 @@ class ToolCallSlot:
+         self._args_parts.append(value)
+         self._args_joined = None
+ 
++    @property
++    def streamed_json(self) -> str:
++        if self._streamed_joined is None:
++            self._streamed_joined = "".join(self._streamed_parts)
++        return self._streamed_joined
++
++    @streamed_json.setter
++    def streamed_json(self, value: str) -> None:
++        self._streamed_parts = [value]
++        self._streamed_joined = value
++
++    def append_streamed(self, value: str) -> None:
++        self._streamed_parts.append(value)
++        self._streamed_joined = None
++
+ 
+ class ParserEngine(Parser):
+     """A :class:`Parser` backed by a single declarative engine config.
+@@ -126,6 +151,7 @@ class ParserEngine(Parser):
+ 
+         self._arg_converter = parser_engine_config.arg_converter
+         self._arg_structural_chars = parser_engine_config.arg_structural_chars
++        self._arg_value_extender = parser_engine_config.arg_value_extender
+         self._stream_arg_deltas = parser_engine_config.stream_arg_deltas
+         self._strip_trailing_reasoning_ws = (
+             parser_engine_config.strip_trailing_reasoning_whitespace
+@@ -296,7 +322,9 @@ class ParserEngine(Parser):
+         return args, changed
+ 
+     @staticmethod
+-    def _safe_arg_prefix(json_str: str, string_keys: set[str] | None = None) -> str:
++    def _safe_arg_prefix(
++        json_str: str, string_keys: set[str] | None = None
++    ) -> tuple[str, bool]:
+         """Return the prefix of *json_str* up to the last top-level value.
+ 
+         Middle values (followed by a comma) are stable across streaming
+@@ -306,6 +334,9 @@ class ParserEngine(Parser):
+         String values for keys in ``string_keys`` are prefix-stable, so stream
+         their unterminated content instead of buffering long arguments until
+         the closing tag arrives.
++
++        Also returns whether the prefix ends inside that streamed trailing
++        string value.
+         """
+         last_colon = -1
+         last_key: str | None = None
+@@ -338,14 +369,14 @@ class ParserEngine(Parser):
+                 last_key = pending_key
+                 pending_key = None
+         if last_colon < 0:
+-            return ""
++            return "", False
+         end = last_colon + 1
+         while end < len(json_str) and json_str[end] in (" ", "\t", "\n", "\r"):
+             end += 1
+         if end >= len(json_str) or json_str[end] != '"':
+-            return json_str[:end]
++            return json_str[:end], False
+         if string_keys is not None and last_key not in string_keys:
+-            return json_str[:end]
++            return json_str[:end], False
+ 
+         escape = False
+         for i in range(end + 1, len(json_str)):
+@@ -357,8 +388,8 @@ class ParserEngine(Parser):
+                 escape = True
+                 continue
+             if c == '"':
+-                return json_str[:i]
+-        return json_str
++                return json_str[:i], True
++        return json_str, True
+ 
+     @staticmethod
+     def _streamable_string_keys(properties: dict) -> set[str] | None:
+@@ -1019,6 +1050,15 @@ class ParserEngine(Parser):
+             return None
+ 
+         slot = self._tool_slots[idx]
++        if slot.extend_open_value is not None:
++            diff = slot.extend_open_value(raw_delta)
++            if diff is not None:
++                if not diff or not slot.open_value_streams:
++                    return None
++                slot.append_streamed(diff)
++                return diff
++            slot.extend_open_value = None
++
+         try:
+             current_json = converter(slot.args, True)
+         except (json.JSONDecodeError, ValueError, TypeError):
+@@ -1032,22 +1072,19 @@ class ParserEngine(Parser):
+             current_json = self._fix_arg_types(current_json, slot.name)
+ 
+         prev = slot.streamed_json
+-        safe_json = self._safe_arg_prefix(current_json, slot.string_keys)
++        safe_json, value_streams = self._safe_arg_prefix(current_json, slot.string_keys)
+ 
+-        if not safe_json or safe_json == prev:
++        if not safe_json:
++            return None
++        if prev and not safe_json.startswith(prev):
+             return None
+ 
+-        if prev:
+-            if not safe_json.startswith(prev):
+-                return None
+-            diff = safe_json[len(prev) :]
+-        else:
+-            diff = safe_json
+-
+-        if diff:
+-            slot.streamed_json = safe_json
+-            return diff
+-        return None
++        slot.streamed_json = safe_json
++        if self._arg_value_extender is not None:
++            # Deltas that only extend the open value skip the conversion above.
++            slot.extend_open_value = self._arg_value_extender(slot.args)
++            slot.open_value_streams = value_streams
++        return safe_json[len(prev) :] or None
+ 
+     def _flush_arg_converter(self, idx: int) -> str | None:
+         converter = self._arg_converter
+diff --git a/parser/engine/parser_engine_config.py b/parser/engine/parser_engine_config.py
+index 215fa0d..2bb2ae2 100644
+--- a/parser/engine/parser_engine_config.py
++++ b/parser/engine/parser_engine_config.py
+@@ -24,6 +24,10 @@ from functools import cached_property
+ 
+ from vllm.parser.engine.events import EventType
+ 
++# Maps a raw argument delta to the JSON text it appends to the open trailing
++# value, or returns None when the delta may change anything else.
++ArgValueExtender = Callable[[str], str | None]
++
+ 
+ class ParserState(Enum):
+     CONTENT = auto()
+@@ -90,6 +94,11 @@ class ParserEngineConfig:
+ 
+     arg_structural_chars: frozenset[str] | None = None
+ 
++    # Called with the raw argument text when its converted JSON ends in an
++    # open value; returns an extender for that value, or None. Streaming
++    # skips ``arg_converter`` for every delta the extender accepts.
++    arg_value_extender: Callable[[str], ArgValueExtender | None] | None = None
++
+     # Special tokens exempt from auto-drop but not state-machine terminals.
+     preserve_tokens: frozenset[str] = field(default_factory=frozenset)
+ 
+diff --git a/parser/engine/streaming_parser_engine.py b/parser/engine/streaming_parser_engine.py
+index 3fd1ecd..363a3ea 100644
+--- a/parser/engine/streaming_parser_engine.py
++++ b/parser/engine/streaming_parser_engine.py
+@@ -475,6 +475,16 @@ class StreamingParserEngine:
+                     ]
+                 return []
+ 
++        if (
++            self.skip_tool_parsing
++            and self._in_skipped_tool_span
++            and terminal not in self._tool_terminals
++        ):
++            # A skipped tool span is handed to the tool pass verbatim, so a
++            # non-tool marker inside it (e.g. a quoted </think> in a Qwen
++            # parameter value) must not fire its reasoning-channel transition.
++            return self._emit_for_state(value, token_count)
++
+         if transition.skip_in_token_id_mode and self._ever_had_token_ids:
+             return self._emit_for_state(value, token_count)
+ 
+diff --git a/parser/qwen3.py b/parser/qwen3.py
+index a11551a..7539a40 100644
+--- a/parser/qwen3.py
++++ b/parser/qwen3.py
+@@ -25,6 +25,7 @@ import regex as re
+ from vllm.parser.engine.events import EventType
+ from vllm.parser.engine.parser_engine import ParserEngine
+ from vllm.parser.engine.parser_engine_config import (
++    ArgValueExtender,
+     ParserEngineConfig,
+     ParserState,
+     Transition,
+@@ -68,13 +69,18 @@ def _trim_wrapping_newlines(value: str) -> str:
+ 
+ def _qwen3_arg_converter(raw_args: str, partial: bool) -> str:
+     params: dict[str, object] = {}
++    # Backport of vllm-project/vllm#59882: the model may close </function> without closing
++    # the last <parameter=...>. Keep that value when the call itself is closed; still drop
++    # it when the output was cut off before </function>.
++    call_closed = raw_args.endswith(FUNC_END)
++    raw_args = raw_args.removesuffix(FUNC_END)
+ 
+     for match in _PARAM_RE.finditer(raw_args):
+         name = match.group(1)
+         value = match.group(2)
+         params[name] = _trim_wrapping_newlines(value)
+ 
+-    if partial:
++    if partial or call_closed:
+         remaining = _PARAM_RE.sub("", raw_args)
+         m = _PARTIAL_PARAM_RE.search(remaining)
+         if m:
+@@ -86,6 +92,64 @@ def _qwen3_arg_converter(raw_args: str, partial: bool) -> str:
+     return json.dumps(params, ensure_ascii=False)
+ 
+ 
++# What ends an open value: a closing tag, the next opener or ``</function>``.
++_PARAM_VALUE_END_RE = re.compile(r"<\s*/\s*parameter\s*>|<\s*parameter\s*=|</function>")
++
++
++def _param_value_end_window(text: str) -> str:
++    """Return the suffix of *text* that may still grow into a value end."""
++    start = text.rfind("<")
++    if start == -1:
++        return ""
++    tail = text[start:]
++    return tail if _PARAM_VALUE_END_RE.fullmatch(tail, partial=True) else ""
++
++
++def _param_value_extender(
++    raw_args: str, trim_newlines: bool
++) -> ArgValueExtender | None:
++    """Extend the open trailing ``<parameter=...>`` value of *raw_args*.
++
++    The extender streams exactly what the converter would for the same text.
++    With *trim_newlines* it follows ``_trim_wrapping_newlines``: it drops a
++    leading newline of the value and holds back a trailing one.
++    """
++    match = _PARTIAL_PARAM_RE.search(_PARAM_RE.sub("", raw_args))
++    if match is None:
++        return None
++    name, value = match.group(1), match.group(2)
++    # A repeated key keeps its first position, so its value is not last.
++    if any(m.group(1) == name for m in _PARAM_RE.finditer(raw_args)):
++        return None
++
++    window = _param_value_end_window(value)
++    started = bool(value)
++    held = "\n" if trim_newlines and value.endswith("\n") and value != "\n" else ""
++
++    def extend(delta: str) -> str | None:
++        nonlocal window, started, held
++        text = window + delta
++        if _PARAM_VALUE_END_RE.search(text):
++            return None
++        window = _param_value_end_window(text)
++        if trim_newlines:
++            text = held + delta
++            if not started and text:
++                started = True
++                text = text.removeprefix("\n")
++            held = "\n" if text.endswith("\n") else ""
++            text = text[: len(text) - len(held)]
++        else:
++            text = delta
++        return json.dumps(text, ensure_ascii=False)[1:-1]
++
++    return extend
++
++
++def _qwen3_arg_value_extender(raw_args: str) -> ArgValueExtender | None:
++    return _param_value_extender(raw_args, trim_newlines=True)
++
++
+ @functools.cache
+ def qwen3_config(
+     thinking: bool = True,
+@@ -171,7 +235,7 @@ def qwen3_config(
+             ),
+             (ParserState.TOOL_ARGS, "FUNC_END"): Transition(
+                 ParserState.TOOL_BETWEEN,
+-                (EventType.TOOL_CALL_END,),
++                (EventType.ARG_VALUE_CHUNK, EventType.TOOL_CALL_END),
+             ),
+             (ParserState.TOOL_ARGS, "PARAM_START"): Transition(
+                 ParserState.TOOL_ARGS,
+@@ -196,6 +260,7 @@ def qwen3_config(
+             ),
+         },
+         arg_converter=_qwen3_arg_converter,
++        arg_value_extender=_qwen3_arg_value_extender,
+         stream_arg_deltas=True,
+         strip_trailing_reasoning_whitespace=False,
+         tool_args_json=False,

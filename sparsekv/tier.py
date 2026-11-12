@@ -198,6 +198,25 @@ class HotBuffer:
         self.pos2row[:, slot].fill_(-1)
         self.hand[:, slot].zero_()
 
+    def invalidate_host_blocks(self, host_blocks: torch.Tensor, bs: int) -> None:
+        """S14 global pool (one slot, keys = host tokens): the host blocks in `host_blocks` (int64 device tensor) are
+        about to be rewritten, so drop their hot rows (caller guarantees 0 <= block < host pool blocks). No host sync,
+        deterministic with duplicate / absent keys."""
+        if host_blocks.numel() == 0:
+            return
+        assert self.S == 1, "invalidate_host_blocks is for the global pool"
+        ar = torch.arange(bs, device=host_blocks.device)
+        keys = (host_blocks.long()[:, None] * bs + ar).reshape(-1)
+        p2r = self.pos2row[:, 0]  # [L, NK]
+        rows = p2r.index_select(1, keys)  # [L, n]
+        valid = rows >= 0
+        r = rows.clamp_min(0).long()
+        big = torch.iinfo(torch.int32).max
+        # amin keeps untouched rows (min(x, INT_MAX) = x); a row named by a valid key gets -1 / NEG_AGE
+        self.tag[:, 0].scatter_reduce_(1, r, torch.where(valid, -1, big).to(torch.int32), reduce="amin")
+        self.last[:, 0].scatter_reduce_(1, r, torch.where(valid, NEG_AGE, big).to(torch.int32), reduce="amin")
+        p2r.index_fill_(1, keys, -1)
+
 
 # ----------------------------------------------------------------------------------------------------------------
 # reference (plain torch; runs on CPU too, used by tier_sim.py and the tests)
@@ -272,6 +291,113 @@ def gather_rows_tiered_ref(kv, gpu_bt, host_kv, host_bt, idx, n_valid, staging_k
             src[miss] = hot.kv[s][hot.pos2row[s].long()[mpos]]
             staging_kv[db, :, do] = src
         tot[0] += int(hit.sum()); tot[1] += m; tot[2] += int(res.sum())
+    return tot
+
+
+# ----------------------------------------------------------------------------------------------------------------
+# S14: GLOBAL hot pool (SPARSE_TIER_HOT_GLOBAL=1, off by default). One pool of H rows per sparse layer shared by all
+# requests, keyed by the GLOBAL HOST TOKEN (host_block * BS + offset) instead of (request slot, logical position).
+#   * no per-request partition: idle slots hold no rows, a busy request can use the whole pool;
+#   * rows survive the end of a request (a follow-up turn that maps the same host blocks starts warm) and are shared
+#     by requests that map the same host blocks (common prefix);
+#   * the price: a host block that is REWRITTEN must drop its hot rows (HotBuffer.invalidate_host_blocks, called by
+#     the connector before every GPU->host block copy), and victims are chosen once for the whole batch (requests no
+#     longer own disjoint rows), so the resolve step is split: classify + refresh hits for every request first, then
+#     one victim scan. If the scan finds fewer victims than misses, the remaining misses are staged straight from
+#     host and not cached (any H >= 1 is correct; H only sets the miss rate).
+# Layout reuse: a HotBuffer with ONE slot (num_slots = kv_slots = 1) and max_ctx = host-pool tokens. Requests whose
+# req_slot is < cached_slots use the pool; the others are uncached (CUDA-graph padding rows, prefill suffixes),
+# exactly like the padding slot of the per-slot layout.
+# ----------------------------------------------------------------------------------------------------------------
+def global_window(H: int, nreq: int, C: int) -> int:
+    """Rows after the hand that one victim scan may look at (bounds the serial scan like the per-slot 2C window)."""
+    return min(H, 2 * nreq * C)
+
+
+def pick_victims_global_ref(last_s: torch.Tensor, hand: int, step: int, age: int, n_miss: int, Wv: int):
+    """Windowed CLOCK for the global pool: UP TO n_miss victims among the Wv rows after the hand (OLD rows first, then
+    rows not used in this step). Returns (victims int64[<= n_miss], new_hand)."""
+    H = last_s.numel()
+    if n_miss <= 0:
+        return last_s.new_zeros(0, dtype=torch.int64), hand
+    t = torch.arange(min(Wv, H), device=last_s.device)
+    rows = (hand + t) % H
+    lst = last_s[rows]
+    cls_a = lst < step - age
+    cls_b = (lst != step) & ~cls_a
+    pa = t[cls_a][:n_miss]
+    pb = t[cls_b][: n_miss - pa.numel()]
+    used = torch.cat([pa, pb])
+    if used.numel() == 0:
+        return used, hand
+    return rows[used], (hand + int(used.max()) + 1) % H
+
+
+def gather_rows_global_ref(kv, gpu_bt, host_kv, host_bt, idx, n_valid, staging_kv, staging_bt, hot: HotLayer,
+                           req_slot, step: int, age: int, copy: bool = True, null_block: int = -1,
+                           window: int | None = None, cached_slots: int = 1):
+    """Reference of gather_rows_tiered_global, one layer (hot = HotBuffer(num_slots=1).layer(l)).
+    Same arguments as gather_rows_tiered_ref; host_kv must hold int8 pthfa rows. Requests with req_slot <
+    cached_slots use the pool, the others are uncached (padding rows, suffixes). Returns [hit, miss, resident,
+    uncached] (uncached = cacheable misses that found no victim row, a subset of miss)."""
+    nreq, C = idx.shape
+    BS = staging_kv.shape[2] if staging_kv is not None else host_kv.shape[2]
+    last, tag, p2r = hot.last[0], hot.tag[0], hot.pos2row[0]
+    H, NK = last.numel(), p2r.numel()
+    per = []
+    M = 0
+    tot = [0, 0, 0, 0]
+    # ---- phase 1 (all requests): classify, refresh hits, count cacheable misses
+    for r in range(nreq):
+        n = int(n_valid[r])
+        pos = idx[r, :n].long()
+        blk, off = pos // BS, pos % BS
+        gb = gpu_bt[r].long()[blk]
+        res = (gb >= 0) & (gb != null_block)
+        hb = host_bt[r].long()[blk]
+        key = hb * BS + off
+        keyok = (~res) & (hb >= 0) & (key < NK) & (int(req_slot[r]) < cached_slots)
+        hrow = torch.full_like(pos, -1)
+        hrow[keyok] = p2r[key[keyok]].long()
+        hit = hrow >= 0
+        miss = (~res) & ~hit
+        cm = miss & keyok  # cacheable misses, in column order
+        last[hrow[hit]] = step
+        per.append((n, blk, off, gb, res, hb, key, hrow, hit, miss, cm, M))
+        M += int(cm.sum())
+        tot[0] += int(hit.sum()); tot[1] += int(miss.sum()); tot[2] += int(res.sum())
+    # ---- phase 2 (once): victims for the whole batch
+    Wv = global_window(H, nreq, C) if window is None else window
+    vic, nh = pick_victims_global_ref(last, int(hot.hand[0]), step, age, M, Wv)
+    hot.hand[0] = nh
+    nv = vic.numel()
+    tot[3] = M - nv
+    # ---- phase 3 (per request): fill victim rows, stage
+    for r in range(nreq):
+        n, blk, off, gb, res, hb, key, hrow, hit, miss, cm, base = per[r]
+        g = base + torch.arange(int(cm.sum()), device=idx.device)
+        okc = g < nv
+        ck = key[cm][okc]
+        v = vic[g[okc]]
+        if v.numel():
+            old = tag[v].long()
+            ok = old >= 0
+            oo = old[ok]
+            still = p2r[oo].long() == v[ok]  # CAS: clear only if the key still points at the victim row
+            p2r[oo[still]] = -1
+            tag[v] = ck.to(torch.int32)
+            p2r[ck] = v.to(torch.int32)
+            last[v] = step
+            if copy:
+                hot.kv[0][v] = host_kv[hb[cm][okc], :, off[cm][okc]].to(hot.kv.device)
+        if copy:
+            j = torch.arange(n, device=staging_kv.device)
+            db = staging_bt[r].long()[j // BS]
+            src = torch.empty((n, kv.shape[1], kv.shape[3]), dtype=kv.dtype, device=kv.device)
+            src[res] = kv[gb[res], :, off[res]]
+            src[hit] = hot.kv[0][hrow[hit]]
+            src[miss] = host_kv[hb[miss], :, off[miss]].to(kv.device)
+            staging_kv[db, :, j % BS] = src
     return tot
 
 
@@ -427,11 +553,15 @@ if triton is not None:
 class TierScratch:
     """Per-(nreq, C) scratch buffers for gather_rows_tiered (allocate once; reused across layers/steps)."""
 
-    def __init__(self, max_reqs: int, C: int, device="cuda"):
+    def __init__(self, max_reqs: int, C: int, device="cuda", glob: bool = False):
         self.code = torch.zeros((max_reqs, C), dtype=torch.int8, device=device)
         self.src = torch.zeros((max_reqs, C), dtype=torch.int64, device=device)
         self.rank = torch.zeros((max_reqs, C), dtype=torch.int32, device=device)
         self.victim = torch.zeros((max_reqs, C), dtype=torch.int32, device=device)
+        if glob:  # S14 global pool: per-request cacheable-miss counts / victim-list offsets, victims found
+            self.nmiss = torch.zeros(max_reqs, dtype=torch.int32, device=device)
+            self.base = torch.zeros(max_reqs, dtype=torch.int32, device=device)
+            self.nvict = torch.zeros(1, dtype=torch.int32, device=device)
 
 
 def gather_rows_tiered(kv, gpu_bt, host_dev, host_bt, idx, n_valid, staging_kv, staging_bt, hot: HotBuffer, layer: int,
@@ -491,6 +621,262 @@ def gather_rows_tiered(kv, gpu_bt, host_dev, host_bt, idx, n_valid, staging_kv, 
         kv4, ho4, hl.kv.view(torch.int32), st4,
         staging_bt, hl.tag, hl.last, hl.pos2row,
         C, staging_bt.stride(0), hot.H, hot.max_ctx, hot.kv_slots,
+        kv4.stride(0), kv4.stride(1), kv4.stride(2), ho4.stride(0), ho4.stride(1), ho4.stride(2),
+        st4.stride(0), st4.stride(1), st4.stride(2),
+        HKV=HKV, BS=BS, W4=W4, W4P=triton.next_power_of_2(W4), TPP=tpp, HOST4=host4, num_warps=4,
+    )
+
+
+# ----------------------------------------------------------------------------------------------------------------
+# S14 global hot pool: Triton kernels (see the S14 block above gather_rows_global_ref for the design).
+# GPU check: sparsekv/test_s14_hot_gpu.py; CPU reference check: sparsekv/test_s14_hot_cpu.py.
+# Codes written by the resolve kernel: 1 resident, 2 hot hit, 3 host miss that may be cached (rank = its index among
+# the request's cacheable misses), 4 host miss that is never cached (uncached request, unmapped / out-of-range key).
+# ----------------------------------------------------------------------------------------------------------------
+if triton is not None:
+
+    @triton.jit
+    def _tier_resolve_g_kernel(
+        idx_ptr, nvalid_ptr, gbt_ptr, hbt_ptr, slot_ptr, step_ptr,
+        pos2row_ptr, last_ptr,
+        code_ptr, src_ptr, rank_ptr, nmiss_ptr, stats_ptr,
+        C, MAXBLK, HBT_S0, HBW, NK, CSLOTS, NULLB,
+        BS: tl.constexpr, BLOCK: tl.constexpr,
+    ):
+        # one program per request: classify, refresh hits (pool = slot 0), count cacheable misses. No victims here:
+        # every request's hits must be marked before the single victim scan (_tier_victims_g_kernel).
+        r = tl.program_id(0)
+        cached = tl.load(slot_ptr + r) < CSLOTS
+        n = tl.load(nvalid_ptr + r)
+        step = tl.load(step_ptr)
+        ncm = 0
+        nmiss = 0
+        nhit = 0
+        nres = 0
+        for c0 in range(0, C, BLOCK):
+            j = c0 + tl.arange(0, BLOCK)
+            m = j < n
+            pos = tl.load(idx_ptr + r * C + j, mask=m, other=0)
+            m = m & (pos >= 0)
+            pos = tl.where(m, pos, 0)
+            blk = pos // BS
+            m = m & (blk < MAXBLK)
+            off = pos - blk * BS
+            gb = tl.load(gbt_ptr + r * MAXBLK + blk, mask=m, other=-1)
+            res = m & (gb >= 0) & (gb != NULLB)
+            nr = m & ~res
+            hb = tl.load(hbt_ptr + r * HBT_S0 + blk, mask=nr & (blk < HBW), other=-1)
+            key = hb.to(tl.int64) * BS + off
+            kok = nr & (hb >= 0) & (key < NK) & cached
+            hrow = tl.load(pos2row_ptr + key, mask=kok, other=-1)
+            hit = kok & (hrow >= 0)
+            miss = nr & ~hit
+            cm = miss & kok
+            tl.store(last_ptr + hrow, step, mask=hit)
+            code = tl.where(res, 1, tl.where(hit, 2, tl.where(cm, 3, tl.where(miss, 4, 0))))
+            hsrc = tl.where(hb >= 0, key, off.to(tl.int64))  # unmapped block: read host block 0 (in range), as before
+            src = tl.where(res, gb.to(tl.int64) * BS + off, tl.where(hit, hrow.to(tl.int64), hsrc))
+            ci = cm.to(tl.int32)
+            rank = tl.cumsum(ci, 0) - 1 + ncm
+            tl.store(code_ptr + r * C + j, code.to(tl.int8), mask=j < C)
+            tl.store(src_ptr + r * C + j, src, mask=j < C)
+            tl.store(rank_ptr + r * C + j, rank, mask=j < C)
+            ncm += tl.sum(ci, 0)
+            nmiss += tl.sum(miss.to(tl.int32), 0)
+            nhit += tl.sum(hit.to(tl.int32), 0)
+            nres += tl.sum(res.to(tl.int32), 0)
+        tl.store(nmiss_ptr + r, ncm)
+        tl.atomic_add(stats_ptr + 0, nhit.to(tl.int64))
+        tl.atomic_add(stats_ptr + 1, nmiss.to(tl.int64))
+        tl.atomic_add(stats_ptr + 2, nres.to(tl.int64))
+
+    @triton.jit
+    def _tier_victims_g_kernel(
+        nmiss_ptr, base_ptr, nvict_ptr, step_ptr, last_ptr, hand_ptr, victim_ptr,
+        NREQ, H, WV, AGE,
+        NRP: tl.constexpr, BLOCK2: tl.constexpr,
+    ):
+        # ONE program for the batch: prefix-sum the requests' cacheable misses (base[r] = first entry of request r in
+        # the victim list), then the same two-pass windowed CLOCK scan as _tier_resolve_kernel, over the pool.
+        rr = tl.arange(0, NRP)
+        cnt = tl.load(nmiss_ptr + rr, mask=rr < NREQ, other=0)
+        cs = tl.cumsum(cnt, 0)
+        tl.store(base_ptr + rr, cs - cnt, mask=rr < NREQ)
+        nmiss = tl.sum(cnt, 0)
+        step = tl.load(step_ptr)
+        hand = tl.load(hand_ptr)
+        ca = nmiss * 0
+        maxt = nmiss * 0 - 1
+        t0 = nmiss * 0
+        while (t0 < WV) & (ca < nmiss):
+            t = t0 + tl.arange(0, BLOCK2)
+            mt = t < WV
+            row = (hand + t) % H
+            lst = tl.load(last_ptr + row, mask=mt, other=step, volatile=True)
+            isa = mt & (lst < step - AGE)
+            ra = tl.cumsum(isa.to(tl.int32), 0) - 1 + ca
+            use = isa & (ra < nmiss)
+            tl.store(victim_ptr + ra, row, mask=use)
+            maxt = tl.maximum(maxt, tl.max(tl.where(use, t, -1), 0))
+            ca += tl.sum(isa.to(tl.int32), 0)
+            t0 += BLOCK2
+        na = tl.minimum(ca, nmiss)
+        cb = nmiss * 0
+        t0 = nmiss * 0
+        while (t0 < WV) & (cb < nmiss - na):
+            t = t0 + tl.arange(0, BLOCK2)
+            mt = t < WV
+            row = (hand + t) % H
+            lst = tl.load(last_ptr + row, mask=mt, other=step, volatile=True)
+            isb = mt & (lst != step) & (lst >= step - AGE)
+            rb = tl.cumsum(isb.to(tl.int32), 0) - 1 + cb
+            use = isb & (rb < nmiss - na)
+            tl.store(victim_ptr + na + rb, row, mask=use)
+            maxt = tl.maximum(maxt, tl.max(tl.where(use, t, -1), 0))
+            cb += tl.sum(isb.to(tl.int32), 0)
+            t0 += BLOCK2
+        newhand = tl.where(maxt >= 0, (hand + maxt + 1) % H, hand)
+        tl.store(hand_ptr, newhand)
+        tl.store(nvict_ptr, na + tl.minimum(cb, nmiss - na))  # victims found (< nmiss: the rest stays uncached)
+
+    @triton.jit
+    def _tier_fill4_g_kernel(nvalid_ptr, code_ptr, src_ptr, rank_ptr, victim_ptr, base_ptr, nvict_ptr,
+                             host_ptr, HO_SB, HO_SH, HO_ST, hot_ptr, stg_ptr, ST_SB, ST_SH, ST_ST, sbt_ptr,
+                             C, NBS, HKV: tl.constexpr, BS: tl.constexpr, W: tl.constexpr, TPP: tl.constexpr):
+        # int4 host tier: dequantise host misses into their victim pool row (code 3 with a victim) or straight into
+        # the staging row (code 4, or code 3 beyond the victims found)
+        r = tl.program_id(0)
+        j0 = tl.program_id(1) * TPP
+        n = tl.load(nvalid_ptr + r)
+        base = tl.load(base_ptr + r)
+        nv = tl.load(nvict_ptr)
+        h = tl.arange(0, HKV)[:, None]
+        m = h >= 0
+        for jj in range(TPP):
+            j = j0 + jj
+            if j < n:
+                code = tl.load(code_ptr + r * C + j).to(tl.int32)
+                if code >= 3:
+                    sv = tl.load(src_ptr + r * C + j)
+                    sblk = sv // BS
+                    soff = sv - sblk * BS
+                    src = host_ptr + sblk * HO_SB + h * HO_SH + soff * HO_ST
+                    g = base + tl.load(rank_ptr + r * C + j)
+                    if (code == 3) & (g < nv):
+                        v = tl.load(victim_ptr + g).to(tl.int64)
+                        dst = hot_ptr + v * (HKV * W) + h * W
+                    else:
+                        dblk = tl.load(sbt_ptr + r * NBS + j // BS).to(tl.int64)
+                        dst = stg_ptr + dblk * ST_SB + h * ST_SH + (j % BS) * ST_ST
+                    _dq4_half(src, dst, m, HKV)
+                    _dq4_half(src + 136, dst + 260, m, HKV)
+
+    @triton.jit
+    def _tier_copy_g_kernel(
+        nvalid_ptr, step_ptr, code_ptr, src_ptr, rank_ptr, victim_ptr, base_ptr, nvict_ptr,
+        kv_ptr, host_ptr, hot_ptr, stg_ptr, sbt_ptr,
+        tag_ptr, last_ptr, pos2row_ptr,
+        C, NBS,
+        KV_SB, KV_SH, KV_ST, HO_SB, HO_SH, HO_ST, ST_SB, ST_SH, ST_ST,
+        HKV: tl.constexpr, BS: tl.constexpr, W4: tl.constexpr, W4P: tl.constexpr, TPP: tl.constexpr,
+        HOST4: tl.constexpr = False,
+    ):
+        # _tier_copy_kernel for the pool: rows are pool rows (slot 0), tags / pos2row are keyed by the host token
+        # (= src of a miss), and a code-3 miss is cached only if the victim scan reached it (base + rank < nvict)
+        r = tl.program_id(0)
+        j0 = tl.program_id(1) * TPP
+        n = tl.load(nvalid_ptr + r)
+        step = tl.load(step_ptr)
+        base = tl.load(base_ptr + r)
+        nv = tl.load(nvict_ptr)
+        h = tl.arange(0, HKV)[:, None]
+        e = tl.arange(0, W4P)[None, :]
+        em = e < W4
+        for jj in range(TPP):
+            j = j0 + jj
+            if j < n:
+                code = tl.load(code_ptr + r * C + j).to(tl.int32)
+                src = tl.load(src_ptr + r * C + j)  # int64
+                sblk = src // BS
+                soff = src - sblk * BS
+                kv_off = sblk * KV_SB + h * KV_SH + soff * KV_ST + e
+                ho_off = sblk * HO_SB + h * HO_SH + soff * HO_ST + e
+                g = base + tl.load(rank_ptr + r * C + j)
+                put = (code == 3) & (g < nv)  # this miss gets a pool row
+                v = tl.load(victim_ptr + g, mask=put, other=0).to(tl.int64)
+                x = tl.load(kv_ptr + kv_off, mask=em & (code == 1), other=0)
+                x += tl.load(hot_ptr + src * (HKV * W4) + h * W4 + e, mask=em & (code == 2), other=0)
+                if HOST4:
+                    # the fill kernel dequantised cached misses into pool row v, the others into the staging row
+                    x += tl.load(hot_ptr + v * (HKV * W4) + h * W4 + e, mask=em & put, other=0)
+                    keep = (code < 3) | put
+                else:
+                    x += tl.load(host_ptr + ho_off, mask=em & (code >= 3), other=0)
+                    keep = code >= 0
+                dblk = tl.load(sbt_ptr + r * NBS + j // BS).to(tl.int64)
+                doff = j % BS
+                tl.store(stg_ptr + dblk * ST_SB + h * ST_SH + doff * ST_ST + e, x, mask=em & keep)
+                if put:
+                    tl.store(hot_ptr + v * (HKV * W4) + h * W4 + e, x, mask=em)
+                    old = tl.load(tag_ptr + v)
+                    if old >= 0:
+                        tl.atomic_cas(pos2row_ptr + old, v.to(tl.int32), -1)
+                    tl.store(tag_ptr + v, src.to(tl.int32))
+                    tl.store(pos2row_ptr + src, v.to(tl.int32))
+                    tl.store(last_ptr + v, step)
+
+
+def gather_rows_tiered_global(kv, gpu_bt, host_dev, host_bt, idx, n_valid, staging_kv, staging_bt, hot: HotBuffer,
+                              layer: int, req_slot, scratch: TierScratch, cached_slots: int = 1, tpp: int = 4,
+                              block: int = 0, block2: int = 1024, null_block: int = -1,
+                              stats: torch.Tensor | None = None):
+    """gather_rows_tiered for the S14 GLOBAL hot pool (graph-capturable: three or four Triton launches with shapes
+    depending only on (nreq, C); no host sync).
+
+    hot          HotBuffer(num_slots=1, kv_slots=1, max_ctx=<host-pool tokens>): pool rows keyed by host token
+    host_bt      [nreq, >= maxblk] host block of every logical block (-1 = none); REQUIRED for every non-resident pick
+    req_slot     [nreq] int32; rows with req_slot < cached_slots use the pool, the others never touch it
+    scratch      TierScratch(..., glob=True) with at least nreq rows
+    C may exceed hot.H (misses beyond the victims found are staged straight from host).
+    """
+    nreq, C = idx.shape
+    NB, HKV, BS, W = kv.shape
+    assert hot.S == 1 and hot.kv_slots == 1, "global pool: HotBuffer with one slot"
+    assert W % 4 == 0 and nreq <= scratch.nmiss.numel() and nreq * C <= scratch.victim.numel()
+    assert gpu_bt.stride(1) == 1 and gpu_bt.stride(0) == gpu_bt.shape[1], "gpu_bt rows must be dense"
+    assert host_bt.stride(1) == 1 and host_bt.shape[1] >= gpu_bt.shape[1], "host_bt narrower than gpu_bt"
+    assert idx.is_contiguous()
+    hl = hot.layer(layer)
+    if block <= 0:
+        block = min(4096, triton.next_power_of_2(C))
+    _tier_resolve_g_kernel[(nreq,)](
+        idx, n_valid, gpu_bt, host_bt, req_slot, hot.step,
+        hl.pos2row, hl.last,
+        scratch.code, scratch.src, scratch.rank, scratch.nmiss, hot.stats if stats is None else stats,
+        C, gpu_bt.stride(0), host_bt.stride(0), host_bt.shape[1], hot.max_ctx, cached_slots, null_block,
+        BS=BS, BLOCK=block, num_warps=8,
+    )
+    _tier_victims_g_kernel[(1,)](
+        scratch.nmiss, scratch.base, scratch.nvict, hot.step, hl.last, hl.hand, scratch.victim,
+        nreq, hot.H, global_window(hot.H, nreq, C), hot.age,
+        NRP=triton.next_power_of_2(max(nreq, 2)), BLOCK2=block2, num_warps=8,
+    )
+    W4 = W // 4
+    host4 = host_dev.shape[-1] == W4H
+    if host4:
+        _tier_fill4_g_kernel[(nreq, triton.cdiv(C, tpp))](
+            n_valid, scratch.code, scratch.src, scratch.rank, scratch.victim, scratch.base, scratch.nvict,
+            host_dev, host_dev.stride(0), host_dev.stride(1), host_dev.stride(2), hl.kv, staging_kv,
+            staging_kv.stride(0), staging_kv.stride(1), staging_kv.stride(2), staging_bt,
+            C, staging_bt.stride(0), HKV=HKV, BS=BS, W=W, TPP=tpp, num_warps=4)
+    kv4, ho4, st4 = kv.view(torch.int32), host_dev.view(torch.int32), staging_kv.view(torch.int32)
+    for t in (kv4, ho4, st4):
+        assert t.stride(3) == 1, "token-head rows must be contiguous"
+    _tier_copy_g_kernel[(nreq, triton.cdiv(C, tpp))](
+        n_valid, hot.step, scratch.code, scratch.src, scratch.rank, scratch.victim, scratch.base, scratch.nvict,
+        kv4, ho4, hl.kv.view(torch.int32), st4,
+        staging_bt, hl.tag, hl.last, hl.pos2row,
+        C, staging_bt.stride(0),
         kv4.stride(0), kv4.stride(1), kv4.stride(2), ho4.stride(0), ho4.stride(1), ho4.stride(2),
         st4.stride(0), st4.stride(1), st4.stride(2),
         HKV=HKV, BS=BS, W4=W4, W4P=triton.next_power_of_2(W4), TPP=tpp, HOST4=host4, num_warps=4,
