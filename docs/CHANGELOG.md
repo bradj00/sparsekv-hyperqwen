@@ -14,8 +14,8 @@ notes of that pass, with everything that was ruled out and the open items, are i
 rate unlock applied (see the notes), and every comparison is base against variant on the same card.
 
 Two results for the full v1.2 build (all switches on) were still open when this was written:
-- accuracy gate: TODO(v1.2-gate)
-- 8-agent mix: TODO(v1.2-mix)
+- accuracy gate: call-site F1 0.852 -> 0.859, paired difference +0.007 [-0.016, +0.031], n = 120, 75/120 outputs identical: pass
+- 8-agent mix: long-turn TTFT median 55.2 -> 41.3 s and 39.8 -> 36.9 s (two seeds), max 130 -> 97 s and 135 -> 96 s, output tokens +3% and +16%, 0 failed requests
 
 ### Default configuration
 
@@ -52,8 +52,8 @@ INDUCTOR_DETERMINISTIC=1
 | The same, decode at 4 streams | | steady 266/390 → 282/491 tok/s; combined 207/255 → 228/310; follow-up TTFT median 2.2 → 1.4 s; level at 8 streams |
 | Accuracy gate for the shared hot buffer (with the smaller pieces, at 4 × 262K) | | call-site F1 0.852 → 0.862, **+0.010 [−0.011, +0.033]**, n = 120: no loss |
 | Deterministic compile | `INDUCTOR_DETERMINISTIC=1` | two fresh compiles and a run with poisoned free memory bit-identical; no speed cost (cold prefill 67 s both ways) |
-| Full v1.2 build, all switches on: accuracy gate | | TODO(v1.2-gate) |
-| Full v1.2 build, all switches on: 8-agent mix | | TODO(v1.2-mix) |
+| Full v1.2 build, all switches on: accuracy gate | | call-site F1 0.852 -> 0.859, paired difference +0.007 [-0.016, +0.031], n = 120, 75/120 outputs identical: pass |
+| Full v1.2 build, all switches on: 8-agent mix | | long-turn TTFT median 55.2 -> 41.3 s and 39.8 -> 36.9 s (two seeds), max 130 -> 97 s and 135 -> 96 s, output tokens +3% and +16%, 0 failed requests |
 
 Costs, which you should weigh:
 - **The fifth 250K agent is capacity only.** Each agent is 12-27% slower at five than at four, and 5 × 250K pins

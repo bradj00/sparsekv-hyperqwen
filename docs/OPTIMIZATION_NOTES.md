@@ -65,7 +65,7 @@ requests, serves the same traffic from less memory.
 - Decode at 4 streams: steady 266/390 -> 282/491 tok/s, combined 207/255 -> 228/310; follow-up TTFT median
   2.2 -> 1.4 s. Level at 8 streams. Part of the copy gain is higher draft acceptance in those runs; the explain
   figures and the miss rates are the steadier evidence.
-- Accuracy gate (with items 4 and 5 below, at 4 x 262K): F1 0.852 -> 0.862, +0.010 [-0.011, +0.033], n = 120.
+- Accuracy gate (with the shared plan, scheduler class and scale-view fix of item 4, at 4 x 262K): F1 0.852 -> 0.862, +0.010 [-0.011, +0.033], n = 120.
 
 ### 4. Smaller pieces
 

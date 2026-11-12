@@ -595,8 +595,10 @@ Those shortcuts cost call-site accuracy (`eval/bench/README.md`).
 
 v1.2 adds the knobs below. Their **code defaults are all off**; `serve-sparse.sh` turns on the ones marked "launcher 1".
 Measurements, costs and the list of what was tried and not adopted are in `docs/CHANGELOG.md` and
-`docs/OPTIMIZATION_NOTES.md`; method and tables in `eval/v12/README.md`. Still open for the full build with all
-switches on: accuracy gate TODO(v1.2-gate), 8-agent mix TODO(v1.2-mix).
+`docs/OPTIMIZATION_NOTES.md`; method and tables in `eval/v12/README.md`. The full build with all
+switches on passed the accuracy gate (call-site F1 0.852 -> 0.859, paired difference +0.007 [-0.016, +0.031],
+n = 120). In the 8-agent mix, switches on against off, the long-turn TTFT median went 55.2 -> 41.3 s and
+39.8 -> 36.9 s (two seeds), the worst case 130 -> 97 s and 135 -> 96 s, with 0 failed requests.
 
 | knob | code default | `serve-sparse.sh` | notes |
 |---|---|---|---|

@@ -10,8 +10,8 @@ Two results for the full v1.2 build (all switches on) were still open when this 
 
 | result | status |
 |---|---|
-| accuracy gate, full v1.2 build against the build before it | TODO(v1.2-gate) |
-| 8-agent mix, full v1.2 build, switches on against off | TODO(v1.2-mix) |
+| accuracy gate, full v1.2 build against the build before it | call-site F1 0.852 -> 0.859, paired difference +0.007 [-0.016, +0.031], n = 120, 75/120 outputs identical: pass |
+| 8-agent mix, full v1.2 build, switches on against off | long-turn TTFT median 55.2 -> 41.3 s and 39.8 -> 36.9 s (two seeds), max 130 -> 97 s and 135 -> 96 s, output tokens +3% and +16%, 0 failed requests |
 
 ## Setup common to all tests
 
