@@ -26,16 +26,20 @@ bash sparsekv/install.sh <venv> --check                                  # repor
 bash sparsekv/install.sh <venv> --uninstall                              # exact reverse
 ```
 The install steps:
-1. `patches/apply.sh --sparse <sp>/vllm`: the `sparse-*.patch` series entries, idempotent. These are
-   `sparse-tier-spill-kvcheck.patch` and `sparse-switch-dual-graphs.patch`.
+1. `patches/apply.sh --sparse <sp>/vllm`: the `sparse-*.patch` series entries, idempotent. In v1.2 these are
+   `sparse-tier-spill-kvcheck.patch`, `sparse-switch-dual-graphs.patch`, `sparse-prefill-yield-bypass.patch`,
+   `sparse-parser-qwen3-backports.patch`, `sparse-gdn-recover.patch`, `sparse-int8-scale-nofill.patch` and
+   `sparse-frontend-backports.patch`. Patches may stack on one file (the two parser patches do): applied-ness is
+   decided for the whole set, last first, on a scratch copy (`apply.sh --sparse-state <sp>/vllm` prints it).
 2. The pthfa patch on `<sp>/pth_flash_attn`.
-3. Copy the runtime `sparsekv/` package (ref, triton_ops, tier, tier_connector) into site-packages, so it imports from
+3. Copy the runtime `sparsekv/` package (ref, triton_ops, tier, tier_connector, sched) into site-packages, so it imports from
    any cwd, including the KV connector in EngineCore.
 4. Copy the basis with its sha256 and check the shape.
 5. Write a stamp (`<sp>/sparsekv/RELEASE`) and copies of the applied patches (`<venv>/share/sparsekv/applied/`). The
    copies are what makes upgrade and uninstall exact. Then an import check.
 
-**Fresh build:** `bash patches/apply.sh <sp>/vllm` applies all 53 patches, the two sparse ones included, and the pthfa
+**Fresh build:** `bash patches/apply.sh <sp>/vllm` applies the whole series (58 patches in v1.2, the seven sparse ones
+included), and the pthfa
 sources in this repo already carry the change. Then `install.sh` adds steps 3-5.
 
 **The installed changes are inert unless their knob is set:**
@@ -586,3 +590,48 @@ tables are in `eval/prefill/README.md`. In short:
 
 The earlier sections that recommend `SPARSE_STATS_SUB=4 SPARSE_SELECT_EVERY=2` and sparse follow-up suffixes describe v1.0.
 Those shortcuts cost call-site accuracy (`eval/bench/README.md`).
+
+## v1.2 (2026-11-11)
+
+v1.2 adds the knobs below. Their **code defaults are all off**; `serve-sparse.sh` turns on the ones marked "launcher 1".
+Measurements, costs and the list of what was tried and not adopted are in `docs/CHANGELOG.md` and
+`docs/OPTIMIZATION_NOTES.md`; method and tables in `eval/v12/README.md`. Still open for the full build with all
+switches on: accuracy gate TODO(v1.2-gate), 8-agent mix TODO(v1.2-mix).
+
+| knob | code default | `serve-sparse.sh` | notes |
+|---|---|---|---|
+| `SPARSE_GDN_RECOVER` (vLLM, `sparse-gdn-recover.patch`) | 0 | launcher 1 (when `SPEC=mtp` and `PREFIX_CACHE=1`) | one GDN state block per request under speculative decoding: 27 → 6 pinned blocks per request, 13-17 resident requests per card instead of 3-4. Bit-identical output. Needs `--mamba-cache-mode align` and the Triton GDN decode path (refuses to start otherwise) |
+| `SPARSE_TIER_HOT_GLOBAL` | 0 | launcher 1 (when `SPARSE_TIER_SPILL=1`) | one hot pool per sparse layer, keyed by host token and shared by all requests, instead of one hot buffer per request slot. Needs `SPARSE_TIER_SPILL=1` |
+| `SPARSE_TIER_HOT_GLOBAL_ROWS` | min(`MAX_SEQS`, 4) × the per-slot rows | not set | rows of the shared pool. At 8 or more concurrent spilled streams the default costs 5-8% decode; the 11 × 90K configuration uses 50176 (double) |
+| `SPARSE_TIER_SHARED_PLAN` | 0 | launcher 1 | the block-level residency plan of a decode step is computed by the first sparse layer and read by the others. Spill only. Speed effect not separable from noise |
+| `SPARSE_TIER_SHARED_PLAN_CHECK` | 0 | not set | debug: every reader also computes the plan and counts differing entries |
+| `SPARSE_SCHEDULER_CLS` (launcher) | n/a | launcher 1 (tier profile) | passes `--scheduler-cls sparsekv.sched.SparseScheduler`: the prefill-yield policy (`PrefillYield.step`) runs from a scheduler class instead of the `Scheduler.schedule` monkeypatch. Same policy object and knobs; follows the server's async-scheduling setting. The short-request bypass still needs `sparse-prefill-yield-bypass.patch` |
+| `INDUCTOR_DETERMINISTIC` (launcher; `start_qwen.sh` reads `INDUCTOR_DET`) | n/a | 1 | deterministic Inductor compile: every compile chooses the same reduction-kernel variants, so two builds of the same code give the same output. 0 = the old behaviour. No speed cost measured |
+| `SPARSE_PREFILL_BUDGET_SHARE` | 0 | not set | 1: pending prefills share each prefill step's token budget shortest-remaining-first (2: a fairness mode that reserves one block for the oldest prefill; it moves along the same trade-off). Needs `SPARSE_PREFILL_SHARE_CHUNK > 0` and the yield-bypass vLLM hook. Median long-turn wait −55-70%, worst case more than doubled, total output unchanged: use it with the deadline below |
+| `SPARSE_PREFILL_BUDGET_AGE` | 256 | not set | age credit of the ordering, in tokens per prefill step waited |
+| `SPARSE_PREFILL_BUDGET_MAX_WAIT` | 0 (off) | not set | deadline in seconds: prefills waiting longer go first, oldest first. 45 keeps the tail where it was with a modest median gain; 30 collapses to first-come-first-served; at 90 the tail is back |
+| `SPARSE_TIER_MAMBA_EVICT_SUPERSEDED` | 0 | not set | evict superseded host GDN checkpoints first. Measured and **not adopted**: output 98 → 60 tok/s, long TTFT 50 → 91 s (the "superseded" checkpoints are still hit) |
+| `SPARSE_PREFILL_DEEP_CHUNK_DEPTH` | 0 (off) | not set | cap prefill chunks beyond this depth while other requests decode. Measured and **not adopted**: within noise |
+| `SPARSE_TIER_S5_DMA` (existing) | 0 | not set | copy-engine prefetch for staging. v1.2 measurement: −8% follow-up prefill at an 80K prefix and −2-3% at 30K on the x4 card, 0-1% on the x16 card, output identical; not resolvable in the 8-agent mix |
+
+Without a knob (active once installed): `sparse-parser-qwen3-backports.patch` and `sparse-frontend-backports.patch`
+(Qwen3 tool-call parser and detokenizer fixes from upstream vLLM; a repeated tool parameter keeps its first value),
+`sparse-int8-scale-nofill.patch` (vLLM #64141).
+
+The larger MTP draft vocabulary (29,670 → 63,510 tokens) is a model directory, not a knob: build an id list with
+`sparsekv/tools/mk_draft_vocab_ids.py` from your own text, then a variant directory with
+`sparsekv/tools/mk_draft_vocab_variant.sh`, and serve it with `MODEL=<variant dir>`. No id list is shipped.
+
+Configurations (also in the README):
+
+```
+MAX_LEN=262144 MAX_SEQS=4  SPARSE_TIER_HOST_GB=17.8 SPARSE_TIER_HOST_MAMBA_SLOTS=8
+MAX_LEN=262144 MAX_SEQS=5  SPARSE_TIER_HOST_GB=22   SPARSE_TIER_HOST_MAMBA_SLOTS=10
+MAX_LEN=90112  MAX_SEQS=11 SPARSE_TIER_HOST_GB=17.8 SPARSE_TIER_HOST_MAMBA_SLOTS=32 SPARSE_TIER_HOT_GLOBAL_ROWS=50176
+```
+
+**Tests (CPU, no GPU; `PYTHONPATH=<tree>/pthfa/python:<tree>`, vLLM importable):** `sparsekv/test_s13_cpu.py`,
+`test_s14_sched_cpu.py`, `test_s14_hot_cpu.py`, `test_s15_budget_cpu.py`, `test_s17_combo_cpu.py`, and
+`bash bench/test_sparse_apply_stacked.sh` in the HyperQwen tree. GPU: `test_s13_gdn_recover_gpu.py`,
+`test_s14_hot_gpu.py`. `test_s15_budget_cpu.py` can also replay its scripted runs against an older revision of
+`tier_connector.py` (`SPARSE_TEST_BASE_REV`); that comparison is skipped by default.
